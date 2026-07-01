@@ -1,0 +1,11 @@
+{
+  "state": "done",
+  "started_at": "2026-06-23T07:55:17+00:00",
+  "finished_at": "2026-06-23T08:00:25+00:00",
+  "error": null,
+  "log_tail": null,
+  "backend": "cursor_inbox",
+  "engine": "tectonic",
+  "mode": "agent",
+  "agent_compile_log": null
+}

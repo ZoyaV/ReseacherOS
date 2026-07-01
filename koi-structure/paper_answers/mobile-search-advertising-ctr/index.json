@@ -1,0 +1,106 @@
+{
+  "question": "mobile search advertising CTR",
+  "project_id": "bicycle-ads-efficiency",
+  "created_at": "2026-06-22T14:48:19Z",
+  "count": 2,
+  "download_pdfs": false,
+  "index_markdown": "answers_index.md",
+  "cluster_report": "answer_clusters.md",
+  "cluster_backend": "abstract_heuristic",
+  "clusters": [
+    {
+      "key": "prediction-multi-task-analysis",
+      "label": "Prediction · Multi Task · Analysis",
+      "answer": "Papers in this group share themes around prediction, multi-task, analysis, conversion for: mobile search advertising CTR",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "prediction",
+        "multi-task",
+        "analysis",
+        "conversion",
+        "space",
+        "entire"
+      ],
+      "paper_titles": [
+        "An Analysis Of Entire Space Multi-Task Models For Post-Click Conversion Prediction"
+      ]
+    },
+    {
+      "key": "fintech-value-transaction",
+      "label": "Fintech · Value · Transaction",
+      "answer": "Papers in this group share themes around fintech, value, transaction, precise for: mobile search advertising CTR",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "fintech",
+        "value",
+        "transaction",
+        "precise",
+        "marketing",
+        "platforms"
+      ],
+      "paper_titles": [
+        "Expected Transaction Value Optimization for Precise Marketing in FinTech Platforms"
+      ]
+    }
+  ],
+  "papers": [
+    {
+      "rank": 1,
+      "title": "An Analysis Of Entire Space Multi-Task Models For Post-Click Conversion Prediction",
+      "arxiv_url": "https://arxiv.org/abs/2108.13475",
+      "arxiv_id": "2108.13475",
+      "year": 2021,
+      "source_report": "selected_results",
+      "answer_path": "01_An_Analysis_Of_Entire_Space_Multi-Task_Models_For_Post-Click_Conversion_Prediction.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Industrial recommender systems are frequently tasked with approximating probabilities for multiple, often closely related, user actions. For example, predicting if a user will click on an advertisement and if they will then purchase the advertised product.",
+      "comprehensive_answer": "Industrial recommender systems are frequently tasked with approximating probabilities for multiple, often closely related, user actions. For example, predicting if a user will click on an advertisement and if they will then purchase the advertised product. The conceptual similarity between these tasks has promoted the use of multi-task learning: a class of algorithms that aim to bring positive inductive transfer from related tasks. Here, we empirically evaluate multi-task learning approaches with neural networks for an online advertising task. Specifically, we consider approximating the probability of post-click conversion events (installs) (CVR) for mobile app advertising on a large-scale advertising platform, using the related click events (CTR) as an auxiliary task. We use an ablation approach to systematically study recent approaches that incorporate both multitask learning and \"entire space modeling\" which train the CVR on all logged examples rather than learning a conditional likelihood of conversion given clicked. Based on these results we show that several different approaches result in similar levels of positive transfer from the data-abundant CTR task to the CVR task and offer some insight into how the multi-task design choices address the two primary problems affecting the CVR task: data sparsity and data bias. Our findings add to the growing body of evidence suggesting that standard multi-task learning is a sensible approach to modelling related events in real-world large-scale applications and suggest the specific multitask approach can be guided by ease of implementation in an existing system.",
+      "evidence": [
+        "Industrial recommender systems are frequently tasked with approximating probabilities for multiple, often closely related, user actions.",
+        "For example, predicting if a user will click on an advertisement and if they will then purchase the advertised product.",
+        "The conceptual similarity between these tasks has promoted the use of multi-task learning: a class of algorithms that aim to bring positive inductive transfer from related tasks.",
+        "Here, we empirically evaluate multi-task learning approaches with neural networks for an online advertising task."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "prediction-multi-task-analysis",
+      "cluster_label": "Prediction · Multi Task · Analysis",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 2,
+      "title": "Expected Transaction Value Optimization for Precise Marketing in FinTech Platforms",
+      "arxiv_url": "https://arxiv.org/abs/2401.01525",
+      "arxiv_id": "2401.01525",
+      "year": 2024,
+      "source_report": "selected_results",
+      "answer_path": "02_Expected_Transaction_Value_Optimization_for_Precise_Marketing_in_FinTech_Platforms.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "FinTech platforms facilitated by digital payments are watching growth rapidly, which enable the distribution of mutual funds personalized to individual investors via mobile Apps. As the important intermediation of financial products investment, these platforms distribute thousands of mutual funds obtaining impressions under guaranteed delivery (GD) strategy required by fund companies.",
+      "comprehensive_answer": "FinTech platforms facilitated by digital payments are watching growth rapidly, which enable the distribution of mutual funds personalized to individual investors via mobile Apps. As the important intermediation of financial products investment, these platforms distribute thousands of mutual funds obtaining impressions under guaranteed delivery (GD) strategy required by fund companies. Driven by the profit from fund purchases of users, the platform aims to maximize each transaction amount of customers by promoting mutual funds to these investors who will be interested in. Different from the conversions in traditional advertising or e-commerce recommendations, the investment amount in each purchase varies greatly even for the same financial product, which provides a significant challenge for the promotion recommendation of mutual funds. In addition to predicting the click-through rate (CTR) or the conversion rate (CVR) as in traditional recommendations, it is essential for FinTech platforms to estimate the customers' purchase amount for each delivered fund and achieve an effective allocation of impressions based on the predicted results to optimize the total expected transaction value (ETV). In this paper, we propose an ETV optimized customer allocation framework (EOCA) that aims to maximize the total ETV of recommended funds, under the constraints of GD dealt with fund companies. To the best of our knowledge, it's the first attempt to solve the GD problem for financial product promotions based on customer purchase amount prediction. We conduct extensive experiments on large scale real-world datasets and online tests based on LiCaiTong, Tencent wealth management platform, to demonstrate the effectiveness of our proposed EOCA framework.",
+      "evidence": [
+        "FinTech platforms facilitated by digital payments are watching growth rapidly, which enable the distribution of mutual funds personalized to individual investors via mobile Apps.",
+        "As the important intermediation of financial products investment, these platforms distribute thousands of mutual funds obtaining impressions under guaranteed delivery (GD) strategy required by fund companies.",
+        "Driven by the profit from fund purchases of users, the platform aims to maximize each transaction amount of customers by promoting mutual funds to these investors who will be interested in.",
+        "Different from the conversions in traditional advertising or e-commerce recommendations, the investment amount in each purchase varies greatly even for the same financial product, which provides a significant challenge for the promotion recommendation of mutual funds."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "fintech-value-transaction",
+      "cluster_label": "Fintech · Value · Transaction",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    }
+  ]
+}

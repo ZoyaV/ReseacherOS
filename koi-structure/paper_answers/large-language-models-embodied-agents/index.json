@@ -1,0 +1,331 @@
+{
+  "question": "large language models embodied agents",
+  "project_id": "bicycle-ads-efficiency",
+  "created_at": "2026-06-22T14:47:04Z",
+  "count": 8,
+  "download_pdfs": false,
+  "index_markdown": "answers_index.md",
+  "cluster_report": "answer_clusters.md",
+  "cluster_backend": "abstract_heuristic",
+  "clusters": [
+    {
+      "key": "embodied-agents-user",
+      "label": "Embodied · Agents · User",
+      "answer": "Papers in this group share themes around embodied, agents, user, simulating for: large language models embodied agents",
+      "rationale": "Grouped 2 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "embodied",
+        "agents",
+        "user",
+        "simulating",
+        "conversational-ai",
+        "developing"
+      ],
+      "paper_titles": [
+        "Simulating User Agents for Embodied Conversational-AI",
+        "Developing Embodied Multisensory Dialogue Agents"
+      ]
+    },
+    {
+      "key": "embodied-agent-world",
+      "label": "Embodied · Agent · World",
+      "answer": "Papers in this group share themes around embodied, agent, world, generalist for: large language models embodied agents",
+      "rationale": "Grouped 3 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "embodied",
+        "agent",
+        "world",
+        "generalist",
+        "framework",
+        "flexible"
+      ],
+      "paper_titles": [
+        "An Embodied Generalist Agent in 3D World",
+        "RAI: Flexible Agent Framework for Embodied AI",
+        "RynnEC: Bringing MLLMs into Embodied World"
+      ]
+    },
+    {
+      "key": "platform-city-embodiedcity",
+      "label": "Platform · City · Embodiedcity",
+      "answer": "Papers in this group share themes around platform, city, embodiedcity, agent for: large language models embodied agents",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "platform",
+        "city",
+        "embodiedcity",
+        "agent",
+        "embodied",
+        "benchmark"
+      ],
+      "paper_titles": [
+        "EmbodiedCity: A Benchmark Platform for Embodied Agent in Real-world City Environment"
+      ]
+    },
+    {
+      "key": "active-embodied-pinverify",
+      "label": "Active · Embodied · Pinverify",
+      "answer": "Papers in this group share themes around active, embodied, pinverify, benchmark for: large language models embodied agents",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "active",
+        "embodied",
+        "pinverify",
+        "benchmark",
+        "verification",
+        "offline"
+      ],
+      "paper_titles": [
+        "PInVerify: An Offline Embodied Benchmark for Active Instance Verification"
+      ]
+    },
+    {
+      "key": "retrieval-embodied-memory",
+      "label": "Retrieval · Embodied · Memory",
+      "answer": "Papers in this group share themes around retrieval, embodied, memory, embodied-rag for: large language models embodied agents",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "retrieval",
+        "embodied",
+        "memory",
+        "embodied-rag",
+        "non-parametric",
+        "general"
+      ],
+      "paper_titles": [
+        "Embodied-RAG: General Non-parametric Embodied Memory for Retrieval and Generation"
+      ]
+    }
+  ],
+  "papers": [
+    {
+      "rank": 1,
+      "title": "Simulating User Agents for Embodied Conversational-AI",
+      "arxiv_url": "https://arxiv.org/abs/2410.23535",
+      "arxiv_id": "2410.23535",
+      "year": 2024,
+      "source_report": "selected_results",
+      "answer_path": "01_Simulating_User_Agents_for_Embodied_Conversational-AI.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Embodied agents designed to assist users with tasks must engage in natural language interactions, interpret instructions, execute actions, and communicate effectively to resolve issues. However, collecting large-scale, diverse datasets of situated human-robot dialogues to train and evaluate such agents is expensive, labor-intensive, and time-consuming.",
+      "comprehensive_answer": "Embodied agents designed to assist users with tasks must engage in natural language interactions, interpret instructions, execute actions, and communicate effectively to resolve issues. However, collecting large-scale, diverse datasets of situated human-robot dialogues to train and evaluate such agents is expensive, labor-intensive, and time-consuming. To address this challenge, we propose building a large language model (LLM)-based user agent that can simulate user behavior during interactions with an embodied agent in a virtual environment. Given a user goal (e.g., make breakfast), at each time step, the user agent may observe\" the robot actions or speak\" to either intervene with the robot or answer questions. Such a user agent assists in improving the scalability and efficiency of embodied dialogues dataset generation and is critical for enhancing and evaluating the robot's interaction and task completion ability, as well as for research in reinforcement learning using AI feedback. We evaluate our user agent's ability to generate human-like behaviors by comparing its simulated dialogues with the TEACh dataset. We perform three experiments: zero-shot prompting to predict dialogue acts, few-shot prompting, and fine-tuning on the TEACh training subset. Results show the LLM-based user agent achieves an F-measure of 42% with zero-shot prompting and 43.4% with few-shot prompting in mimicking human speaking behavior. Through fine-tuning, performance in deciding when to speak remained stable, while deciding what to say improved from 51.1% to 62.5%. These findings showcase the feasibility of the proposed approach for assessing and enhancing the effectiveness of robot task completion through natural language communication.",
+      "evidence": [
+        "Embodied agents designed to assist users with tasks must engage in natural language interactions, interpret instructions, execute actions, and communicate effectively to resolve issues.",
+        "However, collecting large-scale, diverse datasets of situated human-robot dialogues to train and evaluate such agents is expensive, labor-intensive, and time-consuming.",
+        "To address this challenge, we propose building a large language model (LLM)-based user agent that can simulate user behavior during interactions with an embodied agent in a virtual environment.",
+        "Given a user goal (e.g., make breakfast), at each time step, the user agent may observe\" the robot actions or speak\" to either intervene with the robot or answer questions."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "embodied-agents-user",
+      "cluster_label": "Embodied · Agents · User",
+      "cluster_rationale": "Grouped 2 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 2,
+      "title": "Developing Embodied Multisensory Dialogue Agents",
+      "arxiv_url": "https://arxiv.org/abs/1111.7190",
+      "arxiv_id": "1111.7190",
+      "year": 2011,
+      "source_report": "selected_results",
+      "answer_path": "02_Developing_Embodied_Multisensory_Dialogue_Agents.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "A few decades of work in the AI field have focused efforts on developing a new generation of systems which can acquire knowledge via interaction with the world. Yet, until very recently, most such attempts were underpinned by research which predominantly regarded linguistic phenomena as separated from the brain and body.",
+      "comprehensive_answer": "A few decades of work in the AI field have focused efforts on developing a new generation of systems which can acquire knowledge via interaction with the world. Yet, until very recently, most such attempts were underpinned by research which predominantly regarded linguistic phenomena as separated from the brain and body. This could lead one into believing that to emulate linguistic behaviour, it suffices to develop 'software' operating on abstract representations that will work on any computational machine. This picture is inaccurate for several reasons, which are elucidated in this paper and extend beyond sensorimotor and semantic resonance. Beginning with a review of research, I list several heterogeneous arguments against disembodied language, in an attempt to draw conclusions for developing embodied multisensory agents which communicate verbally and non-verbally with their environment. Without taking into account both the architecture of the human brain, and embodiment, it is unrealistic to replicate accurately the processes which take place during language acquisition, comprehension, production, or during non-linguistic actions. While robots are far from isomorphic with humans, they could benefit from strengthened associative connections in the optimization of their processes and their reactivity and sensitivity to environmental stimuli, and in situated human-machine interaction. The concept of multisensory integration should be extended to cover linguistic input and the complementary information combined from temporally coincident sensory impressions.",
+      "evidence": [
+        "A few decades of work in the AI field have focused efforts on developing a new generation of systems which can acquire knowledge via interaction with the world.",
+        "Yet, until very recently, most such attempts were underpinned by research which predominantly regarded linguistic phenomena as separated from the brain and body.",
+        "This could lead one into believing that to emulate linguistic behaviour, it suffices to develop 'software' operating on abstract representations that will work on any computational machine.",
+        "This picture is inaccurate for several reasons, which are elucidated in this paper and extend beyond sensorimotor and semantic resonance."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "embodied-agents-user",
+      "cluster_label": "Embodied · Agents · User",
+      "cluster_rationale": "Grouped 2 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 3,
+      "title": "An Embodied Generalist Agent in 3D World",
+      "arxiv_url": "https://arxiv.org/abs/2311.12871",
+      "arxiv_id": "2311.12871",
+      "year": 2023,
+      "source_report": "selected_results",
+      "answer_path": "03_An_Embodied_Generalist_Agent_in_3D_World.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Leveraging massive knowledge from large language models (LLMs), recent machine learning models show notable successes in general-purpose task solving in diverse domains such as computer vision and robotics. However, several significant challenges remain: (i) most of these models rely on 2D images yet exhibit a limited capacity for 3D input; (ii) these models rarely explore the tasks inherently defined in 3D world, e.g., 3D grounding, embodied reasoning and acting.",
+      "comprehensive_answer": "Leveraging massive knowledge from large language models (LLMs), recent machine learning models show notable successes in general-purpose task solving in diverse domains such as computer vision and robotics. However, several significant challenges remain: (i) most of these models rely on 2D images yet exhibit a limited capacity for 3D input; (ii) these models rarely explore the tasks inherently defined in 3D world, e.g., 3D grounding, embodied reasoning and acting. We argue these limitations significantly hinder current models from performing real-world tasks and approaching general intelligence. To this end, we introduce LEO, an embodied multi-modal generalist agent that excels in perceiving, grounding, reasoning, planning, and acting in the 3D world. LEO is trained with a unified task interface, model architecture, and objective in two stages: (i) 3D vision-language (VL) alignment and (ii) 3D vision-language-action (VLA) instruction tuning. We collect large-scale datasets comprising diverse object-level and scene-level tasks, which require considerable understanding of and interaction with the 3D world. Moreover, we meticulously design an LLM-assisted pipeline to produce high-quality 3D VL data. Through extensive experiments, we demonstrate LEO's remarkable proficiency across a wide spectrum of tasks, including 3D captioning, question answering, embodied reasoning, navigation and manipulation. Our ablative studies and scaling analyses further provide valuable insights for developing future embodied generalist agents. Code and data are available on project page.",
+      "evidence": [
+        "Leveraging massive knowledge from large language models (LLMs), recent machine learning models show notable successes in general-purpose task solving in diverse domains such as computer vision and robotics.",
+        "However, several significant challenges remain: (i) most of these models rely on 2D images yet exhibit a limited capacity for 3D input; (ii) these models rarely explore the tasks inherently defined in 3D world, e.g., 3D grounding, embodied reasoning and acting.",
+        "We argue these limitations significantly hinder current models from performing real-world tasks and approaching general intelligence.",
+        "To this end, we introduce LEO, an embodied multi-modal generalist agent that excels in perceiving, grounding, reasoning, planning, and acting in the 3D world."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "embodied-agent-world",
+      "cluster_label": "Embodied · Agent · World",
+      "cluster_rationale": "Grouped 3 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 4,
+      "title": "RAI: Flexible Agent Framework for Embodied AI",
+      "arxiv_url": "https://arxiv.org/abs/2505.07532",
+      "arxiv_id": "2505.07532",
+      "year": 2025,
+      "source_report": "selected_results",
+      "answer_path": "04_RAI_Flexible_Agent_Framework_for_Embodied_AI.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "With an increase in the capabilities of generative language models, a growing interest in embodied AI has followed. This contribution introduces RAI - a framework for creating embodied Multi Agent Systems for robotics.",
+      "comprehensive_answer": "With an increase in the capabilities of generative language models, a growing interest in embodied AI has followed. This contribution introduces RAI - a framework for creating embodied Multi Agent Systems for robotics. The proposed framework implements tools for Agents' integration with robotic stacks, Large Language Models, and simulations. It provides out-of-the-box integration with state-of-the-art systems like ROS 2. It also comes with dedicated mechanisms for the embodiment of Agents. These mechanisms have been tested on a physical robot, Husarion ROSBot XL, which was coupled with its digital twin, for rapid prototyping. Furthermore, these mechanisms have been deployed in two simulations: (1) robot arm manipulator and (2) tractor controller. All of these deployments have been evaluated in terms of their control capabilities, effectiveness of embodiment, and perception ability. The proposed framework has been used successfully to build systems with multiple agents. It has demonstrated effectiveness in all the aforementioned tasks. It also enabled identifying and addressing the shortcomings of the generative models used for embodied AI.",
+      "evidence": [
+        "With an increase in the capabilities of generative language models, a growing interest in embodied AI has followed.",
+        "This contribution introduces RAI - a framework for creating embodied Multi Agent Systems for robotics.",
+        "The proposed framework implements tools for Agents' integration with robotic stacks, Large Language Models, and simulations.",
+        "It provides out-of-the-box integration with state-of-the-art systems like ROS 2."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "embodied-agent-world",
+      "cluster_label": "Embodied · Agent · World",
+      "cluster_rationale": "Grouped 3 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 5,
+      "title": "EmbodiedCity: A Benchmark Platform for Embodied Agent in Real-world City Environment",
+      "arxiv_url": "https://arxiv.org/abs/2410.09604",
+      "arxiv_id": "2410.09604",
+      "year": 2024,
+      "source_report": "selected_results",
+      "answer_path": "05_EmbodiedCity_A_Benchmark_Platform_for_Embodied_Agent_in_Real-world_City_Environment.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Embodied artificial intelligence emphasizes the role of an agent's body in generating human-like behaviors. The recent efforts on EmbodiedAI pay a lot of attention to building up machine learning models to possess perceiving, planning, and acting abilities, thereby enabling real-time interaction with the world.",
+      "comprehensive_answer": "Embodied artificial intelligence emphasizes the role of an agent's body in generating human-like behaviors. The recent efforts on EmbodiedAI pay a lot of attention to building up machine learning models to possess perceiving, planning, and acting abilities, thereby enabling real-time interaction with the world. However, most works focus on bounded indoor environments, such as navigation in a room or manipulating a device, with limited exploration of embodying the agents in open-world scenarios. That is, embodied intelligence in the open and outdoor environment is less explored, for which one potential reason is the lack of high-quality simulators, benchmarks, and datasets. To address it, in this paper, we construct a benchmark platform for embodied intelligence evaluation in real-world city environments. Specifically, we first construct a highly realistic 3D simulation environment based on the real buildings, roads, and other elements in a real city. In this environment, we combine historically collected data and simulation algorithms to conduct simulations of pedestrian and vehicle flows with high fidelity. Further, we designed a set of evaluation tasks covering different EmbodiedAI abilities. Moreover, we provide a complete set of input and output interfaces for access, enabling embodied agents to easily take task requirements and current environmental observations as input and then make decisions and obtain performance evaluations. On the one hand, it expands the capability of existing embodied intelligence to higher levels. On the other hand, it has a higher practical value in the real world and can support more potential applications for artificial general intelligence. Based on this platform, we evaluate some popular large language models for embodied intelligence capabilities of different dimensions and difficulties.",
+      "evidence": [
+        "Embodied artificial intelligence emphasizes the role of an agent's body in generating human-like behaviors.",
+        "The recent efforts on EmbodiedAI pay a lot of attention to building up machine learning models to possess perceiving, planning, and acting abilities, thereby enabling real-time interaction with the world.",
+        "However, most works focus on bounded indoor environments, such as navigation in a room or manipulating a device, with limited exploration of embodying the agents in open-world scenarios.",
+        "That is, embodied intelligence in the open and outdoor environment is less explored, for which one potential reason is the lack of high-quality simulators, benchmarks, and datasets."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "platform-city-embodiedcity",
+      "cluster_label": "Platform · City · Embodiedcity",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 6,
+      "title": "PInVerify: An Offline Embodied Benchmark for Active Instance Verification",
+      "arxiv_url": "https://arxiv.org/abs/2605.30639",
+      "arxiv_id": "2605.30639",
+      "year": 2026,
+      "source_report": "selected_results",
+      "answer_path": "06_PInVerify_An_Offline_Embodied_Benchmark_for_Active_Instance_Verification.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Embodied agents have made strong progress in navigating to target objects, but reaching the goal vicinity does not guarantee that the agent has found the correct instance: subtle attribute differences (e.g., \"white floral\" vs. \"white striped\") often require close-range, multi-view inspection.",
+      "comprehensive_answer": "Embodied agents have made strong progress in navigating to target objects, but reaching the goal vicinity does not guarantee that the agent has found the correct instance: subtle attribute differences (e.g., \"white floral\" vs. \"white striped\") often require close-range, multi-view inspection. We address this gap with Active Instance Verification (AIV), a task in which an agent actively selects viewpoints around a candidate object to decide whether it matches a fine-grained natural-language description. We formalize AIV as a finite-horizon decision process and introduce PInVerify, an offline embodied benchmark for AIV: 3,000 evaluation episodes across 18 object categories, delivered as multi-view captures with a 6-sector navigation topology that exposes trap views (navigable but uninformative) and unreachable sectors. As reference baselines we build a training-free pipeline and a LoRA-fine-tuned end-to-end agent around open-source multimodal large language models (MLLMs) at on-device scale ($\\leq$8B parameters), with attribute decomposition, a visibility-weighted multi-view tracker, and three next-best-view (NBV) strategies. In our evaluation across Qwen3-VL (4B/8B), SenseNova-SI-1.2-InternVL3-8B, CLIP, and SigLIP2, the best MLLM-based baseline exceeds the best embedding baseline by 4.9 pp; GT-box ablations show a +3.1 pp detection gap; and we do not observe reliable gains from active viewpoint selection within the tested NBV strategies. A LoRA-fine-tuned agent (SFT+GSPO) reaches 85.6%. PInVerify aims to support further work on active, fine-grained semantic verification in embodied AI. Code: https://github.com/Avalon-S/PInVerify.",
+      "evidence": [
+        "Embodied agents have made strong progress in navigating to target objects, but reaching the goal vicinity does not guarantee that the agent has found the correct instance: subtle attribute differences (e.g., \"white floral\" vs.",
+        "\"white striped\") often require close-range, multi-view inspection.",
+        "We address this gap with Active Instance Verification (AIV), a task in which an agent actively selects viewpoints around a candidate object to decide whether it matches a fine-grained natural-language description.",
+        "We formalize AIV as a finite-horizon decision process and introduce PInVerify, an offline embodied benchmark for AIV: 3,000 evaluation episodes across 18 object categories, delivered as multi-view captures with a 6-sector navigation topology that exposes trap views (navigable but uninformative) and unreachable sectors."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "active-embodied-pinverify",
+      "cluster_label": "Active · Embodied · Pinverify",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 7,
+      "title": "RynnEC: Bringing MLLMs into Embodied World",
+      "arxiv_url": "https://arxiv.org/abs/2508.14160",
+      "arxiv_id": "2508.14160",
+      "year": 2025,
+      "source_report": "selected_results",
+      "answer_path": "03_RynnEC_Bringing_MLLMs_into_Embodied_World.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "We introduce RynnEC, a video multimodal large language model designed for embodied cognition. Built upon a general-purpose vision-language foundation model, RynnEC incorporates a region encoder and a mask decoder, enabling flexible region-level video interaction.",
+      "comprehensive_answer": "We introduce RynnEC, a video multimodal large language model designed for embodied cognition. Built upon a general-purpose vision-language foundation model, RynnEC incorporates a region encoder and a mask decoder, enabling flexible region-level video interaction. Despite its compact architecture, RynnEC achieves state-of-the-art performance in object property understanding, object segmentation, and spatial reasoning. Conceptually, it offers a region-centric video paradigm for the brain of embodied agents, providing fine-grained perception of the physical world and enabling more precise interactions. To mitigate the scarcity of annotated 3D datasets, we propose an egocentric video based pipeline for generating embodied cognition data. Furthermore, we introduce RynnEC-Bench, a region-centered benchmark for evaluating embodied cognitive capabilities. We anticipate that RynnEC will advance the development of general-purpose cognitive cores for embodied agents and facilitate generalization across diverse embodied tasks. The code, model checkpoints, and benchmark are available at: https://github.com/alibaba-damo-academy/RynnEC",
+      "evidence": [
+        "We introduce RynnEC, a video multimodal large language model designed for embodied cognition.",
+        "Built upon a general-purpose vision-language foundation model, RynnEC incorporates a region encoder and a mask decoder, enabling flexible region-level video interaction.",
+        "Despite its compact architecture, RynnEC achieves state-of-the-art performance in object property understanding, object segmentation, and spatial reasoning.",
+        "Conceptually, it offers a region-centric video paradigm for the brain of embodied agents, providing fine-grained perception of the physical world and enabling more precise interactions."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "embodied-agent-world",
+      "cluster_label": "Embodied · Agent · World",
+      "cluster_rationale": "Grouped 3 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 8,
+      "title": "Embodied-RAG: General Non-parametric Embodied Memory for Retrieval and Generation",
+      "arxiv_url": "https://arxiv.org/abs/2409.18313",
+      "arxiv_id": "2409.18313",
+      "year": 2024,
+      "source_report": "selected_results",
+      "answer_path": "08_Embodied-RAG_General_Non-parametric_Embodied_Memory_for_Retrieval_and_Generation.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "There is no limit to how much a robot might explore and learn, but all of that knowledge needs to be searchable and actionable. Within language research, retrieval augmented generation (RAG) has become the workhorse of large-scale non-parametric knowledge; however, existing techniques do not directly transfer to the embodied domain, which is multimodal, where data is highly correlated, and perception requires abstraction.",
+      "comprehensive_answer": "There is no limit to how much a robot might explore and learn, but all of that knowledge needs to be searchable and actionable. Within language research, retrieval augmented generation (RAG) has become the workhorse of large-scale non-parametric knowledge; however, existing techniques do not directly transfer to the embodied domain, which is multimodal, where data is highly correlated, and perception requires abstraction. To address these challenges, we introduce Embodied-RAG, a framework that enhances the foundational model of an embodied agent with a non-parametric memory system capable of autonomously constructing hierarchical knowledge for both navigation and language generation. Embodied-RAG handles a full range of spatial and semantic resolutions across diverse environments and query types, whether for a specific object or a holistic description of ambiance. At its core, Embodied-RAG's memory is structured as a semantic forest, storing language descriptions at varying levels of detail. This hierarchical organization allows the system to efficiently generate context-sensitive outputs across different robotic platforms. We demonstrate that Embodied-RAG effectively bridges RAG to the robotics domain, successfully handling over 250 explanation and navigation queries across kilometer-level environments, highlighting its promise as a general-purpose non-parametric system for embodied agents.",
+      "evidence": [
+        "There is no limit to how much a robot might explore and learn, but all of that knowledge needs to be searchable and actionable.",
+        "Within language research, retrieval augmented generation (RAG) has become the workhorse of large-scale non-parametric knowledge; however, existing techniques do not directly transfer to the embodied domain, which is multimodal, where data is highly correlated, and perception requires abstraction.",
+        "To address these challenges, we introduce Embodied-RAG, a framework that enhances the foundational model of an embodied agent with a non-parametric memory system capable of autonomously constructing hierarchical knowledge for both navigation and language generation.",
+        "Embodied-RAG handles a full range of spatial and semantic resolutions across diverse environments and query types, whether for a specific object or a holistic description of ambiance."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "retrieval-embodied-memory",
+      "cluster_label": "Retrieval · Embodied · Memory",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    }
+  ]
+}

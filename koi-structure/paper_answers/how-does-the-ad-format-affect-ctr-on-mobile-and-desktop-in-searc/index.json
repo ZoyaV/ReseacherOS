@@ -1,0 +1,194 @@
+{
+  "question": "How does the ad format affect CTR on mobile and desktop in search ads?",
+  "project_id": "bicycle-ads-efficiency",
+  "created_at": "2026-06-22T14:47:02Z",
+  "count": 4,
+  "download_pdfs": false,
+  "index_markdown": "answers_index.md",
+  "cluster_report": "answer_clusters.md",
+  "cluster_backend": "abstract_heuristic",
+  "clusters": [
+    {
+      "key": "personalization-via-llm-hyper",
+      "label": "Personalization · Via · Llm Hyper",
+      "answer": "Papers in this group share themes around personalization, via, llm-hyper, cold-start for: How does the ad format affect CTR on mobile and desktop in search ads?",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "personalization",
+        "via",
+        "llm-hyper",
+        "cold-start",
+        "llm-based",
+        "ctr"
+      ],
+      "paper_titles": [
+        "LLM-HYPER: Generative CTR Modeling for Cold-Start Ad Personalization via LLM-Based Hypernetworks"
+      ]
+    },
+    {
+      "key": "spotify-framework-ads",
+      "label": "Spotify · Framework · Ads",
+      "answer": "Papers in this group share themes around spotify, framework, ads, targeting for: How does the ad format affect CTR on mobile and desktop in search ads?",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "spotify",
+        "framework",
+        "ads",
+        "targeting",
+        "audio-centric",
+        "multi-task"
+      ],
+      "paper_titles": [
+        "An Audio-centric Multi-task Learning Framework for Streaming Ads Targeting on Spotify"
+      ]
+    },
+    {
+      "key": "calibrated-click-through-bayesian",
+      "label": "Calibrated · Click Through · Bayesian",
+      "answer": "Papers in this group share themes around calibrated, click-through, bayesian, auction for: How does the ad format affect CTR on mobile and desktop in search ads?",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "calibrated",
+        "click-through",
+        "bayesian",
+        "auction"
+      ],
+      "paper_titles": [
+        "Bayesian Calibrated Click-Through Auction"
+      ]
+    },
+    {
+      "key": "auctions-constraint-capacity",
+      "label": "Auctions · Constraint · Capacity",
+      "answer": "Papers in this group share themes around auctions, constraint, capacity, position for: How does the ad format affect CTR on mobile and desktop in search ads?",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "auctions",
+        "constraint",
+        "capacity",
+        "position"
+      ],
+      "paper_titles": [
+        "Position Auctions with a Capacity Constraint"
+      ]
+    }
+  ],
+  "papers": [
+    {
+      "rank": 1,
+      "title": "LLM-HYPER: Generative CTR Modeling for Cold-Start Ad Personalization via LLM-Based Hypernetworks",
+      "arxiv_url": "https://arxiv.org/abs/2604.12096",
+      "arxiv_id": "2604.12096",
+      "year": 2026,
+      "source_report": "selected_results",
+      "answer_path": "01_LLM-HYPER_Generative_CTR_Modeling_for_Cold-Start_Ad_Personalization_via_LLM-Based_Hypernetworks.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "On online advertising platforms, newly introduced promotional ads face the cold-start problem, as they lack sufficient user feedback for model training. In this work, we propose LLM-HYPER, a novel framework that treats large language models (LLMs) as hypernetworks to directly generate the parameters of the click-through rate (CTR) estimator in a training-free manner.",
+      "comprehensive_answer": "On online advertising platforms, newly introduced promotional ads face the cold-start problem, as they lack sufficient user feedback for model training. In this work, we propose LLM-HYPER, a novel framework that treats large language models (LLMs) as hypernetworks to directly generate the parameters of the click-through rate (CTR) estimator in a training-free manner. LLM-HYPER uses few-shot Chain-of-Thought prompting over multimodal ad content (text and images) to infer feature-wise model weights for a linear CTR predictor. By retrieving semantically similar past campaigns via CLIP embeddings and formatting them into prompt-based demonstrations, the LLM learns to reason about customer intent, feature influence, and content relevance. To ensure numerical stability and serviceability, we introduce normalization and calibration techniques that align the generated weights with production-ready CTR distributions. Extensive offline experiments show that LLM-HYPER significantly outperforms cold-start baselines in NDCG$@10$ by 55.9\\%. Our real-world online A/B test on one of the top e-commerce platforms in the U.S. demonstrates the strong performance of LLM-HYPER, which drastically reduces the cold-start period and achieves competitive performance. LLM-HYPER has been successfully deployed in production.",
+      "evidence": [
+        "On online advertising platforms, newly introduced promotional ads face the cold-start problem, as they lack sufficient user feedback for model training.",
+        "In this work, we propose LLM-HYPER, a novel framework that treats large language models (LLMs) as hypernetworks to directly generate the parameters of the click-through rate (CTR) estimator in a training-free manner.",
+        "LLM-HYPER uses few-shot Chain-of-Thought prompting over multimodal ad content (text and images) to infer feature-wise model weights for a linear CTR predictor.",
+        "By retrieving semantically similar past campaigns via CLIP embeddings and formatting them into prompt-based demonstrations, the LLM learns to reason about customer intent, feature influence, and content relevance."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "personalization-via-llm-hyper",
+      "cluster_label": "Personalization · Via · Llm Hyper",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 2,
+      "title": "An Audio-centric Multi-task Learning Framework for Streaming Ads Targeting on Spotify",
+      "arxiv_url": "https://arxiv.org/abs/2506.18735",
+      "arxiv_id": "2506.18735",
+      "year": 2025,
+      "source_report": "selected_results",
+      "answer_path": "02_An_Audio-centric_Multi-task_Learning_Framework_for_Streaming_Ads_Targeting_on_Spotify.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Spotify, a large-scale multimedia platform, attracts over 675 million monthly active users who collectively consume millions of hours of music, podcasts, audiobooks, and video content. This diverse content consumption pattern introduces unique challenges for computational advertising, which must effectively integrate a variety of ad modalities, including audio, video, and display, within a single user experience.",
+      "comprehensive_answer": "Spotify, a large-scale multimedia platform, attracts over 675 million monthly active users who collectively consume millions of hours of music, podcasts, audiobooks, and video content. This diverse content consumption pattern introduces unique challenges for computational advertising, which must effectively integrate a variety of ad modalities, including audio, video, and display, within a single user experience. Traditional ad recommendation models, primarily designed for foregrounded experiences, often struggle to reconcile the platform's inherent audio-centrality with the demands of optimizing ad performance across multiple formats and modalities. To overcome these challenges, we introduce Cross-modal Adaptive Mixture-of-Experts (CAMoE), a novel framework for optimizing click-through rate (CTR) prediction in both audio-centric and multi-modal settings. CAMoE enhances traditional mixture-of-experts models by incorporating modality-aware task grouping, adaptive loss masking, and deep-cross networks (DCN) to capture complex feature interactions within a multi-modal ad ecosystem. Through extensive ablation studies, we demonstrate that this approach achieves near Pareto-optimal performance across audio, video, and display ad formats, significantly improving AUC-PR compared to conventional single-task and content-based multi-task learning baselines. When deployed at scale on Spotify's ad serving platform, CAMoE delivered substantial gains, yielding a 14.5% increase in CTR for audio ads, a 1.3% increase for video ads, and a 4.8% reduction in expected cost-per-click (eCPC) for audio slots.",
+      "evidence": [
+        "Spotify, a large-scale multimedia platform, attracts over 675 million monthly active users who collectively consume millions of hours of music, podcasts, audiobooks, and video content.",
+        "This diverse content consumption pattern introduces unique challenges for computational advertising, which must effectively integrate a variety of ad modalities, including audio, video, and display, within a single user experience.",
+        "Traditional ad recommendation models, primarily designed for foregrounded experiences, often struggle to reconcile the platform's inherent audio-centrality with the demands of optimizing ad performance across multiple formats and modalities.",
+        "To overcome these challenges, we introduce Cross-modal Adaptive Mixture-of-Experts (CAMoE), a novel framework for optimizing click-through rate (CTR) prediction in both audio-centric and multi-modal settings."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "spotify-framework-ads",
+      "cluster_label": "Spotify · Framework · Ads",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 3,
+      "title": "Bayesian Calibrated Click-Through Auction",
+      "arxiv_url": "https://arxiv.org/abs/2306.06554",
+      "arxiv_id": "2306.06554",
+      "year": 2023,
+      "source_report": "selected_results",
+      "answer_path": "03_Bayesian_Calibrated_Click-Through_Auction.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "We study information design in click-through auctions, in which the bidders/advertisers bid for winning an opportunity to show their ads but only pay for realized clicks. The payment may or may not happen, and its probability is called the click-through rate (CTR).",
+      "comprehensive_answer": "We study information design in click-through auctions, in which the bidders/advertisers bid for winning an opportunity to show their ads but only pay for realized clicks. The payment may or may not happen, and its probability is called the click-through rate (CTR). This auction format is widely used in the industry of online advertising. Bidders have private values, whereas the seller has private information about each bidder's CTRs. We are interested in the seller's problem of partially revealing CTR information to maximize revenue. Information design in click-through auctions turns out to be intriguingly different from almost all previous studies in this space since any revealed information about CTRs will never affect bidders' bidding behaviors -- they will always bid their true value per click -- but only affect the auction's allocation and payment rule. In some sense, this makes information design effectively a constrained mechanism design problem. Our first result is an FPTAS to compute an approximately optimal mechanism under a constant number of bidders. The design of this algorithm leverages Bayesian bidder values which help to ``smooth'' the seller's revenue function and lead to better tractability. The design of this FPTAS is complex and primarily algorithmic. Our second main result pursues the design of ``simple'' mechanisms that are approximately optimal yet more practical. We primarily focus on the two-bidder situation, which is already notoriously challenging as demonstrated in recent works. When bidders' CTR distribution is symmetric, we develop a simple prior-free signaling scheme, whose construction relies on a parameter termed optimal signal ratio. The constructed scheme provably obtains a good approximation as long as the maximum and minimum of bidders' value density functions do not differ much.",
+      "evidence": [
+        "We study information design in click-through auctions, in which the bidders/advertisers bid for winning an opportunity to show their ads but only pay for realized clicks.",
+        "The payment may or may not happen, and its probability is called the click-through rate (CTR).",
+        "This auction format is widely used in the industry of online advertising.",
+        "Bidders have private values, whereas the seller has private information about each bidder's CTRs."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "calibrated-click-through-bayesian",
+      "cluster_label": "Calibrated · Click Through · Bayesian",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 4,
+      "title": "Position Auctions with a Capacity Constraint",
+      "arxiv_url": "https://arxiv.org/abs/2605.12040",
+      "arxiv_id": "2605.12040",
+      "year": 2026,
+      "source_report": "selected_results",
+      "answer_path": "04_Position_Auctions_with_a_Capacity_Constraint.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Sponsored search auctions are commonly modeled as an assignment of a fixed set of slots (positions) to a set of advertisers, with welfare maximization being reducible to a standard matching problem. Motivated by modern ad formats, we study a richer variant of the classical position auctions model, in which ads have heterogeneous sizes and the platform must jointly select and assign a subset of ads to positions subject to a global space constraint.",
+      "comprehensive_answer": "Sponsored search auctions are commonly modeled as an assignment of a fixed set of slots (positions) to a set of advertisers, with welfare maximization being reducible to a standard matching problem. Motivated by modern ad formats, we study a richer variant of the classical position auctions model, in which ads have heterogeneous sizes and the platform must jointly select and assign a subset of ads to positions subject to a global space constraint. We formulate this as a matching problem with a capacity constraint, and propose an algorithmic technique that goes beyond simple greedy methods while achieving constant factor approximation guarantees. Our allocation rule augments density-based ordering with capacity-aware local improvements, which allow for re-allocations that improve welfare, while respecting the capacity constraint. Applied in the context of position auctions, we analyze this mechanism under the assumption of single-parameter agents and position-dependent click-through-rates (CTRs). We show that a minor modification to our approach yields a universally truthful randomized mechanism with a constant factor approximation guarantee. To the best of our knowledge, this is the first truthful constant-approximation mechanism for this variant of capacity-constrained matching.",
+      "evidence": [
+        "Sponsored search auctions are commonly modeled as an assignment of a fixed set of slots (positions) to a set of advertisers, with welfare maximization being reducible to a standard matching problem.",
+        "Motivated by modern ad formats, we study a richer variant of the classical position auctions model, in which ads have heterogeneous sizes and the platform must jointly select and assign a subset of ads to positions subject to a global space constraint.",
+        "We formulate this as a matching problem with a capacity constraint, and propose an algorithmic technique that goes beyond simple greedy methods while achieving constant factor approximation guarantees.",
+        "Our allocation rule augments density-based ordering with capacity-aware local improvements, which allow for re-allocations that improve welfare, while respecting the capacity constraint."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "auctions-constraint-capacity",
+      "cluster_label": "Auctions · Constraint · Capacity",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    }
+  ]
+}
