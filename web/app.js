@@ -14,6 +14,7 @@ import {
 } from "./koi-loader.js";
 import { MindmapCamera } from "./lab-canvas.js";
 import { renderMarkdown } from "./markdown.js";
+import { initImageLightbox } from "./image-lightbox.js?v=20260703b";
 import {
   METHOD_ACTIVITY_H,
   bindMethodActivityZoomPreview,
@@ -5766,6 +5767,7 @@ function initKnowledge() {
 }
 
 async function init() {
+  initImageLightbox();
   initKnowledge();
   initPaper();
   initTheme();

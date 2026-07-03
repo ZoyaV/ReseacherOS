@@ -4129,6 +4129,122 @@ textarea.inline-edit-field {
   background: var(--surface-input);
 }
 
+/* Картинки в превью кликабельны — открываются в лайтбоксе */
+.markdown-preview img:not(.md-media--video) {
+  cursor: zoom-in;
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.markdown-preview img:not(.md-media--video):hover {
+  filter: brightness(1.06);
+}
+
+/* —— Лайтбокс просмотра картинок —— */
+.image-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-lightbox.hidden {
+  display: none;
+}
+
+.image-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 4, 10, 0.86);
+  backdrop-filter: blur(12px);
+}
+
+.image-lightbox-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.image-lightbox-stage.is-zoomed {
+  cursor: grab;
+}
+
+.image-lightbox-stage.is-dragging {
+  cursor: grabbing;
+}
+
+.image-lightbox-img {
+  max-width: 92vw;
+  max-height: 88vh;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+  transform-origin: center center;
+  transition: transform 0.08s ease-out;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.image-lightbox-stage.is-dragging .image-lightbox-img {
+  transition: none;
+}
+
+.image-lightbox-toolbar {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.4rem;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-modal) 92%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(16px);
+}
+
+.image-lightbox-btn,
+.image-lightbox-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-input);
+  color: var(--text);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+}
+
+.image-lightbox-btn:hover,
+.image-lightbox-close:hover {
+  background: color-mix(in srgb, var(--surface-input) 60%, var(--accent) 40%);
+  border-color: var(--accent);
+}
+
+.image-lightbox-btn:active,
+.image-lightbox-close:active {
+  transform: scale(0.94);
+}
+
+.image-lightbox-close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  font-size: 1.5rem;
+}
+
 @media (max-width: 640px) {
   .review-page {
     width: calc(100vw - 1rem);
