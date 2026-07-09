@@ -145,6 +145,7 @@ let state = {
   lab: null,
   activeNodeId: null,
   kanbanNodeId: null,
+  kanbanActiveTagFilters: [],
   questionsNodeId: null,
   reportCardId: null,
   reportBoardId: null,
@@ -3377,6 +3378,8 @@ function openKanbanModal(node) {
   const board = getBoardForNode(state.project, node);
   if (!board) return;
 
+  state.kanbanActiveTagFilters = loadKanbanTagFilters(state.project?.id);
+
   document.getElementById("kanban-modal-type").textContent =
     TYPE_LABELS[node.node_type];
   fillKanbanNodeMeta(node);
@@ -3712,6 +3715,103 @@ function projectCardTagVocabulary(project) {
     });
   });
   return [...seen.values()].sort((a, b) => a.localeCompare(b, "ru"));
+}
+
+const KANBAN_TAG_FILTER_KEY = "koi-kanban-tag-filter";
+
+function kanbanTagFilterStorageKey(projectId) {
+  return `${KANBAN_TAG_FILTER_KEY}:${projectId || ""}`;
+}
+
+function loadKanbanTagFilters(projectId) {
+  try {
+    const raw = localStorage.getItem(kanbanTagFilterStorageKey(projectId));
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.map((t) => String(t).toLowerCase()) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveKanbanTagFilters(projectId, filters) {
+  try {
+    localStorage.setItem(
+      kanbanTagFilterStorageKey(projectId),
+      JSON.stringify(filters.map((t) => String(t).toLowerCase()))
+    );
+  } catch {
+    /* ignore quota */
+  }
+}
+
+function cardMatchesKanbanTagFilter(card, activeFilters) {
+  if (!activeFilters?.length) return true;
+  const cardTags = (card.tags || []).map((t) => String(t).toLowerCase());
+  return activeFilters.some((f) => cardTags.includes(f));
+}
+
+function kanbanTagFilterChipHtml(tag, isActive) {
+  const activeClass = isActive ? " is-active" : "";
+  const pressed = isActive ? "true" : "false";
+  return `<button type="button" class="kanban-tag-filter-chip card-tag--hue${activeClass}" style="${cardTagHueStyle(tag)}" data-tag="${escapeHtml(tag)}" aria-pressed="${pressed}" title="${escapeHtml(tag)} — ${isActive ? "убрать из фильтра" : "показать карточки с тегом"}">
+    <span class="kanban-tag-filter-dot" aria-hidden="true"></span>
+    <span class="kanban-tag-filter-label">${escapeHtml(tag)}</span>
+  </button>`;
+}
+
+function renderKanbanTagFilter(project, board) {
+  const el = document.getElementById("kanban-tag-filter");
+  if (!el) return;
+
+  const tags = projectCardTagVocabulary(project);
+  if (!tags.length) {
+    el.classList.add("hidden");
+    el.innerHTML = "";
+    return;
+  }
+
+  const active = state.kanbanActiveTagFilters || [];
+  const chips = tags.map((t) => kanbanTagFilterChipHtml(t, active.includes(t.toLowerCase()))).join("");
+  const clearBtn =
+    active.length > 0
+      ? `<button type="button" class="kanban-tag-filter-clear" title="Показать все карточки">Сбросить</button>`
+      : "";
+
+  el.classList.remove("hidden");
+  el.innerHTML = `
+    <div class="kanban-tag-filter-head">
+      <span class="kanban-tag-filter-title">Теги</span>
+      ${clearBtn}
+    </div>
+    <div class="kanban-tag-filter-chips" role="group" aria-label="Фильтр по тегам">${chips}</div>`;
+
+  bindKanbanTagFilter(project, board);
+}
+
+function bindKanbanTagFilter(project, board) {
+  const el = document.getElementById("kanban-tag-filter");
+  if (!el) return;
+
+  el.querySelectorAll(".kanban-tag-filter-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tag = btn.dataset.tag;
+      if (!tag) return;
+      const key = tag.toLowerCase();
+      const active = [...(state.kanbanActiveTagFilters || [])];
+      const idx = active.indexOf(key);
+      if (idx >= 0) active.splice(idx, 1);
+      else active.push(key);
+      state.kanbanActiveTagFilters = active;
+      if (project?.id) saveKanbanTagFilters(project.id, active);
+      renderKanbanBoard(board);
+    });
+  });
+
+  el.querySelector(".kanban-tag-filter-clear")?.addEventListener("click", () => {
+    state.kanbanActiveTagFilters = [];
+    if (project?.id) saveKanbanTagFilters(project.id, []);
+    renderKanbanBoard(board);
+  });
 }
 
 function cardTagsEqual(a, b) {
@@ -4234,11 +4334,17 @@ function kanbanCardHtml(c, col, variant = "modal") {
         </div>`;
 }
 
-function kanbanBoardHtml(board, variant = "modal") {
+function kanbanBoardHtml(board, variant = "modal", { tagFilters = [] } = {}) {
+  const filtering = tagFilters?.length > 0;
   return (board.columns || [])
     .map((col) => {
-      const cards = board.cards.filter((c) => c.column_id === col.id);
+      const cards = board.cards.filter(
+        (c) => c.column_id === col.id && cardMatchesKanbanTagFilter(c, tagFilters)
+      );
       const cardsHtml = cards.map((c) => kanbanCardHtml(c, col, variant)).join("");
+      const emptyHtml = filtering
+        ? '<span class="col-empty col-empty--filtered">Нет карточек с выбранными тегами</span>'
+        : '<span class="col-empty">Перетащите сюда</span>';
       return `
         <div class="kanban-col" data-col="${col.id}">
           <div class="kanban-col-head">
@@ -4249,16 +4355,16 @@ function kanbanBoardHtml(board, variant = "modal") {
             <button type="button" class="col-add-btn" title="Добавить карточку" aria-label="Добавить карточку в ${escapeHtml(col.title)}">+</button>
           </div>
           <div class="kanban-col-body">
-            ${cardsHtml || '<span class="col-empty">Перетащите сюда</span>'}
+            ${cardsHtml || emptyHtml}
           </div>
         </div>`;
     })
     .join("");
 }
 
-function renderKanbanBoardInto(boardEl, board, { variant = "modal", node = null, project = null } = {}) {
+function renderKanbanBoardInto(boardEl, board, { variant = "modal", node = null, project = null, tagFilters = [] } = {}) {
   if (!boardEl || !board) return;
-  boardEl.innerHTML = kanbanBoardHtml(board, variant);
+  boardEl.innerHTML = kanbanBoardHtml(board, variant, { tagFilters });
   const ctx = { variant, node, project: project || state.project };
   bindKanbanCardEvents(boardEl, board, ctx);
   bindKanbanColumnActions(boardEl, board, ctx);
@@ -4282,9 +4388,14 @@ function renderKanbanBoardInto(boardEl, board, { variant = "modal", node = null,
 }
 
 function renderKanbanBoard(board) {
+  const project = state.project;
+  renderKanbanTagFilter(project, board);
   const boardEl = document.getElementById("kanban-board");
   if (!boardEl) return;
-  renderKanbanBoardInto(boardEl, board, { variant: "modal" });
+  renderKanbanBoardInto(boardEl, board, {
+    variant: "modal",
+    tagFilters: state.kanbanActiveTagFilters || [],
+  });
 }
 
 function bindKanbanColumnActions(boardEl, board, context = {}) {
