@@ -14,6 +14,18 @@ from koi.services.card_live import (
 )
 
 
+def test_parse_subtasks_inline_and_multiline() -> None:
+    text = "note\n- [x] Sync code\n- [ ] Train model"
+    subs = parse_subtasks(text)
+    assert subs["done"] == ["Sync code"]
+    assert subs["open"] == ["Train model"]
+
+    inline = "note - [x] A - [ ] B"
+    subs_inline = parse_subtasks(inline)
+    assert subs_inline["done"] == ["A"]
+    assert subs_inline["open"] == ["B"]
+
+
 def test_parse_live_hints_and_subtasks():
     text = """live_log: runs/train.log
 metrics_dir: runs/plots

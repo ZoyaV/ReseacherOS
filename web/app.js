@@ -1,6 +1,7 @@
 import {
   bindCardLiveModal,
   bindLiveInspectButtons,
+  cardHasLiveHints,
   runningCardContextsFromProjects,
   setRunningSeedProvider,
 } from "./card-live.js";
@@ -24,6 +25,7 @@ import {
   syncMethodActivity,
   syncMethodActivityOverlay,
   syncMethodActivityZoomMode,
+  subtasksFromDescription,
 } from "./method-activity.js";
 import {
   NODE_TYPE_HELP,
@@ -2595,7 +2597,17 @@ function renderInlineDisplay(el, text, placeholder) {
   if (placeholder) el.dataset.placeholder = placeholder;
 }
 
+function renderCardDescDisplay(descEl, description, columnId) {
+  if (!descEl) return;
+  const text = cardDescriptionForDisplay(description, columnId);
+  const placeholder = cardDescPlaceholder(columnId);
+  renderInlineDisplay(descEl, text, placeholder);
+  syncCardDescTodoOnlyState(descEl, description);
+}
+
 const CARD_DESC_PLACEHOLDER_PLAN = "План / заметка (двойной клик)";
+const CARD_DESC_PLACEHOLDER_RUNNING =
+  "Заметка или подзадачи: - [ ] пункт, - [x] готово (двойной клик)";
 const CARD_DESC_PLACEHOLDER_CONCLUSION = "Краткий вывод (двойной клик)";
 const KANBAN_CONCLUSION_COLUMNS = new Set(["done", "successful"]);
 
@@ -2608,9 +2620,25 @@ function isKanbanCompletedColumn(columnId) {
 }
 
 function cardDescPlaceholder(columnId) {
-  return isKanbanConclusionColumn(columnId)
-    ? CARD_DESC_PLACEHOLDER_CONCLUSION
-    : CARD_DESC_PLACEHOLDER_PLAN;
+  if (isKanbanConclusionColumn(columnId)) return CARD_DESC_PLACEHOLDER_CONCLUSION;
+  if (columnId === "running") return CARD_DESC_PLACEHOLDER_RUNNING;
+  return CARD_DESC_PLACEHOLDER_PLAN;
+}
+
+function cardDescriptionProse(description) {
+  return String(description || "")
+    .replace(/\\n/g, "\n")
+    .replace(/-\s*\[([ xX])\]\s*([^\n]*?)(?=\s*-\s*\[|$)/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function cardDescriptionForDisplay(description, columnId) {
+  const prose = cardDescriptionProse(description);
+  if (prose) return prose;
+  const subs = subtasksFromDescription(description);
+  if (subs.open.length + subs.done.length > 0) return "";
+  return String(description || "").trim();
 }
 
 function syncCardDescConclusionClass(descEl, columnId) {
@@ -3377,11 +3405,8 @@ function fillCardDisplay(cardEl, card) {
   const descEl = cardEl.querySelector(".card-desc-display");
   renderInlineDisplay(titleEl, card.title, "");
   syncCardDescConclusionClass(descEl, card.column_id);
-  renderInlineDisplay(
-    descEl,
-    card.description || "",
-    cardDescPlaceholder(card.column_id)
-  );
+  renderCardDescDisplay(descEl, card.description, card.column_id);
+  syncKanbanCardTodoProgress(cardEl, card);
 }
 
 async function persistCard(board, cardId, fields, opts = {}) {
@@ -3533,11 +3558,7 @@ function bindKanbanCardInline(cardEl, board, card) {
     setDisplay: (v) => {
       const c = getCard();
       syncCardDescConclusionClass(descDisplay, c.column_id);
-      renderInlineDisplay(
-        descDisplay,
-        v,
-        cardDescPlaceholder(c.column_id)
-      );
+      renderCardDescDisplay(descDisplay, v, c.column_id);
     },
     onCommit: async (description) => {
       const c = getCard();
@@ -3546,6 +3567,7 @@ function bindKanbanCardInline(cardEl, board, card) {
         description,
         column_id: c.column_id,
       });
+      if (updated) syncKanbanCardTodoProgress(cardEl, updated);
       return updated?.description ?? null;
     },
   });
@@ -3699,16 +3721,39 @@ function cardTagsEqual(a, b) {
 }
 
 function cardTagsRowHtml(tags, { kanban = false } = {}) {
-  const chips = (tags || []).map(
-    (t) =>
-      `<span class="card-tag-chip card-tag--hue" style="${cardTagHueStyle(t)}" data-tag="${escapeHtml(t)}" title="Клик по названию — изменить теги">
+  const list = tags || [];
+  if (kanban) {
+    const maxVisible = 2;
+    const visible = list.slice(0, maxVisible);
+    const hidden = list.slice(maxVisible);
+    const chips = visible
+      .map(
+        (t) =>
+          `<button type="button" class="card-tag-kanban card-tag--hue" style="${cardTagHueStyle(t)}" data-tag="${escapeHtml(t)}" title="${escapeHtml(t)} — изменить теги">
+            <span class="card-tag-kanban-dot" aria-hidden="true"></span>
+            <span class="card-tag-kanban-label">${escapeHtml(t)}</span>
+          </button>`
+      )
+      .join("");
+    const overflowHtml =
+      hidden.length > 0
+        ? `<span class="card-tag-kanban-overflow" title="${escapeHtml(hidden.join(", "))}">+${hidden.length}</span>`
+        : "";
+    const addBtn =
+      '<button type="button" class="card-tag-add card-tag-add--kanban" title="Добавить тег" aria-label="Добавить тег">+</button>';
+    return `<div class="card-tags card-tags--kanban">${chips}${overflowHtml}${addBtn}</div>`;
+  }
+  const chips = list
+    .map(
+      (t) =>
+        `<span class="card-tag-chip card-tag--hue" style="${cardTagHueStyle(t)}" data-tag="${escapeHtml(t)}" title="Клик по названию — изменить теги">
         <span class="card-tag-chip-label">${escapeHtml(t)}</span><span class="card-tag-chip-x" title="Снять">×</span>
       </span>`
-  ).join("");
+    )
+    .join("");
   const addBtn =
     '<button type="button" class="card-tag-add" title="Добавить тег" aria-label="Добавить тег">+</button>';
-  const cls = kanban ? "card-tags card-tags--kanban" : "card-tags";
-  return `<div class="${cls}">${chips}${addBtn}</div>`;
+  return `<div class="card-tags">${chips}${addBtn}</div>`;
 }
 
 let cardTagPopoverState = null;
@@ -3935,7 +3980,7 @@ function bindCardTagsContainer(container, board, getCard, { rerenderKanban = fal
   if (!container) return;
   const resolveCard = () => (typeof getCard === "function" ? getCard() : getCard);
 
-  container.querySelectorAll(".card-tag-chip").forEach((chip) => {
+  container.querySelectorAll(".card-tag-chip, .card-tag-kanban").forEach((chip) => {
     chip.addEventListener("click", (e) => {
       e.stopPropagation();
       const card = resolveCard();
@@ -3990,42 +4035,163 @@ function renderCardReportTags(card) {
   );
 }
 
+function mergedSubtasks(...sources) {
+  const open = [];
+  const done = [];
+  const seen = new Set();
+  for (const src of sources) {
+    const part = subtasksFromDescription(src);
+    for (const t of part.done) {
+      if (seen.has(t)) continue;
+      seen.add(t);
+      done.push(t);
+    }
+    for (const t of part.open) {
+      if (seen.has(t)) continue;
+      seen.add(t);
+      open.push(t);
+    }
+  }
+  return { open, done };
+}
+
+function cardHasSubtasks(description, reportContent = "") {
+  const { open, done } = mergedSubtasks(description, reportContent);
+  return open.length + done.length > 0;
+}
+
+function syncCardDescTodoOnlyState(descEl, description, reportContent = "") {
+  if (!descEl) return;
+  const prose = cardDescriptionProse(description);
+  const todoOnly = !prose && cardHasSubtasks(description, reportContent);
+  descEl.classList.toggle("has-todo-only", todoOnly);
+  descEl.classList.toggle("is-empty", !prose && !todoOnly);
+}
+
+function cardTodoProgressHtml(description, reportContent = "") {
+  const { open, done } = mergedSubtasks(description, reportContent);
+  const total = open.length + done.length;
+  if (!total) return "";
+  const donePct = Math.max(0, Math.min(100, Math.round((done.length / total) * 100)));
+  const current = open[0] || "";
+  const currentHtml = current
+    ? `<p class="kanban-card-todo-current" title="${escapeHtml(current)}">${escapeHtml(current.length > 56 ? `${current.slice(0, 55)}…` : current)}</p>`
+    : `<p class="kanban-card-todo-current kanban-card-todo-current--done">Все подзадачи выполнены</p>`;
+  return `<div class="kanban-card-todo">
+    <div class="kanban-card-todo-head">
+      <span class="kanban-card-todo-label">Подзадачи</span>
+      <span class="kanban-card-todo-meta">${done.length}/${total}</span>
+    </div>
+    <div class="kanban-card-todo-progress" role="progressbar" aria-valuenow="${done.length}" aria-valuemin="0" aria-valuemax="${total}" aria-label="${done.length} из ${total} подзадач выполнено">
+      <div class="kanban-card-todo-fill" style="width:${donePct}%"></div>
+    </div>
+    ${currentHtml}
+  </div>`;
+}
+
+function applyKanbanCardTodoProgress(cardEl, card, reportContent = "") {
+  if (!cardEl || !card) return;
+  const existing = cardEl.querySelector(".kanban-card-todo");
+  const html =
+    card.column_id === "running" ? cardTodoProgressHtml(card.description, reportContent) : "";
+  if (!html) {
+    existing?.remove();
+    return;
+  }
+  if (existing) {
+    existing.outerHTML = html;
+    return;
+  }
+  const footer = cardEl.querySelector(".kanban-card-footer");
+  footer?.insertAdjacentHTML("beforebegin", html);
+}
+
+function syncKanbanCardTodoProgress(cardEl, card, reportContent = "") {
+  const cached = cardEl?.dataset?.reportTodoSource || "";
+  applyKanbanCardTodoProgress(cardEl, card, reportContent || cached);
+}
+
+async function hydrateKanbanCardTodoFromReports(boardEl, board, project) {
+  if (!boardEl || !board) return;
+  const projectId = boardWriteProjectId(board);
+  const running = (board.cards || []).filter((c) => c.column_id === "running");
+  await Promise.all(
+    running.map(async (card) => {
+      const cardEl = boardEl.querySelector(`.kanban-card[data-card-id="${card.id}"]`);
+      if (!cardEl) return;
+      let reportContent = "";
+      if (!cardHasSubtasks(card.description)) {
+        try {
+          const data = await KoiApi.getCardReport(projectId, board.id, card.id);
+          reportContent = data.content || "";
+          if (reportContent) cardEl.dataset.reportTodoSource = reportContent;
+        } catch {
+          /* no report yet */
+        }
+      }
+      applyKanbanCardTodoProgress(cardEl, card, reportContent);
+      const descEl = cardEl.querySelector(".card-desc-display");
+      if (descEl) syncCardDescTodoOnlyState(descEl, card.description, reportContent);
+    })
+  );
+}
+
 function kanbanCardHtml(c, col, variant = "modal") {
-  const descEmpty = !c.description?.trim();
+  const displayDesc = cardDescriptionForDisplay(c.description, col.id);
+  const descEmpty = !displayDesc.trim() && !cardHasSubtasks(c.description);
+  const descTodoOnly = !displayDesc.trim() && cardHasSubtasks(c.description);
   const descConclusion = isKanbanConclusionColumn(col.id) ? " card-desc-conclusion" : "";
   const descPlaceholder = cardDescPlaceholder(col.id);
   const map = variant === "map";
   const deleteBtn = map
     ? ""
-    : `<button type="button" class="btn btn-small btn-danger card-delete" title="Удалить">×</button>`;
+    : `<button type="button" class="card-delete" title="Удалить" aria-label="Удалить карточку">×</button>`;
   const copyBtn = map
     ? ""
-    : `<button type="button" class="card-copy-path" title="Скопировать путь к файлу отчёта" aria-label="Скопировать путь к файлу отчёта">
+    : `<button type="button" class="card-copy-path card-action-btn" title="Скопировать путь к файлу отчёта" aria-label="Скопировать путь к файлу отчёта">
               <svg class="card-action-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             </button>`;
   const liveBtn =
-    col.id === "running"
-      ? `<button type="button" class="card-live-inspect method-activity-inspect" data-card-id="${c.id}" title="Live монитор" aria-label="Live монитор">🔍</button>`
+    col.id === "running" && !map && cardHasLiveHints(c.description)
+      ? `<button type="button" class="card-live-inspect" data-card-id="${c.id}" title="Live монитор" aria-label="Live монитор">
+              <svg class="card-live-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            </button>`
       : "";
+  const accentStyle = c.tags?.[0] ? cardTagHueStyle(c.tags[0]) : "";
+  const hasTags = (c.tags || []).length > 0;
+  const todoProgress =
+    col.id === "running" && cardHasSubtasks(c.description)
+      ? cardTodoProgressHtml(c.description)
+      : "";
+  const gripIcon = `<svg class="card-drag-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="1.35" fill="currentColor"/><circle cx="15" cy="7" r="1.35" fill="currentColor"/><circle cx="9" cy="12" r="1.35" fill="currentColor"/><circle cx="15" cy="12" r="1.35" fill="currentColor"/><circle cx="9" cy="17" r="1.35" fill="currentColor"/><circle cx="15" cy="17" r="1.35" fill="currentColor"/></svg>`;
+  const titleBlock = liveBtn
+    ? `<div class="kanban-card-title-row">
+                ${liveBtn}
+                <p class="card-title-display inline-edit-text" title="Двойной клик — редактировать">${escapeHtml(c.title)}</p>
+                <input type="text" class="card-title-input inline-edit-field hidden" />
+              </div>`
+    : `<p class="card-title-display inline-edit-text" title="Двойной клик — редактировать">${escapeHtml(c.title)}</p>
+              <input type="text" class="card-title-input inline-edit-field hidden" />`;
   return `
-        <div class="kanban-card" data-card-id="${c.id}">
+        <div class="kanban-card${hasTags ? " has-tag-accent" : ""}${liveBtn ? " has-live" : ""}" data-card-id="${c.id}"${accentStyle ? ` style="${accentStyle}"` : ""}>
           <div class="kanban-card-head">
-            <span class="card-drag-handle" draggable="true" title="Перетащить в другую колонку" aria-label="Перетащить">⠿</span>
+            <span class="card-drag-handle" draggable="true" title="Перетащить в другую колонку" aria-label="Перетащить">${gripIcon}</span>
             <div class="card-text-block">
-              <p class="card-title-display inline-edit-text" title="Двойной клик — редактировать">${escapeHtml(c.title)}</p>
-              <input type="text" class="card-title-input inline-edit-field hidden" />
-              ${cardTagsRowHtml(c.tags, { kanban: true })}
-              <p class="card-desc-display inline-edit-text card-desc-text${descEmpty ? " is-empty" : ""}${descConclusion}" data-placeholder="${escapeHtml(descPlaceholder)}">${escapeHtml(c.description || "")}</p>
+              ${titleBlock}
+              <p class="card-desc-display inline-edit-text card-desc-text${descEmpty ? " is-empty" : ""}${descTodoOnly ? " has-todo-only" : ""}${descConclusion}" data-placeholder="${escapeHtml(descPlaceholder)}">${escapeHtml(displayDesc)}</p>
               <textarea class="card-desc-input inline-edit-field hidden" rows="3"></textarea>
             </div>
             ${deleteBtn}
           </div>
-          <div class="kanban-card-actions">
-            ${liveBtn}
-            ${copyBtn}
-            <button type="button" class="card-expand-report" title="Открыть отчёт" aria-label="Открыть отчёт">
-              <svg class="card-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 3h6v6M10 14L21 3M21 14v7h-7"/></svg>
-            </button>
+          ${todoProgress}
+          <div class="kanban-card-footer">
+            ${cardTagsRowHtml(c.tags, { kanban: true })}
+            <div class="kanban-card-actions">
+              ${copyBtn}
+              <button type="button" class="card-expand-report card-action-btn" title="Открыть отчёт" aria-label="Открыть отчёт">
+                <svg class="card-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 3h6v6M10 14L21 3M21 14v7h-7"/></svg>
+              </button>
+            </div>
           </div>
         </div>`;
 }
@@ -4058,6 +4224,7 @@ function renderKanbanBoardInto(boardEl, board, { variant = "modal", node = null,
   const ctx = { variant, node, project: project || state.project };
   bindKanbanCardEvents(boardEl, board, ctx);
   bindKanbanColumnActions(boardEl, board, ctx);
+  void hydrateKanbanCardTodoFromReports(boardEl, board, ctx.project);
   const proj = ctx.project;
   if (proj?.id && board.id) {
     const running = (board.cards || []).filter((c) => c.column_id === "running");

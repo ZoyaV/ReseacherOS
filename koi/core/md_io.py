@@ -98,6 +98,15 @@ def _parse_card_tags(raw: str) -> list[str]:
     return normalize_card_tags(parts)
 
 
+def _encode_card_desc(desc: str) -> str:
+    """Keep kanban table rows single-line while preserving multiline descriptions."""
+    return desc.replace("\r\n", "\n").replace("\n", r"\n").replace("-->", "→")
+
+
+def _decode_card_desc(desc: str) -> str:
+    return desc.replace(r"\n", "\n")
+
+
 def _parse_card_comment(meta: str) -> tuple[Optional[str], str, list[str]]:
     card_id: Optional[str] = None
     desc = ""
@@ -115,7 +124,7 @@ def _parse_card_comment(meta: str) -> tuple[Optional[str], str, list[str]]:
 
     desc_m = re.search(r"\bdesc:(.*)$", meta_without_tags, re.DOTALL)
     if desc_m:
-        desc = desc_m.group(1).strip()
+        desc = _decode_card_desc(desc_m.group(1).strip())
 
     return card_id, desc, tags
 
@@ -363,8 +372,7 @@ def _format_card(cell: ExperimentCard) -> str:
     if cell.id:
         parts.append(f"id:{cell.id}")
     if cell.description:
-        desc = cell.description.replace("-->", "→")
-        parts.append(f"desc:{desc}")
+        parts.append(f"desc:{_encode_card_desc(cell.description)}")
     if cell.tags:
         tags = ",".join(t.replace(",", "") for t in cell.tags)
         parts.append(f"tags:{tags}")

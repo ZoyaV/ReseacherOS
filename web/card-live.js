@@ -2,6 +2,14 @@
 
 import { KoiApi } from "./api.js";
 
+/** Matches live_log / metrics_dir / live_note lines in card description (see card_live.py). */
+const LIVE_HINT_RE = /^(live_log|metrics_dir|live_note):\s*.+/im;
+
+/** @param {string} [text] */
+export function cardHasLiveHints(text) {
+  return LIVE_HINT_RE.test(String(text || "").replace(/\\n/g, "\n"));
+}
+
 const POLL_MS = 3000;
 const DEFAULT_VIEW = "metrics";
 
@@ -420,7 +428,7 @@ export function bindLiveInspectButtons(root, ctx, ui) {
   const cards = ctx.cards?.length ? ctx.cards : ctx.card ? [ctx.card] : [];
   const cardsById = Object.fromEntries(cards.map((c) => [c.id, c]));
 
-  root.querySelectorAll(".method-activity-inspect").forEach((btn) => {
+  root.querySelectorAll(".method-activity-inspect, .card-live-inspect").forEach((btn) => {
     if (btn.dataset.boundLive === "1") return;
     btn.dataset.boundLive = "1";
     btn.addEventListener("click", (e) => {

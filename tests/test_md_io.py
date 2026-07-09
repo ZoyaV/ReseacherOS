@@ -75,6 +75,34 @@ Method
     assert reloaded_by_id == {"c-gpu": ["gpu", "ablation"], "c-plain": []}
 
 
+def test_roundtrip_preserves_multiline_card_description() -> None:
+    text = """---
+id: proj-subtasks
+title: Subtasks
+---
+# problem: root
+
+Root
+
+#### method: m1
+
+Method
+
+<!-- koi:kanban board-m1 -->
+| backlog | running | done | successful |
+| --- | --- | --- | --- |
+| | Demo <!-- id:c-run desc:План\\n- [x] Sync\\n- [ ] Train --> | | |
+"""
+    project = parse_project_md(text, project_id="proj-subtasks")
+    card = project.boards[0].cards[0]
+    assert card.description == "План\n- [x] Sync\n- [ ] Train"
+
+    reserialized = serialize_project_md(project)
+    assert "desc:План\\n- [x] Sync\\n- [ ] Train" in reserialized
+    reloaded = parse_project_md(reserialized, project_id="proj-subtasks")
+    assert reloaded.boards[0].cards[0].description == card.description
+
+
 def test_roundtrip_preserves_successful_cards() -> None:
     text = """---
 id: proj-test

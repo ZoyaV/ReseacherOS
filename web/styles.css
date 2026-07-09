@@ -2931,12 +2931,42 @@ a.btn {
   height: 1.72rem;
 }
 
-.kanban-card-actions .card-live-inspect {
+.kanban-card .card-live-inspect {
   position: static;
-  width: 1.5rem;
-  height: 1.5rem;
-  font-size: 0.78rem;
   flex-shrink: 0;
+  width: 1.28rem;
+  height: 1.28rem;
+  margin: 0.12rem 0 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid color-mix(in srgb, var(--orange) 38%, var(--border));
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--orange) 8%, transparent);
+  color: color-mix(in srgb, var(--orange) 82%, var(--text));
+  cursor: pointer;
+  transform: none;
+  box-shadow: none;
+  pointer-events: auto;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+.kanban-card .card-live-inspect:hover {
+  background: color-mix(in srgb, var(--orange) 16%, transparent);
+  border-color: color-mix(in srgb, var(--orange) 62%, var(--border));
+  color: color-mix(in srgb, var(--orange) 92%, var(--text));
+  transform: scale(1.05);
+}
+
+.kanban-card .card-live-inspect:active {
+  transform: scale(0.97);
+}
+
+.card-live-icon {
+  width: 0.72rem;
+  height: 0.72rem;
+  display: block;
 }
 
 .modal-panel--live {
@@ -4834,34 +4864,50 @@ textarea.inline-edit-field {
 .kanban-card {
   position: relative;
   background: var(--surface-card);
-  border-radius: 8px;
-  padding: 0.45rem 0.5rem 1.55rem;
-  margin-bottom: 0.4rem;
+  border-radius: 10px;
+  padding: 0.55rem 0.6rem 0.45rem;
+  margin-bottom: 0.45rem;
   font-size: 0.78rem;
   border: 1px solid var(--border);
-  border-left: 2px solid var(--border);
-  transition: border-color 0.15s, opacity 0.15s;
+  border-left: 3px solid color-mix(in srgb, var(--border) 85%, var(--muted));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s, opacity 0.15s;
   flex-shrink: 0;
   cursor: default;
 }
 
-.kanban-card-actions {
-  position: absolute;
-  right: 0.3rem;
-  bottom: 0.3rem;
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
+.kanban-card.has-tag-accent {
+  border-left-color: hsl(var(--tag-h) 52% 52%);
 }
 
-.card-copy-path,
-.card-expand-report {
-  width: 1.55rem;
-  height: 1.55rem;
+[data-theme="dark"] .kanban-card.has-tag-accent {
+  border-left-color: hsl(var(--tag-h) 58% 62%);
+}
+
+.kanban-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.12rem;
+  flex-shrink: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s;
+}
+
+.kanban-card:hover .kanban-card-actions,
+.kanban-card:focus-within .kanban-card-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.card-action-btn,
+.kanban-card .card-copy-path {
+  width: 1.45rem;
+  height: 1.45rem;
   padding: 0;
   border: none;
   border-radius: 6px;
-  background: var(--surface-muted-btn);
+  background: transparent;
   color: var(--muted);
   cursor: pointer;
   display: flex;
@@ -4870,15 +4916,15 @@ textarea.inline-edit-field {
   transition: background 0.15s, color 0.15s;
 }
 
-.card-copy-path:hover,
-.card-expand-report:hover {
+.card-action-btn:hover,
+.kanban-card .card-copy-path:hover {
   background: var(--surface-muted-btn-hover);
   color: var(--text);
 }
 
 .card-action-icon {
-  width: 0.95rem;
-  height: 0.95rem;
+  width: 0.9rem;
+  height: 0.9rem;
   display: block;
 }
 
@@ -4888,7 +4934,8 @@ textarea.inline-edit-field {
 
 .kanban-card:hover {
   background: var(--surface-card-hover);
-  border-color: var(--select-border);
+  border-color: color-mix(in srgb, var(--border) 55%, var(--select-border));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .kanban-card-head {
@@ -4897,12 +4944,133 @@ textarea.inline-edit-field {
   gap: 0.35rem;
 }
 
+.kanban-card-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.42rem;
+  min-width: 0;
+}
+
+.kanban-card-title-row .card-title-display,
+.kanban-card-title-row .card-title-input {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.kanban-card:has(.card-live-inspect) .card-title-display {
+  margin-bottom: 0.12rem;
+}
+
+.kanban-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  margin-top: 0.42rem;
+  min-height: 1.35rem;
+}
+
+.kanban-card-todo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.32rem;
+  margin-top: 0.45rem;
+  padding: 0.45rem 0.5rem 0.42rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--orange) 7%, var(--surface-card));
+  border: 1px solid color-mix(in srgb, var(--orange) 18%, var(--border));
+}
+
+.kanban-card-todo-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.kanban-card-todo-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--orange) 75%, var(--muted));
+}
+
+.kanban-card-todo-progress {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--muted) 22%, transparent);
+}
+
+.kanban-card-todo-fill {
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--lime) 0%, color-mix(in srgb, var(--lime) 55%, var(--orange)) 100%);
+  transition: width 0.25s ease;
+}
+
+.kanban-card-todo-meta {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+
+.kanban-card-todo-current {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: color-mix(in srgb, var(--orange) 78%, var(--text));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kanban-card-todo-current--done {
+  color: color-mix(in srgb, var(--lime) 80%, var(--text));
+}
+
+.kanban-card:has(.kanban-card-todo) .kanban-card-footer {
+  margin-top: 0.32rem;
+}
+
+.kanban-card .card-desc-display.has-todo-only {
+  display: none;
+}
+
 .kanban-card .card-delete {
   flex-shrink: 0;
-  margin-top: 0.05rem;
-  padding: 0.15rem 0.4rem;
-  font-size: 0.85rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1rem;
   line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.18s, background 0.15s, color 0.15s;
+}
+
+.kanban-card:hover .card-delete,
+.kanban-card:focus-within .card-delete {
+  opacity: 0.55;
+}
+
+.kanban-card .card-delete:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--danger, #c0392b) 12%, transparent);
+  color: var(--danger, #c0392b);
 }
 
 .card-text-block {
@@ -4919,8 +5087,92 @@ textarea.inline-edit-field {
 }
 
 .card-tags--kanban {
-  margin-top: 0.15rem;
-  margin-bottom: 0.1rem;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  gap: 0.35rem;
+}
+
+.card-tag-kanban {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.25;
+  max-width: 9rem;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.card-tag-kanban-dot {
+  flex-shrink: 0;
+  width: 0.46rem;
+  height: 0.46rem;
+  border-radius: 50%;
+  background: hsl(var(--tag-h) 55% 52%);
+}
+
+[data-theme="dark"] .card-tag-kanban-dot {
+  background: hsl(var(--tag-h) 62% 62%);
+}
+
+.card-tag-kanban-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-tag-kanban:hover {
+  color: var(--text);
+}
+
+.card-tag-kanban-overflow {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--muted);
+  opacity: 0.75;
+  padding: 0 0.12rem;
+}
+
+.card-tag-add--kanban {
+  min-width: 1.25rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.88rem;
+  opacity: 0;
+  transition: opacity 0.18s, color 0.15s;
+}
+
+.kanban-card:hover .card-tag-add--kanban,
+.kanban-card:focus-within .card-tag-add--kanban {
+  opacity: 0.55;
+}
+
+.card-tag-add--kanban:hover {
+  opacity: 1 !important;
+  color: var(--text);
+  background: transparent;
+  border-color: transparent;
+}
+
+.card-tag-kanban.card-tag--hue {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--muted);
+}
+
+.card-tag-kanban.card-tag--hue:hover {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--text);
 }
 
 .card-tag-chip {
@@ -5174,19 +5426,29 @@ textarea.inline-edit-field {
 
 .card-drag-handle {
   flex-shrink: 0;
-  margin-top: 0.15rem;
+  margin-top: 0.2rem;
   color: var(--muted);
-  font-size: 0.95rem;
   line-height: 1;
   cursor: grab;
   user-select: none;
-  opacity: 0.7;
+  opacity: 0.35;
   transition: color 0.15s, opacity 0.15s;
+}
+
+.card-drag-icon {
+  width: 0.72rem;
+  height: auto;
+  display: block;
 }
 
 .card-drag-handle:hover {
   color: var(--text);
-  opacity: 1;
+  opacity: 0.85;
+}
+
+.kanban-card:hover .card-drag-handle,
+.kanban-card:focus-within .card-drag-handle {
+  opacity: 0.6;
 }
 
 .card-drag-handle:active {
@@ -5194,18 +5456,22 @@ textarea.inline-edit-field {
 }
 
 .kanban-card .card-title-display {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.35;
   color: var(--text);
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.12rem;
   word-break: break-word;
   overflow-wrap: anywhere;
 }
 
+.kanban-card-title-row + .card-desc-display {
+  margin-top: 0.02rem;
+}
+
 .kanban-card .card-desc-display {
-  font-size: 0.72rem;
-  line-height: 1.35;
+  font-size: 0.71rem;
+  line-height: 1.4;
   color: var(--muted);
   margin-bottom: 0;
   word-break: break-word;
@@ -5215,8 +5481,9 @@ textarea.inline-edit-field {
 .kanban-card .card-desc-display.is-empty::before {
   content: attr(data-placeholder);
   color: var(--muted);
-  opacity: 0.55;
-  font-size: 0.68rem;
+  opacity: 0.4;
+  font-size: 0.66rem;
+  font-style: italic;
 }
 
 .kanban-card .card-desc-display.is-empty {
@@ -5226,31 +5493,41 @@ textarea.inline-edit-field {
 
 /* Краткий вывод на карточках в Done (вместо плана/заметки) */
 .kanban-card .card-desc-display.card-desc-conclusion {
-  margin-top: 0.2rem;
-  padding: 0.28rem 0.38rem 0.32rem 0.42rem;
-  border-radius: 5px;
-  border-left: 2px solid color-mix(in srgb, var(--lime) 70%, transparent);
-  background: color-mix(in srgb, var(--lime) 10%, var(--surface-card));
-  color: color-mix(in srgb, var(--text) 88%, var(--muted));
-  font-size: 0.7rem;
-  line-height: 1.4;
+  margin-top: 0.28rem;
+  padding: 0.32rem 0.42rem;
+  border-radius: 6px;
+  border-left: 2px solid color-mix(in srgb, var(--lime) 55%, transparent);
+  background: color-mix(in srgb, var(--lime) 6%, var(--surface-card));
+  color: color-mix(in srgb, var(--text) 90%, var(--muted));
+  font-size: 0.69rem;
+  line-height: 1.42;
 }
 
 .kanban-card .card-desc-display.card-desc-conclusion:not(.is-empty)::before {
   content: "Вывод";
   display: block;
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--lime) 85%, var(--text));
-  margin-bottom: 0.14rem;
-  opacity: 0.92;
+  color: color-mix(in srgb, var(--lime) 70%, var(--muted));
+  margin-bottom: 0.12rem;
+  opacity: 0.85;
 }
 
 .kanban-card .card-desc-display.card-desc-conclusion.is-empty {
-  border-left-color: color-mix(in srgb, var(--lime) 35%, transparent);
-  background: color-mix(in srgb, var(--lime) 5%, var(--surface-card));
+  border-left-color: color-mix(in srgb, var(--lime) 25%, transparent);
+  background: color-mix(in srgb, var(--lime) 3%, var(--surface-card));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kanban-card,
+  .kanban-card-actions,
+  .kanban-card .card-delete,
+  .card-tag-add--kanban,
+  .card-drag-handle {
+    transition: none;
+  }
 }
 
 .kanban-card .inline-edit-text {

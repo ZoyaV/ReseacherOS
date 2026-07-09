@@ -12,7 +12,7 @@ from koi.adapters.paths import repo_root
 LIVE_LOG_RE = re.compile(r"^live_log:\s*(.+)$", re.MULTILINE | re.IGNORECASE)
 METRICS_DIR_RE = re.compile(r"^metrics_dir:\s*(.+)$", re.MULTILINE | re.IGNORECASE)
 LIVE_NOTE_RE = re.compile(r"^live_note:\s*(.+)$", re.MULTILINE | re.IGNORECASE)
-SUBTASK_RE = re.compile(r"^\s*-\s*\[([ xX])\]\s*(.+)$")
+SUBTASK_RE = re.compile(r"-\s*\[([ xX])\]\s*([^\n]*?)(?=\s*-\s*\[|$)")
 
 IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"})
 MAX_TAIL_BYTES = 256 * 1024
@@ -39,10 +39,8 @@ def parse_live_hints(text: str) -> dict[str, str]:
 def parse_subtasks(description: str) -> dict[str, list[str]]:
     open_items: list[str] = []
     done_items: list[str] = []
-    for line in str(description or "").splitlines():
-        m = SUBTASK_RE.match(line)
-        if not m:
-            continue
+    body = str(description or "").replace("\\n", "\n")
+    for m in SUBTASK_RE.finditer(body):
         text = m.group(2).strip()
         if not text:
             continue

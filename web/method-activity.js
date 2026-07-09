@@ -28,12 +28,13 @@ function truncate(s, max = 52) {
 }
 
 /** @param {string} description */
-function subtasksFromDescription(description) {
+export function subtasksFromDescription(description) {
   const open = [];
   const done = [];
-  for (const line of String(description || "").split("\n")) {
-    const m = line.match(/^\s*-\s*\[([ xX])\]\s*(.+)/);
-    if (!m) continue;
+  const body = String(description || "").replace(/\\n/g, "\n");
+  const re = /-\s*\[([ xX])\]\s*([^\n]*?)(?=\s*-\s*\[|$)/g;
+  let m;
+  while ((m = re.exec(body)) !== null) {
     const text = m[2].trim();
     if (!text) continue;
     if (m[1].toLowerCase() === "x") done.push(text);
