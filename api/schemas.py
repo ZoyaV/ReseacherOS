@@ -49,12 +49,14 @@ class UpdateCardBody(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     column_id: Optional[str] = None
+    tags: Optional[list[str]] = None
 
 
 class CreateCardBody(BaseModel):
     column_id: str = "backlog"
     title: str = Field(min_length=1)
     description: str = ""
+    tags: list[str] = Field(default_factory=list)
 
 
 class CardReportBody(BaseModel):

@@ -26,6 +26,7 @@ from koi.adapters.card_reports import (
     save_report_asset,
     write_report,
 )
+from koi.core.md_io import normalize_card_tags, register_project_card_tags
 from koi.core.models import (
     DEFAULT_KANBAN_COLUMNS,
     ExperimentCard,
@@ -225,7 +226,9 @@ def post_card(project_id: str, board_id: str, body: CreateCardBody) -> dict:
         column_id=body.column_id,
         title=body.title,
         description=body.description,
+        tags=normalize_card_tags(body.tags),
     )
+    register_project_card_tags(project, card.tags)
     board.cards.append(card)
     update_board(project, board)
     ensure_card_report(project, board_id, card.id, card.title)
@@ -252,6 +255,9 @@ def patch_card(
         card.description = body.description
     if body.column_id is not None:
         card.column_id = body.column_id
+    if body.tags is not None:
+        card.tags = normalize_card_tags(body.tags)
+        register_project_card_tags(project, card.tags)
     update_board(project, board)
     if body.column_id is not None and body.column_id != old_column:
         if body.column_id != "done":
@@ -260,7 +266,7 @@ def patch_card(
                 "kanban_updated",
                 f"карточка {card.title}: {old_column} → {body.column_id}",
             )
-    elif body.title is not None or body.description is not None:
+    elif body.title is not None or body.description is not None or body.tags is not None:
         enqueue_sync(project_id, "kanban_updated", f"правка карточки {card.title}")
     if body.title is not None and body.title != old_title:
         rename_report_for_card(project, board_id, card_id, card.title)

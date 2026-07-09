@@ -54,10 +54,82 @@ METHOD_QUESTIONS_START_RE = re.compile(
     r"^<!--\s*koi:method-questions\s*-->\s*$", re.IGNORECASE
 )
 CARD_META_RE = re.compile(
-    r"^(.*?)(?:\s*<!--\s*id:(\S+)(?:\s+desc:(.*?))?\s*-->)?\s*$",
+    r"^(.*?)(?:\s*<!--\s*(.*?)\s*-->)?\s*$",
     re.DOTALL,
 )
+CARD_TAG_NAME_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
 VERDICT_RE = re.compile(r"^verdict:\s*(open|supported|refuted)\s*$", re.IGNORECASE)
+
+
+def normalize_card_tag(raw: str) -> Optional[str]:
+    tag = str(raw or "").strip()
+    if not tag or not CARD_TAG_NAME_RE.match(tag):
+        return None
+    return tag
+
+
+def normalize_card_tags(raw: list[str] | None) -> list[str]:
+    if not raw:
+        return []
+    seen: set[str] = set()
+    out: list[str] = []
+    for item in raw:
+        tag = normalize_card_tag(str(item))
+        if not tag:
+            continue
+        key = tag.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(tag)
+    return out
+
+
+def register_project_card_tags(project: Project, tags: list[str]) -> None:
+    existing = {t.lower() for t in project.card_tags}
+    for tag in normalize_card_tags(tags):
+        if tag.lower() not in existing:
+            project.card_tags.append(tag)
+            existing.add(tag.lower())
+
+
+def _parse_card_tags(raw: str) -> list[str]:
+    parts = re.split(r"[,;]+", raw)
+    return normalize_card_tags(parts)
+
+
+def _parse_card_comment(meta: str) -> tuple[Optional[str], str, list[str]]:
+    card_id: Optional[str] = None
+    desc = ""
+    tags: list[str] = []
+
+    id_m = re.search(r"\bid:(\S+)", meta)
+    if id_m:
+        card_id = id_m.group(1)
+
+    tags_m = re.search(r"\btags:(.+?)\s*$", meta)
+    meta_without_tags = meta
+    if tags_m:
+        tags = _parse_card_tags(tags_m.group(1).strip())
+        meta_without_tags = meta[: tags_m.start()].rstrip()
+
+    desc_m = re.search(r"\bdesc:(.*)$", meta_without_tags, re.DOTALL)
+    if desc_m:
+        desc = desc_m.group(1).strip()
+
+    return card_id, desc, tags
+
+
+def _parse_card_cell(raw: str) -> tuple[str, Optional[str], str, list[str]]:
+    m = CARD_META_RE.match(raw)
+    if not m:
+        return raw.strip(), None, "", []
+    title = m.group(1).strip()
+    comment = m.group(2)
+    if not comment:
+        return title, None, "", []
+    card_id, desc, tags = _parse_card_comment(comment)
+    return title, card_id, desc, tags
 
 
 def _split_frontmatter(text: str) -> tuple[dict[str, Any], str]:
@@ -148,10 +220,7 @@ def _parse_kanban_table(lines: list[str], board_id: str, owner_node_id: str) -> 
         for col_id, raw in zip(header_cells, cells):
             if not raw or raw in ("—", "-", ""):
                 continue
-            m = CARD_META_RE.match(raw)
-            title = (m.group(1) if m else raw).strip()
-            card_id = m.group(2) if m and m.group(2) else None
-            desc = (m.group(3) or "").strip() if m and m.group(3) else ""
+            title, card_id, desc, tags = _parse_card_cell(raw)
             cards.append(
                 ExperimentCard(
                     id=card_id or f"card-{len(cards)}",
@@ -159,13 +228,14 @@ def _parse_kanban_table(lines: list[str], board_id: str, owner_node_id: str) -> 
                     column_id=col_id,
                     title=title,
                     description=desc,
+                    tags=tags,
                 )
             )
 
     return KanbanBoard(id=board_id, owner_node_id=owner_node_id, columns=columns, cards=cards)
 
 
-def _parse_literature_keywords(raw: Any) -> list[str]:
+def _parse_string_list(raw: Any) -> list[str]:
     if raw is None:
         return []
     if isinstance(raw, str):
@@ -177,6 +247,14 @@ def _parse_literature_keywords(raw: Any) -> list[str]:
     return [part.strip() for part in parts if part and part.strip()]
 
 
+def _parse_literature_keywords(raw: Any) -> list[str]:
+    return _parse_string_list(raw)
+
+
+def _parse_card_tag_vocabulary(raw: Any) -> list[str]:
+    return normalize_card_tags(_parse_string_list(raw))
+
+
 def parse_project_md(text: str, project_id: Optional[str] = None) -> Project:
     meta, body = _split_frontmatter(text)
     pid = str(meta.get("id") or project_id or "project")
@@ -185,6 +263,7 @@ def parse_project_md(text: str, project_id: Optional[str] = None) -> Project:
         title=str(meta.get("title") or pid),
         description=str(meta.get("description") or ""),
         literature_keywords=_parse_literature_keywords(meta.get("literature_keywords")),
+        card_tags=_parse_card_tag_vocabulary(meta.get("card_tags")),
     )
 
     lines = body.splitlines()
@@ -280,9 +359,17 @@ def parse_project_md(text: str, project_id: Optional[str] = None) -> Project:
 
 def _format_card(cell: ExperimentCard) -> str:
     base = cell.title.replace("|", "\\|")
-    if cell.description or cell.id:
+    parts: list[str] = []
+    if cell.id:
+        parts.append(f"id:{cell.id}")
+    if cell.description:
         desc = cell.description.replace("-->", "→")
-        return f"{base} <!-- id:{cell.id} desc:{desc} -->"
+        parts.append(f"desc:{desc}")
+    if cell.tags:
+        tags = ",".join(t.replace(",", "") for t in cell.tags)
+        parts.append(f"tags:{tags}")
+    if parts:
+        return f"{base} <!-- {' '.join(parts)} -->"
     return base
 
 
@@ -328,6 +415,8 @@ def serialize_project_md(project: Project) -> str:
         "updated": updated,
         "format": "koi/1",
     }
+    if project.card_tags:
+        meta["card_tags"] = list(project.card_tags)
     boards_by_owner = {b.owner_node_id: b for b in project.boards}
     out: list[str] = [
         "---",

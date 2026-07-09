@@ -39,6 +39,42 @@ def test_normalize_kanban_adds_successful_column() -> None:
     assert normalized.cards[0].column_id == "done"
 
 
+def test_roundtrip_preserves_card_tags() -> None:
+    text = """---
+id: proj-tags
+title: Tags
+card_tags:
+  - gpu
+  - baseline
+---
+# problem: root
+
+Root
+
+#### method: m1
+
+Method
+
+<!-- koi:kanban board-m1 -->
+| backlog | running | done | successful |
+| --- | --- | --- | --- |
+| GPU run <!-- id:c-gpu desc:plan tags:gpu,ablation --> | | | |
+| Plain card <!-- id:c-plain desc:no tags here --> | | | |
+"""
+    project = parse_project_md(text, project_id="proj-tags")
+    assert project.card_tags == ["gpu", "baseline"]
+    board = project.boards[0]
+    by_id = {c.id: c for c in board.cards}
+    assert by_id["c-gpu"].tags == ["gpu", "ablation"]
+    assert by_id["c-plain"].tags == []
+
+    reserialized = serialize_project_md(project)
+    reloaded = parse_project_md(reserialized, project_id="proj-tags")
+    reloaded_by_id = {c.id: c.tags for c in reloaded.boards[0].cards}
+    assert reloaded.card_tags == ["gpu", "baseline"]
+    assert reloaded_by_id == {"c-gpu": ["gpu", "ablation"], "c-plain": []}
+
+
 def test_roundtrip_preserves_successful_cards() -> None:
     text = """---
 id: proj-test

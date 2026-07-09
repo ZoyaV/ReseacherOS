@@ -2405,6 +2405,7 @@ function scheduleReportPreview() {
 }
 
 function closeCardReport() {
+  closeCardTagPopover();
   hideModal("card-report-modal");
   state.reportCardId = null;
   state.reportBoardId = null;
@@ -2449,6 +2450,7 @@ async function openCardReport(card, board) {
   }
   editor.value = "";
   document.getElementById("card-report-card-title").textContent = card.title;
+  renderCardReportTags(card);
   document.getElementById("card-report-filename").textContent = "…";
   showModal("card-report-modal");
   setStatus("Загрузка отчёта…");
@@ -3423,6 +3425,7 @@ async function moveCardToColumn(board, cardId, targetColumnId, context = {}) {
       title: text.title,
       description: text.description,
       column_id: targetColumnId,
+      tags: card.tags || [],
     },
     { rerenderKanban: true, refreshMapStats: true }
   );
@@ -3571,6 +3574,13 @@ function bindKanbanCardEvents(boardEl, board, context = {}) {
 
     bindKanbanCardInline(cardEl, board, card);
 
+    bindCardTagsContainer(
+      cardEl.querySelector(".card-tags"),
+      board,
+      () => getBoardCard(state.project.boards[board.id] || board, cardId) || card,
+      { rerenderKanban: true }
+    );
+
     cardEl.querySelector(".card-copy-path")?.addEventListener("click", (e) => {
       e.stopPropagation();
       const c =
@@ -3609,6 +3619,377 @@ function bindKanbanCardEvents(boardEl, board, context = {}) {
   setupKanbanDragDrop(boardEl, board, context);
 }
 
+const CARD_TAG_NAME_RE = /^[a-zA-Z0-9_-]+$/;
+
+function cardTagHue(tag) {
+  let hash = 0;
+  const s = String(tag || "").toLowerCase();
+  for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+  return hash % 360;
+}
+
+function cardTagHueStyle(tag) {
+  return `--tag-h:${cardTagHue(tag)}`;
+}
+
+function isKanbanModalOpen() {
+  return !document.getElementById("kanban-modal")?.classList.contains("hidden");
+}
+
+function normalizeCardTagName(raw) {
+  return validateCardTagName(raw).tag;
+}
+
+function validateCardTagName(raw) {
+  const t = String(raw || "").trim();
+  if (!t) {
+    return { tag: null, error: "Введите название тега" };
+  }
+  if (!CARD_TAG_NAME_RE.test(t)) {
+    return {
+      tag: null,
+      error: "Недопустимый формат: только латиница, цифры, дефис и подчёркивание (например gpu, sft_v2)",
+    };
+  }
+  return { tag: t, error: null };
+}
+
+function setCardTagPopoverError(pop, message) {
+  if (!pop) return;
+  let el = pop.querySelector(".card-tag-popover-error");
+  const input = pop.querySelector(".card-tag-popover-input");
+  if (!message) {
+    el?.remove();
+    input?.classList.remove("is-invalid");
+    return;
+  }
+  if (!el) {
+    el = document.createElement("p");
+    el.className = "card-tag-popover-error";
+    el.setAttribute("role", "alert");
+    pop.querySelector(".card-tag-popover-new")?.after(el);
+  }
+  el.textContent = message;
+  input?.classList.add("is-invalid");
+  input?.focus();
+}
+
+function projectCardTagVocabulary(project) {
+  const seen = new Map();
+  const add = (tag) => {
+    const norm = normalizeCardTagName(tag);
+    if (!norm) return;
+    const key = norm.toLowerCase();
+    if (!seen.has(key)) seen.set(key, norm);
+  };
+  (project?.card_tags || []).forEach(add);
+  Object.values(project?.boards || {}).forEach((board) => {
+    (board.cards || []).forEach((card) => {
+      (card.tags || []).forEach(add);
+    });
+  });
+  return [...seen.values()].sort((a, b) => a.localeCompare(b, "ru"));
+}
+
+function cardTagsEqual(a, b) {
+  const norm = (arr) => [...(arr || [])].map((t) => t.toLowerCase()).sort();
+  const aa = norm(a);
+  const bb = norm(b);
+  return aa.length === bb.length && aa.every((v, i) => v === bb[i]);
+}
+
+function cardTagsRowHtml(tags, { kanban = false } = {}) {
+  const chips = (tags || []).map(
+    (t) =>
+      `<span class="card-tag-chip card-tag--hue" style="${cardTagHueStyle(t)}" data-tag="${escapeHtml(t)}" title="Клик по названию — изменить теги">
+        <span class="card-tag-chip-label">${escapeHtml(t)}</span><span class="card-tag-chip-x" title="Снять">×</span>
+      </span>`
+  ).join("");
+  const addBtn =
+    '<button type="button" class="card-tag-add" title="Добавить тег" aria-label="Добавить тег">+</button>';
+  const cls = kanban ? "card-tags card-tags--kanban" : "card-tags";
+  return `<div class="${cls}">${chips}${addBtn}</div>`;
+}
+
+let cardTagPopoverState = null;
+
+function closeCardTagPopover() {
+  document.getElementById("card-tag-popover")?.remove();
+  cardTagPopoverState = null;
+  document.removeEventListener("keydown", onCardTagPopoverKeydown, true);
+  document.removeEventListener("click", onCardTagPopoverOutside, true);
+}
+
+function onCardTagPopoverKeydown(e) {
+  if (e.key === "Escape") {
+    e.preventDefault();
+    void commitCardTagPopover(false);
+  }
+}
+
+function onCardTagPopoverOutside(e) {
+  const pop = document.getElementById("card-tag-popover");
+  if (!pop || !cardTagPopoverState) return;
+  if (pop.contains(e.target)) return;
+  if (cardTagPopoverState.anchorEl?.contains(e.target)) return;
+  void commitCardTagPopover(true);
+}
+
+function positionCardTagPopover(pop, anchorEl) {
+  const rect = anchorEl.getBoundingClientRect();
+  pop.style.left = `${Math.max(8, rect.left)}px`;
+  pop.style.top = `${rect.bottom + 6}px`;
+  requestAnimationFrame(() => {
+    const popRect = pop.getBoundingClientRect();
+    let left = rect.left;
+    let top = rect.bottom + 6;
+    if (left + popRect.width > window.innerWidth - 8) {
+      left = Math.max(8, window.innerWidth - popRect.width - 8);
+    }
+    if (top + popRect.height > window.innerHeight - 8) {
+      top = Math.max(8, rect.top - popRect.height - 6);
+    }
+    pop.style.left = `${left}px`;
+    pop.style.top = `${top}px`;
+  });
+}
+
+function renderCardTagPopoverContent(pop, vocabulary, selectedTags) {
+  const selectedLower = new Set(selectedTags.map((t) => t.toLowerCase()));
+  const selectedHtml = selectedTags.length
+    ? selectedTags
+        .map(
+          (t) =>
+            `<button type="button" class="card-tag-popover-chip is-selected card-tag--hue" style="${cardTagHueStyle(t)}" data-tag="${escapeHtml(t)}" title="Снять с карточки">
+              <span class="card-tag-popover-chip-label">${escapeHtml(t)}</span>
+              <span class="card-tag-popover-chip-x" aria-hidden="true">×</span>
+            </button>`
+        )
+        .join("")
+    : '<span class="card-tag-popover-empty">Тегов нет — выберите ниже или создайте новый</span>';
+
+  const optionsHtml = vocabulary.length
+    ? vocabulary
+        .map((t) => {
+          const active = selectedLower.has(t.toLowerCase()) ? " is-active" : "";
+          return `<button type="button" class="card-tag-popover-option card-tag--hue${active}" style="${cardTagHueStyle(t)}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`;
+        })
+        .join("")
+    : '<span class="card-tag-popover-empty">Создайте первый тег ниже</span>';
+
+  pop.innerHTML = `
+    <div class="card-tag-popover-section">
+      <p class="card-tag-popover-label">На карточке <span class="card-tag-popover-label-hint">клик × — снять</span></p>
+      <div class="card-tag-popover-selected">${selectedHtml}</div>
+    </div>
+    <div class="card-tag-popover-section">
+      <p class="card-tag-popover-label">Теги проекта <span class="card-tag-popover-label-hint">клик — добавить или снять</span></p>
+      <div class="card-tag-popover-options">${optionsHtml}</div>
+    </div>
+    <div class="card-tag-popover-new">
+      <input type="text" class="card-tag-popover-input" placeholder="Новый тег" maxlength="32" />
+      <button type="button" class="btn btn-small card-tag-popover-add">Добавить</button>
+    </div>
+    <p class="card-tag-popover-hint">Латиница, цифры, дефис и подчёркивание — например gpu, ablation_v2</p>
+    <div class="card-tag-popover-actions">
+      <button type="button" class="btn btn-small card-tag-popover-done">Готово</button>
+    </div>
+  `;
+}
+
+function toggleCardTagInPopover(tag, pop) {
+  if (!cardTagPopoverState) return;
+  const norm = normalizeCardTagName(tag);
+  if (!norm) return;
+  const lower = norm.toLowerCase();
+  let selected = [...cardTagPopoverState.selectedTags];
+  const idx = selected.findIndex((t) => t.toLowerCase() === lower);
+  if (idx >= 0) {
+    selected.splice(idx, 1);
+  } else {
+    selected.push(norm);
+  }
+  cardTagPopoverState.selectedTags = selected;
+  if (!cardTagPopoverState.vocabulary.some((t) => t.toLowerCase() === lower)) {
+    cardTagPopoverState.vocabulary = [...cardTagPopoverState.vocabulary, norm].sort(
+      (a, b) => a.localeCompare(b, "ru")
+    );
+  }
+  renderCardTagPopoverContent(pop, cardTagPopoverState.vocabulary, selected);
+  bindCardTagPopoverEvents(pop);
+}
+
+function bindCardTagPopoverEvents(pop) {
+  pop.querySelectorAll(".card-tag-popover-option, .card-tag-popover-chip.is-selected").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleCardTagInPopover(btn.dataset.tag, pop);
+    });
+  });
+
+  const input = pop.querySelector(".card-tag-popover-input");
+  const addBtn = pop.querySelector(".card-tag-popover-add");
+  const addNew = () => {
+    const { tag, error } = validateCardTagName(input?.value || "");
+    if (error) {
+      setCardTagPopoverError(pop, error);
+      return;
+    }
+    setCardTagPopoverError(pop, null);
+    if (!cardTagPopoverState.selectedTags.some((t) => t.toLowerCase() === tag.toLowerCase())) {
+      cardTagPopoverState.selectedTags = [...cardTagPopoverState.selectedTags, tag];
+    }
+    if (!cardTagPopoverState.vocabulary.some((t) => t.toLowerCase() === tag.toLowerCase())) {
+      cardTagPopoverState.vocabulary = [...cardTagPopoverState.vocabulary, tag].sort(
+        (a, b) => a.localeCompare(b, "ru")
+      );
+    }
+    if (input) input.value = "";
+    renderCardTagPopoverContent(pop, cardTagPopoverState.vocabulary, cardTagPopoverState.selectedTags);
+    bindCardTagPopoverEvents(pop);
+    pop.querySelector(".card-tag-popover-input")?.focus();
+  };
+  addBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    addNew();
+  });
+  input?.addEventListener("input", () => setCardTagPopoverError(pop, null));
+  input?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
+      addNew();
+    }
+  });
+  pop.querySelector(".card-tag-popover-done")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    void commitCardTagPopover(true);
+  });
+}
+
+async function removeCardTag(board, cardId, tagToRemove, { rerenderKanban = false, onUpdated = null } = {}) {
+  const card = getBoardCard(board, cardId);
+  if (!card) return null;
+  const nextTags = (card.tags || []).filter(
+    (t) => t.toLowerCase() !== String(tagToRemove || "").toLowerCase()
+  );
+  if (nextTags.length === (card.tags || []).length) return card;
+  const updated = await persistCard(
+    board,
+    cardId,
+    { tags: nextTags },
+    { rerenderKanban, refreshMapStats: false }
+  );
+  if (updated && onUpdated) onUpdated(updated);
+  return updated;
+}
+
+async function commitCardTagPopover(shouldSave) {
+  const st = cardTagPopoverState;
+  if (!st) return;
+  const { board, cardId, selectedTags, originalTags, onUpdated, rerenderKanban } = st;
+  closeCardTagPopover();
+  if (!shouldSave || cardTagsEqual(selectedTags, originalTags)) return;
+  const updated = await persistCard(
+    board,
+    cardId,
+    { tags: selectedTags },
+    { rerenderKanban: rerenderKanban ?? false, refreshMapStats: false }
+  );
+  if (updated && onUpdated) onUpdated(updated);
+}
+
+function openCardTagPopover(anchorEl, { card, board, rerenderKanban = false, onUpdated = null }) {
+  if (!anchorEl || !card || !board) return;
+  closeCardTagPopover();
+  const vocabulary = projectCardTagVocabulary(state.project);
+  const selectedTags = [...(card.tags || [])];
+  cardTagPopoverState = {
+    board,
+    cardId: card.id,
+    selectedTags,
+    originalTags: [...selectedTags],
+    vocabulary,
+    anchorEl,
+    rerenderKanban,
+    onUpdated,
+  };
+
+  const pop = document.createElement("div");
+  pop.id = "card-tag-popover";
+  pop.className = "card-tag-popover";
+  pop.setAttribute("role", "dialog");
+  pop.addEventListener("click", (e) => e.stopPropagation());
+  renderCardTagPopoverContent(pop, vocabulary, selectedTags);
+  bindCardTagPopoverEvents(pop);
+  document.body.appendChild(pop);
+  positionCardTagPopover(pop, anchorEl);
+
+  document.addEventListener("keydown", onCardTagPopoverKeydown, true);
+  setTimeout(() => {
+    document.addEventListener("click", onCardTagPopoverOutside, true);
+  }, 0);
+}
+
+function bindCardTagsContainer(container, board, getCard, { rerenderKanban = false, onUpdated = null } = {}) {
+  if (!container) return;
+  const resolveCard = () => (typeof getCard === "function" ? getCard() : getCard);
+
+  container.querySelectorAll(".card-tag-chip").forEach((chip) => {
+    chip.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const card = resolveCard();
+      if (!card) return;
+      if (e.target.closest(".card-tag-chip-x")) {
+        void removeCardTag(board, card.id, chip.dataset.tag, { rerenderKanban, onUpdated });
+        return;
+      }
+      openCardTagPopover(chip, {
+        card,
+        board,
+        rerenderKanban,
+        onUpdated,
+      });
+    });
+  });
+
+  container.querySelectorAll(".card-tag-add").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const card = resolveCard();
+      if (!card) return;
+      openCardTagPopover(btn, {
+        card,
+        board,
+        rerenderKanban,
+        onUpdated,
+      });
+    });
+  });
+}
+
+function renderCardTagsInto(container, tags, { kanban = false } = {}) {
+  if (!container) return;
+  container.innerHTML = cardTagsRowHtml(tags, { kanban });
+}
+
+function renderCardReportTags(card) {
+  const el = document.getElementById("card-report-tags");
+  if (!el) return;
+  renderCardTagsInto(el, card?.tags || []);
+  const board = state.project?.boards?.[state.reportBoardId];
+  if (!board) return;
+  bindCardTagsContainer(
+    el,
+    board,
+    () => getBoardCard(state.project.boards[state.reportBoardId], state.reportCardId),
+    {
+      rerenderKanban: isKanbanModalOpen(),
+      onUpdated: (updated) => renderCardReportTags(updated),
+    }
+  );
+}
+
 function kanbanCardHtml(c, col, variant = "modal") {
   const descEmpty = !c.description?.trim();
   const descConclusion = isKanbanConclusionColumn(col.id) ? " card-desc-conclusion" : "";
@@ -3633,6 +4014,7 @@ function kanbanCardHtml(c, col, variant = "modal") {
             <div class="card-text-block">
               <p class="card-title-display inline-edit-text" title="Двойной клик — редактировать">${escapeHtml(c.title)}</p>
               <input type="text" class="card-title-input inline-edit-field hidden" />
+              ${cardTagsRowHtml(c.tags, { kanban: true })}
               <p class="card-desc-display inline-edit-text card-desc-text${descEmpty ? " is-empty" : ""}${descConclusion}" data-placeholder="${escapeHtml(descPlaceholder)}">${escapeHtml(c.description || "")}</p>
               <textarea class="card-desc-input inline-edit-field hidden" rows="3"></textarea>
             </div>

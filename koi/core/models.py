@@ -82,6 +82,7 @@ class ExperimentCard(BaseModel):
     column_id: str
     title: str
     description: str = ""
+    tags: list[str] = Field(default_factory=list)
     linked_node_id: Optional[str] = None  # optional link to tree experiment node
 
 
@@ -97,6 +98,7 @@ class Project(BaseModel):
     title: str
     description: str = ""
     literature_keywords: list[str] = Field(default_factory=list)
+    card_tags: list[str] = Field(default_factory=list)
     nodes: list[Node] = Field(default_factory=list)
     boards: list[KanbanBoard] = Field(default_factory=list)
 

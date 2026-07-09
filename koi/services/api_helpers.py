@@ -66,6 +66,7 @@ def project_to_client(project: Project) -> dict:
         "title": project.title,
         "description": project.description,
         "literature_keywords": list(project.literature_keywords),
+        "card_tags": list(project.card_tags),
         "nodes": nodes_out,
         "boards": boards_out,
     }
