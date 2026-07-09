@@ -3750,6 +3750,17 @@ function cardMatchesKanbanTagFilter(card, activeFilters) {
   return activeFilters.some((f) => cardTags.includes(f));
 }
 
+/** When tag filters are active, tag the new card so it stays visible in the filtered view. */
+function kanbanTagsForNewCard(project) {
+  const active = state.kanbanActiveTagFilters || [];
+  if (!active.length) return [];
+  const vocab = projectCardTagVocabulary(project);
+  const byLower = new Map(vocab.map((t) => [t.toLowerCase(), t]));
+  return active
+    .map((f) => byLower.get(String(f).toLowerCase()))
+    .filter(Boolean);
+}
+
 function kanbanTagFilterChipHtml(tag, isActive) {
   const activeClass = isActive ? " is-active" : "";
   const pressed = isActive ? "true" : "false";
@@ -4389,12 +4400,15 @@ function renderKanbanBoardInto(boardEl, board, { variant = "modal", node = null,
 
 function renderKanbanBoard(board) {
   const project = state.project;
+  const node = project?.nodes?.find((n) => n.id === state.kanbanNodeId) || null;
   renderKanbanTagFilter(project, board);
   const boardEl = document.getElementById("kanban-board");
   if (!boardEl) return;
   renderKanbanBoardInto(boardEl, board, {
     variant: "modal",
     tagFilters: state.kanbanActiveTagFilters || [],
+    node,
+    project,
   });
 }
 
@@ -4414,26 +4428,36 @@ function bindKanbanColumnActions(boardEl, board, context = {}) {
 }
 
 async function addCardToColumn(board, columnId, context = {}) {
+  if (!board?.id) {
+    setStatus("Не удалось определить доску", true);
+    return;
+  }
   if (context.project) state.project = context.project;
   const node = context.node ||
-    state.project.nodes.find((n) => n.id === state.kanbanNodeId);
-  if (!node?.board_id) return;
-  const beforeIds = new Set(board.cards.map((c) => c.id));
+    state.project?.nodes?.find((n) => n.id === state.kanbanNodeId);
+  const writeProjectId = boardWriteProjectId(board);
+  if (!writeProjectId) {
+    setStatus("Не удалось определить проект для сохранения карточки", true);
+    return;
+  }
+  const beforeIds = new Set((board.cards || []).map((c) => c.id));
+  const project = context.project || state.project;
   setStatus("Добавление…");
   try {
-    await KoiApi.addCard(boardWriteProjectId(board), node.board_id, {
+    await KoiApi.addCard(writeProjectId, board.id, {
       title: "Новый эксперимент",
       column_id: columnId,
       description: "",
+      tags: kanbanTagsForNewCard(project),
     });
     state.project = await reloadProjectView();
     syncLabProject(state.project);
     setStatus("Сохранено в project.md");
-    const updatedBoard = state.project.boards[node.board_id];
-    renderKanbanBoard(updatedBoard);
+    const updatedBoard = getBoard(state.project, board.id);
+    if (updatedBoard) renderKanbanBoard(updatedBoard);
     if (state.kanbanNodeId) refreshKanbanBelowForNode(state.kanbanNodeId);
-    refreshMapKanbansForProject(state.project.id, node.id);
-    const newCard = updatedBoard.cards.find(
+    refreshMapKanbansForProject(state.project.id, node?.id);
+    const newCard = updatedBoard?.cards?.find(
       (c) => c.column_id === columnId && !beforeIds.has(c.id)
     );
     if (newCard) {
@@ -4618,10 +4642,15 @@ function nodeWriteProjectId(node) {
 }
 
 function boardWriteProjectId(board) {
-  if (!board || !isCompositeView()) return state.project?.id;
-  if (board.source_project_id) return board.source_project_id;
-  const owner = state.project?.nodes?.find((n) => n.id === board.owner_node_id);
-  return nodeWriteProjectId(owner);
+  if (board?.source_project_id) return board.source_project_id;
+  if (board?.owner_node_id) {
+    const owner = state.project?.nodes?.find((n) => n.id === board.owner_node_id);
+    const viaOwner = nodeWriteProjectId(owner);
+    if (viaOwner && !isCompositeVirtualId(viaOwner)) return viaOwner;
+  }
+  const pid = state.project?.id;
+  if (pid && !isCompositeVirtualId(pid)) return pid;
+  return null;
 }
 
 function primaryMemberProjectId() {
@@ -4634,6 +4663,9 @@ function primaryMemberProjectId() {
 async function reloadProjectView() {
   if (isCompositeView() && state.project?.composite_id) {
     return KoiApi.getComposite(state.project.composite_id);
+  }
+  if (isCompositeVirtualId(state.project?.id)) {
+    return KoiApi.getComposite(state.project.id.slice("composite:".length));
   }
   if (state.project?.id) {
     return KoiApi.getProject(state.project.id);
@@ -5839,6 +5871,9 @@ async function refreshProjectsForDiscoveries(discoveries) {
   try {
     if (state.lab?.projectsById) {
       await focusLabProject(currentId, { reload: true });
+    } else if (isCompositeVirtualId(currentId)) {
+      state.project = await KoiApi.getComposite(currentId.slice("composite:".length));
+      renderMindmap();
     } else {
       state.project = await KoiApi.getProject(currentId);
       renderMindmap();

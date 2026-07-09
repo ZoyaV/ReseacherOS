@@ -57,6 +57,7 @@ def project_to_client(project: Project) -> dict:
         boards_out[b.id] = {
             "id": b.id,
             "owner_node_id": b.owner_node_id,
+            "source_project_id": project.id,
             "columns": [c.model_dump() for c in b.columns],
             "cards": [c.model_dump() for c in b.cards],
         }

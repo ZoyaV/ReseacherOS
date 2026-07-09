@@ -117,13 +117,22 @@ def load_project(project_id: str, *, sync_reports: bool = False) -> Optional[Pro
     return project
 
 
-def _merge_preserved_frontmatter(text: str, path: Path) -> str:
-    """Keep organizational fields that serialize_project_md does not emit."""
-    if not path.exists():
-        return text
-    old_meta, _ = _split_frontmatter(path.read_text(encoding="utf-8"))
-    meta, body = _split_frontmatter(text)
-    for key in ("programs", "code_root", "literature_keywords", "card_tags", "composite_id", "git_repo", "git_sync_branch"):
+ORG_FRONTMATTER_KEYS = (
+    "programs",
+    "code_root",
+    "literature_keywords",
+    "card_tags",
+    "composite_id",
+    "git_repo",
+    "git_sync_branch",
+)
+
+
+def merge_org_frontmatter(old_text: str, new_text: str) -> str:
+    """Keep organizational fields from *old_text* when *new_text* omits them."""
+    old_meta, _ = _split_frontmatter(old_text)
+    meta, body = _split_frontmatter(new_text)
+    for key in ORG_FRONTMATTER_KEYS:
         if key in old_meta and key not in meta:
             meta[key] = old_meta[key]
     return (
@@ -132,6 +141,13 @@ def _merge_preserved_frontmatter(text: str, path: Path) -> str:
         + "\n---\n\n"
         + body
     )
+
+
+def _merge_preserved_frontmatter(text: str, path: Path) -> str:
+    """Keep organizational fields that serialize_project_md does not emit."""
+    if not path.exists():
+        return text
+    return merge_org_frontmatter(path.read_text(encoding="utf-8"), text)
 
 
 def _project_snapshot(project_id: str) -> Optional[Project]:

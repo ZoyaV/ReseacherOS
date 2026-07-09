@@ -391,6 +391,11 @@ def pull_mount(mount: ProjectMount, *, dry_run: bool = False) -> dict:
             "rq_discoveries": [],
         }
 
+    project_md = mount.koi_root / "project.md"
+    pre_pull_project_md = (
+        project_md.read_text(encoding="utf-8") if project_md.is_file() else None
+    )
+
     checkout = _run_git(repo, "checkout", f"origin/{branch}", "--", koi_rel)
     if checkout.returncode != 0:
         checkout = _run_git(repo, "checkout", branch, "--", koi_rel)
@@ -404,6 +409,14 @@ def pull_mount(mount: ProjectMount, *, dry_run: bool = False) -> dict:
             "message": err,
             "rq_discoveries": [],
         }
+
+    if pre_pull_project_md and project_md.is_file():
+        from koi.adapters.repository import merge_org_frontmatter
+
+        post_pull_project_md = project_md.read_text(encoding="utf-8")
+        merged = merge_org_frontmatter(pre_pull_project_md, post_pull_project_md)
+        if merged != post_pull_project_md:
+            project_md.write_text(merged, encoding="utf-8")
 
     ref_after = _remote_sync_ref(repo, branch) or ref_before
     discoveries: list[dict] = []

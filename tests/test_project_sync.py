@@ -119,3 +119,46 @@ def test_orphan_branch_bootstrap_and_roundtrip(sync_layout: Path):
 def test_init_sync_branches_cli_entry(sync_layout: Path):
     result = init_sync_branches(project_id="sample-project", push=True)
     assert result["ok"] is True
+
+
+def test_pull_preserves_org_frontmatter(sync_layout: Path):
+    mount = sync_mounts()[0]
+    repo = mount.repo_root
+
+    created = ensure_sync_branch(mount, push=True)
+    assert created["ok"] is True
+
+    _git(repo, "rm", "-r", "--cached", "koi-structure")
+    (repo / ".gitignore").write_text(
+        "koi-structure/\n.koi-sync-worktree/\n.koi-sync-bootstrap/\n",
+        encoding="utf-8",
+    )
+    _git(repo, "add", ".gitignore")
+    _git(repo, "commit", "-m", "stop tracking koi-structure on code branch")
+
+    project_md = mount.koi_root / "project.md"
+    project_md.write_text(
+        project_md.read_text(encoding="utf-8").replace(
+            "title: Sample\n",
+            "title: Sample\ncomposite_id: test-composite\n",
+        ),
+        encoding="utf-8",
+    )
+    pushed = push_mount(mount)
+    assert pushed["ok"] is True
+
+    # Remote sync branch drops composite_id; local still has it before pull.
+    wt = repo / ".koi-sync-worktree"
+    remote_md = wt / "koi-structure" / "project.md"
+    remote_md.write_text(
+        remote_md.read_text(encoding="utf-8").replace("composite_id: test-composite\n", ""),
+        encoding="utf-8",
+    )
+    _git(wt, "add", "koi-structure/project.md")
+    _git(wt, "commit", "-m", "drop composite_id on sync branch")
+    _git(wt, "push", "origin", "koi/research")
+
+    pulled = pull_mount(mount)
+    assert pulled["ok"] is True
+    assert pulled["action"] == "pulled"
+    assert "composite_id: test-composite" in project_md.read_text(encoding="utf-8")
