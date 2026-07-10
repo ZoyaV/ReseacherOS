@@ -6456,6 +6456,9 @@ const paperState = {
   composeOpen: false,
   pendingDeepLink: null,
   commentsPanelCollapsed: false,
+  texDirty: false,
+  texSaving: false,
+  texCompiling: false,
 };
 const PAPER_INBOX_CONFIGURED_KEY = "koi_paper_inbox_configured";
 const PAPER_COMMENTS_COLLAPSED_KEY = "koi_paper_comments_collapsed";
@@ -6597,7 +6600,11 @@ function paperEls() {
     frame: document.getElementById("paper-frame"),
     pdfMissing: document.getElementById("paper-pdf-missing"),
     texScroll: document.getElementById("paper-tex-scroll"),
-    texLines: document.getElementById("paper-tex-lines"),
+    texGutter: document.getElementById("paper-tex-gutter"),
+    texInput: document.getElementById("paper-tex-input"),
+    texDirty: document.getElementById("paper-tex-dirty"),
+    texSave: document.getElementById("btn-paper-tex-save"),
+    texCompile: document.getElementById("btn-paper-tex-compile"),
     texSelection: document.getElementById("paper-tex-selection"),
     commentAdd: document.getElementById("btn-paper-comment-add"),
     commentsCount: document.getElementById("paper-comments-count"),
@@ -6637,10 +6644,14 @@ function renderPaperTabs() {
     btn.addEventListener("click", () => {
       const key = btn.getAttribute("data-paper-key");
       if (!key || key === paperState.activeKey) return;
+      if (paperState.texDirty && !window.confirm("Есть несохранённые изменения в main.tex. Переключить статью?")) {
+        return;
+      }
       paperState.activeKey = key;
       paperState.lastPdfStamp = null;
       paperState.lastPdfKey = null;
       paperState.lastTexKey = null;
+      paperState.texDirty = false;
       paperState.activeCommentId = null;
       resetPaperSelection();
       if (paperEls().frame) paperEls().frame.src = "about:blank";
@@ -6901,140 +6912,81 @@ function applyPaperTextSelection(parsed) {
   updatePaperSelectionUi();
 }
 
-function getTexLineEl(node) {
-  const el = node?.nodeType === Node.TEXT_NODE ? node.parentElement : node;
-  return el?.closest?.(".paper-tex-line") ?? null;
-}
-
-function charOffsetInLine(lineEl, container, offset) {
-  const code = lineEl?.querySelector(".paper-tex-code");
-  if (!code) return 0;
-  const range = document.createRange();
-  range.selectNodeContents(code);
-  try {
-    range.setEnd(container, offset);
-    return range.toString().length;
-  } catch {
-    return 0;
-  }
-}
-
-function parseTexSelection() {
-  const sel = window.getSelection();
-  if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
-  const range = sel.getRangeAt(0);
-  const scroll = paperEls().texScroll;
-  if (!scroll?.contains(range.commonAncestorContainer)) return null;
-
-  const startLine = getTexLineEl(range.startContainer);
-  const endLine = getTexLineEl(range.endContainer);
-  if (!startLine || !endLine) return null;
-
-  const selectedText = range.toString();
+function parseTexareaSelection(ta) {
+  if (!ta) return null;
+  const start = ta.selectionStart;
+  const end = ta.selectionEnd;
+  if (start == null || end == null || start === end) return null;
+  const selectedText = ta.value.slice(start, end);
   if (!selectedText.trim()) return null;
-
-  return {
-    lineStart: Number(startLine.dataset.line),
-    lineEnd: Number(endLine.dataset.line),
-    charStart: charOffsetInLine(startLine, range.startContainer, range.startOffset),
-    charEnd: charOffsetInLine(endLine, range.endContainer, range.endOffset),
-    selectedText,
-  };
+  const value = ta.value;
+  const lineStart = value.slice(0, start).split("\n").length;
+  const lineEnd = value.slice(0, end).split("\n").length;
+  const charStart = start - (value.lastIndexOf("\n", start - 1) + 1);
+  const charEnd = end - (value.lastIndexOf("\n", end - 1) + 1);
+  return { lineStart, lineEnd, charStart, charEnd, selectedText };
 }
 
 function hidePaperSelectionPopover() {
   paperEls().selectionPopover?.classList.add("hidden");
 }
 
-function positionPaperSelectionPopover(parsed) {
-  const pop = paperEls().selectionPopover;
-  const scroll = paperEls().texScroll;
-  if (!pop || !scroll || !parsed) {
-    hidePaperSelectionPopover();
-    return;
-  }
-  const sel = window.getSelection();
-  if (!sel?.rangeCount) {
-    hidePaperSelectionPopover();
-    return;
-  }
-  const rect = sel.getRangeAt(0).getBoundingClientRect();
-  const host = scroll.getBoundingClientRect();
-  if (!rect.width && !rect.height) {
-    hidePaperSelectionPopover();
-    return;
-  }
-  pop.classList.remove("hidden");
-  pop.style.left = `${rect.left - host.left + scroll.scrollLeft + rect.width / 2}px`;
-  pop.style.top = `${rect.top - host.top + scroll.scrollTop}px`;
-}
-
 function syncPaperTextSelection() {
-  const parsed = parseTexSelection();
-  applyPaperTextSelection(parsed);
-  positionPaperSelectionPopover(parsed);
-}
-
-function bindPaperTexSelection() {
-  const scroll = paperEls().texScroll;
-  if (!scroll || scroll.dataset.selectionBound === "1") return;
-  scroll.dataset.selectionBound = "1";
-  scroll.addEventListener("mouseup", () => {
-    requestAnimationFrame(syncPaperTextSelection);
-  });
-  scroll.addEventListener("keyup", () => {
-    requestAnimationFrame(syncPaperTextSelection);
-  });
-  document.addEventListener("selectionchange", () => {
-    const sel = window.getSelection();
-    if (!sel?.anchorNode || !scroll.contains(sel.anchorNode)) return;
-    requestAnimationFrame(syncPaperTextSelection);
-  });
-}
-
-function highlightRangesForLine(lineNo) {
-  const ranges = [];
-  for (const comment of paperState.comments) {
-    const { start, end, charStart, charEnd } = commentAnchorMeta(comment);
-    if (lineNo < start || lineNo > end) continue;
-    const textLen = (paperState.texLines[lineNo - 1] || "").length;
-    let from = 0;
-    let to = textLen;
-    if (start === end) {
-      if (charStart != null) from = charStart;
-      if (charEnd != null) to = charEnd;
-    } else if (lineNo === start && charStart != null) {
-      from = charStart;
-    } else if (lineNo === end && charEnd != null) {
-      to = charEnd;
-    }
-    ranges.push({
-      from: Math.max(0, from),
-      to: Math.min(textLen, to),
-      commentId: comment.id,
-      active: comment.id === paperState.activeCommentId,
-    });
+  const ta = paperEls().texInput;
+  if (!ta || document.activeElement !== ta) {
+    applyPaperTextSelection(null);
+    hidePaperSelectionPopover();
+    return;
   }
-  return ranges.sort((a, b) => a.from - b.from);
+  applyPaperTextSelection(parseTexareaSelection(ta));
+  hidePaperSelectionPopover();
 }
 
-function renderLineContent(text, lineNo) {
-  const raw = text || " ";
-  const ranges = highlightRangesForLine(lineNo);
-  if (!ranges.length) return escapeHtml(raw);
-  let html = "";
+function syncTexFromInput() {
+  const ta = paperEls().texInput;
+  if (!ta) return;
+  paperState.texText = ta.value;
+  paperState.texLines = ta.value.split("\n");
+  paperState.texDirty = true;
+  updatePaperSaveUi();
+  void renderPaperTexGutter();
+}
+
+function updatePaperSaveUi() {
+  const els = paperEls();
+  const busy = paperState.texSaving || paperState.texCompiling;
+  els.texDirty?.classList.toggle("hidden", !paperState.texDirty);
+  if (els.texSave) {
+    els.texSave.disabled = !paperState.texDirty || busy;
+    els.texSave.textContent = paperState.texSaving ? "Сохранение…" : "Сохранить";
+  }
+  if (els.texCompile) {
+    els.texCompile.disabled = busy;
+    els.texCompile.textContent = paperState.texCompiling ? "Сборка…" : "Собрать PDF";
+  }
+}
+
+function setTexEditorContent(text, { markClean = true } = {}) {
+  const els = paperEls();
+  paperState.texText = text;
+  paperState.texLines = text.split("\n");
+  if (els.texInput && els.texInput.value !== text) els.texInput.value = text;
+  if (markClean) paperState.texDirty = false;
+  updatePaperSaveUi();
+  void renderPaperTexGutter();
+}
+
+function offsetForLine(text, lineNo, charOffset = 0) {
+  const lines = text.split("\n");
   let pos = 0;
-  for (const span of ranges) {
-    if (span.from > pos) html += escapeHtml(raw.slice(pos, span.from));
-    html += `<mark class="paper-tex-highlight${span.active ? " is-active" : ""}" data-comment-id="${escapeHtml(span.commentId)}">${escapeHtml(raw.slice(span.from, span.to))}</mark>`;
-    pos = Math.max(pos, span.to);
+  for (let i = 0; i < lineNo - 1 && i < lines.length; i += 1) {
+    pos += lines[i].length + 1;
   }
-  if (pos < raw.length) html += escapeHtml(raw.slice(pos));
-  return html;
+  return pos + Math.max(0, charOffset);
 }
 
 function selectPaperLines(lineStart, lineEnd, anchor = {}) {
-  const maxLine = Math.max(1, paperState.texLines.length);
+  const maxLine = Math.max(1, paperState.texLines.length || 1);
   let start = Math.max(1, Math.min(lineStart, maxLine));
   let end = Math.max(1, Math.min(lineEnd, maxLine));
   if (start > end) [start, end] = [end, start];
@@ -7044,6 +6996,20 @@ function selectPaperLines(lineStart, lineEnd, anchor = {}) {
   paperState.selectedCharEnd = anchor.charEnd ?? null;
   paperState.selectedText = anchor.selectedText || "";
   updatePaperSelectionUi();
+  void renderPaperTexGutter();
+
+  const ta = paperEls().texInput;
+  if (!ta) return;
+  const value = ta.value;
+  let selStart = offsetForLine(value, start, anchor.charStart ?? 0);
+  let selEnd = offsetForLine(
+    value,
+    end,
+    anchor.charEnd ?? (paperState.texLines[end - 1] || "").length
+  );
+  if (selStart > selEnd) [selStart, selEnd] = [selEnd, selStart];
+  ta.focus();
+  ta.setSelectionRange(selStart, selEnd);
 }
 
 function updatePaperSelectionUi() {
@@ -7055,17 +7021,6 @@ function updatePaperSelectionUi() {
     els.texSelection.classList.toggle("has-selection", hasSelection);
   }
   if (els.commentAdd) els.commentAdd.disabled = !hasSelection || paperState.composeOpen;
-
-  els.texLines?.querySelectorAll(".paper-tex-line").forEach((row) => {
-    const lineNo = Number(row.dataset.line);
-    const inRange = Boolean(start) && lineNo >= start && lineNo <= end;
-    row.classList.toggle("is-in-range", inRange);
-    row.classList.toggle(
-      "is-active-comment",
-      Boolean(paperState.activeCommentId) &&
-        row.dataset.commentId === paperState.activeCommentId
-    );
-  });
 
   if (paperState.composeOpen && els.commentCompose && els.commentComposeRange) {
     els.commentCompose.classList.remove("hidden");
@@ -7087,9 +7042,9 @@ function linesWithComments() {
   return map;
 }
 
-async function renderPaperTexEditor() {
+async function renderPaperTexGutter() {
   const els = paperEls();
-  if (!els.texLines) return;
+  if (!els.texGutter) return;
   const commentByLine = linesWithComments();
   const staleChecks = await Promise.all(
     paperState.comments.map(async (comment) => {
@@ -7099,37 +7054,134 @@ async function renderPaperTexEditor() {
     })
   );
   const staleById = new Map(staleChecks);
+  const { selectedLineStart: selStart, selectedLineEnd: selEnd } = paperState;
+  const lineCount = Math.max(1, paperState.texLines.length);
 
-  els.texLines.innerHTML = paperState.texLines
-    .map((text, index) => {
-      const lineNo = index + 1;
-      const commentId = commentByLine.get(lineNo) || "";
-      const hasComment = Boolean(commentId);
-      const stale = hasComment && staleById.get(commentId);
-      return `<div class="paper-tex-line${hasComment ? " is-commented" : ""}${stale ? " is-stale" : ""}" data-line="${lineNo}"${commentId ? ` data-comment-id="${escapeHtml(commentId)}"` : ""}>
-        <span class="paper-tex-ln">${lineNo}</span>
-        <button type="button" class="paper-tex-mark" aria-label="Комментарий на строке ${lineNo}"${commentId ? ` data-focus-comment="${escapeHtml(commentId)}"` : ""}></button>
-        <code class="paper-tex-code">${renderLineContent(text, lineNo)}</code>
-      </div>`;
-    })
-    .join("");
+  els.texGutter.innerHTML = `<div class="paper-tex-gutter-inner">${Array.from({ length: lineCount }, (_, index) => {
+    const lineNo = index + 1;
+    const commentId = commentByLine.get(lineNo) || "";
+    const hasComment = Boolean(commentId);
+    const stale = hasComment && staleById.get(commentId);
+    const inRange = Boolean(selStart) && lineNo >= selStart && lineNo <= selEnd;
+    const activeComment =
+      Boolean(paperState.activeCommentId) && commentId === paperState.activeCommentId;
+    return `<div class="paper-tex-gutter-line${hasComment ? " is-commented" : ""}${stale ? " is-stale" : ""}${inRange ? " is-in-range" : ""}${activeComment ? " is-active-comment" : ""}" data-line="${lineNo}">
+      <span class="paper-tex-gutter-ln">${lineNo}</span>
+      <button type="button" class="paper-tex-gutter-mark" aria-label="Комментарий на строке ${lineNo}"${commentId ? ` data-focus-comment="${escapeHtml(commentId)}"` : ""}></button>
+    </div>`;
+  }).join("")}</div>`;
 
-  els.texLines.querySelectorAll("[data-focus-comment]").forEach((btn) => {
+  els.texGutter.querySelectorAll("[data-focus-comment]").forEach((btn) => {
     btn.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
       focusPaperComment(btn.getAttribute("data-focus-comment"));
     });
   });
-  els.texLines.querySelectorAll(".paper-tex-highlight").forEach((mark) => {
-    mark.addEventListener("click", (event) => {
-      event.stopPropagation();
-      focusPaperComment(mark.getAttribute("data-comment-id"));
-    });
+}
+
+function bindPaperTexEditor() {
+  const ta = paperEls().texInput;
+  const gutter = paperEls().texGutter;
+  if (!ta || ta.dataset.editorBound === "1") return;
+  ta.dataset.editorBound = "1";
+
+  ta.addEventListener("input", () => {
+    syncTexFromInput();
   });
-  bindPaperTexSelection();
+  ta.addEventListener("scroll", () => {
+    if (gutter) gutter.scrollTop = ta.scrollTop;
+  });
+  ta.addEventListener("mouseup", () => {
+    requestAnimationFrame(syncPaperTextSelection);
+  });
+  ta.addEventListener("keyup", () => {
+    requestAnimationFrame(syncPaperTextSelection);
+  });
+  ta.addEventListener("select", () => {
+    requestAnimationFrame(syncPaperTextSelection);
+  });
+  ta.addEventListener("keydown", (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === "s") {
+      event.preventDefault();
+      void savePaperTex();
+    }
+  });
+}
+
+async function renderPaperTexEditor() {
+  await renderPaperTexGutter();
   updatePaperSelectionUi();
   if (paperState.activeCommentId) scrollPaperToComment(paperState.activeCommentId);
+}
+
+async function savePaperTex({ quiet = false } = {}) {
+  const entry = activePaperEntry();
+  const els = paperEls();
+  if (!entry || paperState.texSaving) return false;
+  const content = els.texInput?.value ?? paperState.texText;
+  paperState.texSaving = true;
+  updatePaperSaveUi();
+  try {
+    await KoiApi.savePaperTex(entry.project_id, entry.slug, content);
+    paperState.texDirty = false;
+    paperState.texText = content;
+    paperState.texLines = content.split("\n");
+    updatePaperSaveUi();
+    if (!quiet && els.status) {
+      els.status.textContent = "main.tex сохранён";
+      setTimeout(() => {
+        if (els.status?.textContent === "main.tex сохранён") els.status.textContent = "";
+      }, 3000);
+    }
+    return true;
+  } catch (err) {
+    if (els.status) els.status.textContent = `Не удалось сохранить main.tex: ${err.message}`;
+    return false;
+  } finally {
+    paperState.texSaving = false;
+    updatePaperSaveUi();
+  }
+}
+
+async function compilePaperPdf() {
+  const entry = activePaperEntry();
+  const els = paperEls();
+  if (!entry || paperState.texCompiling) return;
+  if (paperState.texDirty) {
+    const saved = await savePaperTex({ quiet: true });
+    if (!saved) return;
+  }
+  paperState.texCompiling = true;
+  updatePaperSaveUi();
+  showPaperLoader("Сборка PDF…");
+  try {
+    const res = await KoiApi.compilePaper(entry.project_id, entry.slug);
+    hidePaperLoader();
+    if (els.status) {
+      els.status.textContent = res?.engine ? `PDF собран (${res.engine})` : "PDF собран";
+      setTimeout(() => {
+        if (els.status?.textContent?.startsWith("PDF собран")) els.status.textContent = "";
+      }, 4000);
+    }
+    paperState.lastPdfStamp = null;
+    showPaperPdf(entry.project_id, entry.slug, res?.pdf_mtime || Date.now());
+    const idx = paperState.papers.findIndex((paper) => paperTabKey(paper) === paperTabKey(entry));
+    if (idx >= 0) {
+      paperState.papers[idx] = {
+        ...paperState.papers[idx],
+        pdf_exists: true,
+        pdf_mtime: res?.pdf_mtime,
+      };
+    }
+    renderPaperTabs();
+  } catch (err) {
+    hidePaperLoader();
+    if (els.status) els.status.textContent = `Ошибка сборки PDF: ${err.message}`;
+  } finally {
+    paperState.texCompiling = false;
+    updatePaperSaveUi();
+  }
 }
 
 function renderPaperCommentsList() {
@@ -7242,10 +7294,15 @@ function renderPaperCommentThread() {
 function scrollPaperToComment(commentId) {
   const els = paperEls();
   const comment = paperState.comments.find((item) => item.id === commentId);
-  if (!comment || !els.texScroll) return;
+  const ta = els.texInput;
+  if (!comment || !ta) return;
   const { start } = commentLinesFor(comment);
-  const row = els.texLines?.querySelector(`.paper-tex-line[data-line="${start}"]`);
-  if (row) row.scrollIntoView({ block: "center" });
+  const pos = offsetForLine(ta.value, start, 0);
+  ta.focus();
+  ta.setSelectionRange(pos, pos);
+  const lineHeight = parseFloat(getComputedStyle(ta).lineHeight) || 18;
+  ta.scrollTop = Math.max(0, (start - 3) * lineHeight);
+  if (els.texGutter) els.texGutter.scrollTop = ta.scrollTop;
 }
 
 function focusPaperComment(commentId) {
@@ -7273,17 +7330,15 @@ async function loadPaperComments(projectId, slug) {
   renderPaperCommentThread();
 }
 
-async function loadPaperTex(projectId, slug) {
+async function loadPaperTex(projectId, slug, { force = false } = {}) {
   const key = paperViewerKey(projectId, slug);
-  if (paperState.lastTexKey === key && paperState.texLines.length) {
-    await renderPaperTexEditor();
+  if (!force && paperState.lastTexKey === key && paperEls().texInput && !paperState.texDirty) {
+    await renderPaperTexGutter();
     return;
   }
   const text = await KoiApi.getPaperTex(projectId, slug);
-  paperState.texText = text;
-  paperState.texLines = text.split("\n");
   paperState.lastTexKey = key;
-  await renderPaperTexEditor();
+  setTexEditorContent(text, { markClean: true });
 }
 
 async function loadPaperWorkspace(projectId, slug, { pdfExists = false, pdfStamp = "" } = {}) {
@@ -7653,7 +7708,7 @@ function openPaperModal() {
 function initPaper() {
   capturePaperDeepLinkFromUrl();
   paperState.commentsPanelCollapsed = isPaperCommentsPanelCollapsed();
-  bindPaperTexSelection();
+  bindPaperTexEditor();
   applyPaperCommentsPanelCollapsed();
   document.getElementById("btn-paper")?.addEventListener("click", openPaperModal);
   document.getElementById("btn-paper-generate")?.addEventListener("click", () => {
@@ -7674,6 +7729,12 @@ function initPaper() {
   });
   document.getElementById("btn-paper-comments-expand")?.addEventListener("click", () => {
     setPaperCommentsPanelCollapsed(false);
+  });
+  document.getElementById("btn-paper-tex-save")?.addEventListener("click", () => {
+    void savePaperTex();
+  });
+  document.getElementById("btn-paper-tex-compile")?.addEventListener("click", () => {
+    void compilePaperPdf();
   });
   document.getElementById("btn-paper-comment-save")?.addEventListener("click", () => {
     void savePaperComment();
@@ -7726,7 +7787,12 @@ async function init() {
         void closeReportModal();
         return;
       }
-      if (el.dataset.close === "paper-modal") stopPaperPolling();
+      if (el.dataset.close === "paper-modal") {
+        if (paperState.texDirty && !window.confirm("Есть несохранённые изменения в main.tex. Закрыть без сохранения?")) {
+          return;
+        }
+        stopPaperPolling();
+      }
       hideModal(el.dataset.close);
     });
   });
@@ -7738,6 +7804,15 @@ async function init() {
         void closeReportModal();
         return;
       }
+      const paperModal = document.getElementById("paper-modal");
+      if (paperModal && !paperModal.classList.contains("hidden")) {
+        if (paperState.texDirty && !window.confirm("Есть несохранённые изменения в main.tex. Закрыть без сохранения?")) {
+          return;
+        }
+        hideModal("paper-modal");
+        stopPaperPolling();
+        return;
+      }
       hideModal("create-project-modal");
       hideModal("settings-modal");
       hideModal("node-modal");
@@ -7745,8 +7820,6 @@ async function init() {
       hideModal("method-questions-modal");
       hideModal("card-live-modal");
       hideModal("knowledge-modal");
-      hideModal("paper-modal");
-      stopPaperPolling();
     }
     if ((e.ctrlKey || e.metaKey) && e.key === "s") {
       if (document.activeElement?.id === "card-report-editor") {

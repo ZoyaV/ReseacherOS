@@ -631,6 +631,11 @@ def _compile_tex(tex_dir: Path) -> tuple[bool, str, str]:
     return False, name, "Компиляция завершилась без PDF.\n" + log[-2000:]
 
 
+def compile_paper_slot(slot_dir: Path) -> tuple[bool, str, str]:
+    """Compile main.tex in an existing paper slot directory."""
+    return _compile_tex(slot_dir)
+
+
 # ---------------------------------------------------------------------------
 # Оркестратор
 

@@ -18,6 +18,7 @@ from koi.adapters.settings_store import is_cursor_inbox_agent_mode
 from koi.services.paper_generator import (
     PDF_NAME,
     TEX_NAME,
+    compile_paper_slot,
     generate_paper,
     paper_status,
 )
@@ -54,6 +55,10 @@ class PaperCommentReplyBody(BaseModel):
 
 class PaperCommentResolveBody(BaseModel):
     resolved: bool = True
+
+
+class PaperTexUpdateBody(BaseModel):
+    content: str = Field(default="")
 
 
 def _resolve_slot(project_id: str, slug: str | None) -> tuple[str, Path | None]:
@@ -190,6 +195,34 @@ def get_project_paper_tex(project_id: str, slug: str):
     return PlainTextResponse(
         path.read_text(encoding="utf-8"), media_type="text/plain; charset=utf-8"
     )
+
+
+@router.put("/projects/{project_id}/papers/{slug}/tex")
+def put_project_paper_tex(project_id: str, slug: str, body: PaperTexUpdateBody) -> dict:
+    _, slot_dir = _require_paper_slot(project_id, slug)
+    slot_dir.mkdir(parents=True, exist_ok=True)
+    path = slot_dir / TEX_NAME
+    path.write_text(body.content, encoding="utf-8")
+    return {"ok": True, "tex_mtime": path.stat().st_mtime}
+
+
+@router.post("/projects/{project_id}/papers/{slug}/compile")
+def post_project_paper_compile(project_id: str, slug: str) -> dict:
+    _, slot_dir = _require_paper_slot(project_id, slug)
+    tex_path = slot_dir / TEX_NAME
+    if not tex_path.is_file():
+        raise HTTPException(404, "main.tex ещё не сгенерирован")
+    ok, engine, log_tail = compile_paper_slot(slot_dir)
+    if not ok:
+        raise HTTPException(422, log_tail or "Не удалось собрать PDF")
+    pdf_path = find_pdf(slot_dir)
+    pdf_mtime = pdf_path.stat().st_mtime if pdf_path and pdf_path.is_file() else None
+    return {
+        "ok": True,
+        "engine": engine,
+        "log_tail": log_tail,
+        "pdf_mtime": pdf_mtime,
+    }
 
 
 def _require_paper_slot(project_id: str, slug: str) -> tuple[str, Path]:

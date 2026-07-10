@@ -3967,102 +3967,133 @@ textarea.inline-edit-field {
 
 .paper-tex-scroll {
   flex: 1;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   min-height: 0;
   position: relative;
   background: #12151c;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.78rem;
-  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
 }
 
 [data-theme="light"] .paper-tex-scroll {
   background: #f6f8fb;
 }
 
-.paper-tex-lines {
-  width: 100%;
-  min-width: 0;
-  padding: 0.35rem 0;
-}
-
-.paper-tex-line {
+.paper-tex-editor {
+  flex: 1;
+  min-height: 0;
   display: grid;
-  grid-template-columns: 3rem 0.75rem minmax(0, 1fr);
+  grid-template-columns: 3.35rem minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.paper-tex-gutter {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.35rem 0;
+  background: rgba(0, 0, 0, 0.22);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  user-select: none;
+  scrollbar-width: none;
+}
+
+.paper-tex-gutter::-webkit-scrollbar {
+  display: none;
+}
+
+[data-theme="light"] .paper-tex-gutter {
+  background: rgba(0, 0, 0, 0.04);
+  border-right-color: rgba(0, 0, 0, 0.08);
+}
+
+.paper-tex-gutter-inner {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.paper-tex-gutter-line {
+  display: grid;
+  grid-template-columns: 2rem 0.75rem;
   align-items: start;
+  min-height: calc(0.78rem * 1.5);
 }
 
-.paper-tex-line.is-in-range {
-  background: rgba(120, 200, 255, 0.06);
+.paper-tex-gutter-line.is-in-range {
+  background: rgba(120, 200, 255, 0.08);
 }
 
-.paper-tex-line.is-active-comment {
-  background: rgba(255, 200, 80, 0.08);
+.paper-tex-gutter-line.is-active-comment {
+  background: rgba(255, 200, 80, 0.12);
 }
 
-.paper-tex-ln {
-  padding: 0 0.55rem 0 0.35rem;
+.paper-tex-gutter-ln {
+  padding: 0 0.35rem 0 0.25rem;
   text-align: right;
   color: var(--text-muted);
   opacity: 0.55;
-  user-select: none;
 }
 
-.paper-tex-mark {
+.paper-tex-input {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: none;
+  resize: none;
+  background: transparent;
+  color: #d6deea;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  padding: 0.35rem 0.85rem 0.35rem 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  outline: none;
+  overflow: auto;
+}
+
+[data-theme="light"] .paper-tex-input {
+  color: #1f2937;
+}
+
+.paper-tex-input::selection {
+  background: rgba(61, 232, 255, 0.35);
+}
+
+.paper-tex-dirty {
+  font-size: 0.68rem;
+  color: #ffb86c;
+  flex-shrink: 0;
+}
+
+.paper-tex-dirty.hidden {
+  display: none;
+}
+
+.paper-pane--tex .paper-pane__head {
+  flex-wrap: wrap;
+  row-gap: 0.35rem;
+}
+
+.paper-tex-gutter-mark {
   width: 0.42rem;
   height: 0.42rem;
-  margin-top: 0.48rem;
+  margin-top: 0.42rem;
   border: none;
   padding: 0;
   border-radius: 999px;
   background: transparent;
   cursor: pointer;
-  flex-shrink: 0;
 }
 
-.paper-tex-line.is-commented .paper-tex-mark {
+.paper-tex-gutter-line.is-commented .paper-tex-gutter-mark {
   background: var(--cyan);
   box-shadow: 0 0 0 2px rgba(61, 232, 255, 0.2);
 }
 
-.paper-tex-line.is-stale .paper-tex-mark {
+.paper-tex-gutter-line.is-stale .paper-tex-gutter-mark {
   background: var(--text-muted);
-}
-
-.paper-tex-code {
-  margin: 0;
-  padding: 0 0.85rem 0 0;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  color: #d6deea;
-  user-select: text;
-  cursor: text;
-  min-width: 0;
-}
-
-[data-theme="light"] .paper-tex-code {
-  color: #1f2937;
-}
-
-.paper-tex-code::selection,
-.paper-tex-highlight::selection {
-  background: rgba(61, 232, 255, 0.35);
-}
-
-.paper-tex-highlight {
-  background: rgba(61, 232, 255, 0.18);
-  border-radius: 2px;
-  padding: 0.05rem 0;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.paper-tex-highlight.is-active {
-  background: rgba(255, 200, 80, 0.28);
 }
 
 .paper-selection-popover {

@@ -513,12 +513,18 @@
                 <span class="paper-pane__label">LaTeX</span>
                 <span class="paper-pane__file">main.tex</span>
               </div>
+              <span id="paper-tex-dirty" class="paper-tex-dirty hidden" aria-live="polite">не сохранено</span>
+              <button type="button" id="btn-paper-tex-save" class="btn btn-small" disabled title="Сохранить main.tex">Сохранить</button>
+              <button type="button" id="btn-paper-tex-compile" class="btn btn-small" title="Собрать PDF из main.tex">Собрать PDF</button>
               <span id="paper-tex-selection" class="paper-tex-selection">Выделите фрагмент текста</span>
               <button type="button" id="btn-paper-comments-expand" class="btn btn-small paper-comments-expand hidden" title="Показать панель комментариев">Review <span id="paper-comments-count-inline" class="paper-comments-count">0</span></button>
               <button type="button" id="btn-paper-comment-add" class="btn btn-primary btn-small paper-comment-cta" disabled>Комментировать</button>
             </header>
             <div id="paper-tex-scroll" class="paper-tex-scroll" tabindex="0">
-              <div id="paper-tex-lines" class="paper-tex-lines"></div>
+              <div class="paper-tex-editor">
+                <div id="paper-tex-gutter" class="paper-tex-gutter" aria-hidden="true"></div>
+                <textarea id="paper-tex-input" class="paper-tex-input" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Редактор main.tex"></textarea>
+              </div>
               <div id="paper-selection-popover" class="paper-selection-popover hidden" role="toolbar" aria-label="Действия с выделением">
                 <button type="button" id="btn-paper-comment-popover" class="btn btn-primary btn-small">Комментировать</button>
               </div>
