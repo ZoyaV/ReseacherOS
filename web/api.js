@@ -221,6 +221,29 @@ export const KoiApi = {
     `${apiBase()}/projects/${projectId}/papers/${encodeURIComponent(slug)}/pdf`,
   paperTexUrl: (projectId, slug = "default") =>
     `${apiBase()}/projects/${projectId}/papers/${encodeURIComponent(slug)}/tex`,
+  getPaperTex: (projectId, slug = "default") =>
+    apiText(`/projects/${projectId}/papers/${encodeURIComponent(slug)}/tex`),
+  getPaperComments: (projectId, slug = "default") =>
+    api(`/projects/${projectId}/papers/${encodeURIComponent(slug)}/comments`),
+  createPaperComment: (projectId, slug, payload) =>
+    api(`/projects/${projectId}/papers/${encodeURIComponent(slug)}/comments`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  replyPaperComment: (projectId, slug, commentId, payload) =>
+    api(`/projects/${projectId}/papers/${encodeURIComponent(slug)}/comments/${encodeURIComponent(commentId)}/replies`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  resolvePaperComment: (projectId, slug, commentId, resolved = true) =>
+    api(`/projects/${projectId}/papers/${encodeURIComponent(slug)}/comments/${encodeURIComponent(commentId)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ resolved }),
+    }),
+  deletePaperComment: (projectId, slug, commentId) =>
+    api(`/projects/${projectId}/papers/${encodeURIComponent(slug)}/comments/${encodeURIComponent(commentId)}`, {
+      method: "DELETE",
+    }),
   getKnowledge: (projectId) => apiText(`/projects/${projectId}/knowledge`),
   getKnowledgeSummary: (projectId) => api(`/projects/${projectId}/knowledge/summary`),
   getKnowledgeLog: (projectId) => apiText(`/projects/${projectId}/knowledge/log`),

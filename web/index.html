@@ -506,7 +506,57 @@
           <p class="koi-loader__hint" aria-hidden="true"></p>
         </div>
         <p id="paper-empty" class="paper-empty">Статья ещё не генерировалась.</p>
-        <iframe id="paper-frame" class="paper-frame hidden" title="PDF статьи"></iframe>
+        <div id="paper-split" class="paper-split hidden">
+          <section class="paper-pane paper-pane--tex" aria-label="LaTeX исходник">
+            <header class="paper-pane__head">
+              <div class="paper-pane__title-group">
+                <span class="paper-pane__label">LaTeX</span>
+                <span class="paper-pane__file">main.tex</span>
+              </div>
+              <span id="paper-tex-selection" class="paper-tex-selection">Выделите фрагмент текста</span>
+              <button type="button" id="btn-paper-comments-expand" class="btn btn-small paper-comments-expand hidden" title="Показать панель комментариев">Review <span id="paper-comments-count-inline" class="paper-comments-count">0</span></button>
+              <button type="button" id="btn-paper-comment-add" class="btn btn-primary btn-small paper-comment-cta" disabled>Комментировать</button>
+            </header>
+            <div id="paper-tex-scroll" class="paper-tex-scroll" tabindex="0">
+              <div id="paper-tex-lines" class="paper-tex-lines"></div>
+              <div id="paper-selection-popover" class="paper-selection-popover hidden" role="toolbar" aria-label="Действия с выделением">
+                <button type="button" id="btn-paper-comment-popover" class="btn btn-primary btn-small">Комментировать</button>
+              </div>
+            </div>
+          </section>
+          <div class="paper-split-divider paper-split-divider--review" aria-hidden="true"></div>
+          <aside id="paper-comments-panel" class="paper-pane paper-pane--review" aria-label="Комментарии к статье">
+            <header class="paper-pane__head">
+              <div class="paper-pane__title-group">
+                <span class="paper-pane__label">Review</span>
+                <span id="paper-comments-count" class="paper-comments-count">0</span>
+              </div>
+              <button type="button" id="btn-paper-comments-collapse" class="paper-pane__toggle btn btn-small" aria-expanded="true" title="Скрыть панель комментариев">Скрыть</button>
+            </header>
+            <div id="paper-comments-body" class="paper-comments-body">
+              <div id="paper-comments-list" class="paper-comments-list"></div>
+              <div id="paper-comment-compose" class="paper-comment-compose hidden">
+                <p id="paper-comment-compose-range" class="paper-comment-compose-range"></p>
+                <textarea id="paper-comment-compose-body" class="paper-comment-compose-body" rows="4" placeholder="Комментарий для агента…"></textarea>
+                <div class="paper-comment-compose-actions">
+                  <button type="button" id="btn-paper-comment-save" class="btn btn-primary btn-small">Сохранить</button>
+                  <button type="button" id="btn-paper-comment-cancel" class="btn btn-small">Отмена</button>
+                </div>
+              </div>
+              <div id="paper-comment-thread" class="paper-comment-thread hidden"></div>
+            </div>
+          </aside>
+          <div class="paper-split-divider paper-split-divider--pdf" aria-hidden="true"></div>
+          <section class="paper-pane paper-pane--pdf" aria-label="PDF просмотр">
+            <header class="paper-pane__head">
+              <span class="paper-pane__label">PDF</span>
+            </header>
+            <div class="paper-pdf-body">
+              <iframe id="paper-frame" class="paper-frame" title="PDF статьи"></iframe>
+              <p id="paper-pdf-missing" class="paper-pdf-missing hidden">PDF не собран — доступен только LaTeX.</p>
+            </div>
+          </section>
+        </div>
       </div>
       <p class="card-report-hint">
         Статья собирается агентом из всего графа исследования: дерево гипотез, выводы

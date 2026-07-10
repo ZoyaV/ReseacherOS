@@ -22,12 +22,38 @@ from koi.services.paper_generator import (
     paper_status,
 )
 from koi.services.paper_runner import submit_paper_request
+from koi.services.paper_comments import (
+    add_reply,
+    create_comment,
+    delete_comment,
+    load_comments,
+    set_comment_resolved,
+)
 
 router = APIRouter(tags=["paper"])
 
 
 class PaperGenerateBody(BaseModel):
     slug: str = Field(default=DEFAULT_PAPER_SLUG)
+
+
+class PaperCommentCreateBody(BaseModel):
+    line_start: int = Field(ge=1)
+    line_end: int = Field(ge=1)
+    body: str = Field(min_length=1)
+    author: str = Field(default="reviewer")
+    char_start: int | None = Field(default=None, ge=0)
+    char_end: int | None = Field(default=None, ge=0)
+    selected_text: str | None = None
+
+
+class PaperCommentReplyBody(BaseModel):
+    body: str = Field(min_length=1)
+    author: str = Field(default="reviewer")
+
+
+class PaperCommentResolveBody(BaseModel):
+    resolved: bool = True
 
 
 def _resolve_slot(project_id: str, slug: str | None) -> tuple[str, Path | None]:
@@ -164,3 +190,79 @@ def get_project_paper_tex(project_id: str, slug: str):
     return PlainTextResponse(
         path.read_text(encoding="utf-8"), media_type="text/plain; charset=utf-8"
     )
+
+
+def _require_paper_slot(project_id: str, slug: str) -> tuple[str, Path]:
+    parse_project(project_id)
+    normalized = normalize_paper_slug(slug)
+    slot_dir = get_paper_slot_dir(project_id, normalized)
+    if slot_dir is None:
+        raise HTTPException(404, f"Статья «{normalized}» не найдена")
+    return normalized, slot_dir
+
+
+@router.get("/projects/{project_id}/papers/{slug}/comments")
+def get_project_paper_comments(project_id: str, slug: str) -> dict:
+    _, slot_dir = _require_paper_slot(project_id, slug)
+    return load_comments(slot_dir)
+
+
+@router.post("/projects/{project_id}/papers/{slug}/comments")
+def post_project_paper_comment(project_id: str, slug: str, body: PaperCommentCreateBody) -> dict:
+    _, slot_dir = _require_paper_slot(project_id, slug)
+    try:
+        comment = create_comment(
+            slot_dir,
+            line_start=body.line_start,
+            line_end=body.line_end,
+            body=body.body,
+            author=body.author,
+            char_start=body.char_start,
+            char_end=body.char_end,
+            selected_text=body.selected_text,
+        )
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    return {"ok": True, "comment": comment}
+
+
+@router.post("/projects/{project_id}/papers/{slug}/comments/{comment_id}/replies")
+def post_project_paper_comment_reply(
+    project_id: str,
+    slug: str,
+    comment_id: str,
+    body: PaperCommentReplyBody,
+) -> dict:
+    _, slot_dir = _require_paper_slot(project_id, slug)
+    try:
+        message = add_reply(slot_dir, comment_id, body=body.body, author=body.author)
+    except KeyError as e:
+        raise HTTPException(404, "Comment not found") from e
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    return {"ok": True, "message": message}
+
+
+@router.patch("/projects/{project_id}/papers/{slug}/comments/{comment_id}")
+def patch_project_paper_comment(
+    project_id: str,
+    slug: str,
+    comment_id: str,
+    body: PaperCommentResolveBody,
+) -> dict:
+    _, slot_dir = _require_paper_slot(project_id, slug)
+    try:
+        comment = set_comment_resolved(slot_dir, comment_id, resolved=body.resolved)
+    except KeyError as e:
+        raise HTTPException(404, "Comment not found") from e
+    return {"ok": True, "comment": comment}
+
+
+@router.delete("/projects/{project_id}/papers/{slug}/comments/{comment_id}")
+def delete_project_paper_comment(project_id: str, slug: str, comment_id: str) -> dict:
+    _, slot_dir = _require_paper_slot(project_id, slug)
+    try:
+        delete_comment(slot_dir, comment_id)
+    except KeyError as e:
+        raise HTTPException(404, "Comment not found") from e
+    return {"ok": True}

@@ -6441,10 +6441,24 @@ const paperState = {
   pollTimer: null,
   lastPdfStamp: null,
   lastPdfKey: null,
+  lastTexKey: null,
   activeKey: null,
   papers: [],
+  texText: "",
+  texLines: [],
+  comments: [],
+  selectedLineStart: null,
+  selectedLineEnd: null,
+  selectedCharStart: null,
+  selectedCharEnd: null,
+  selectedText: "",
+  activeCommentId: null,
+  composeOpen: false,
+  pendingDeepLink: null,
+  commentsPanelCollapsed: false,
 };
 const PAPER_INBOX_CONFIGURED_KEY = "koi_paper_inbox_configured";
+const PAPER_COMMENTS_COLLAPSED_KEY = "koi_paper_comments_collapsed";
 let paperInboxBootstrapCopied = false;
 let lastPaperInboxMessage = "";
 
@@ -6579,7 +6593,25 @@ function paperEls() {
     texLink: document.getElementById("paper-tex-link"),
     status: document.getElementById("paper-status"),
     empty: document.getElementById("paper-empty"),
+    split: document.getElementById("paper-split"),
     frame: document.getElementById("paper-frame"),
+    pdfMissing: document.getElementById("paper-pdf-missing"),
+    texScroll: document.getElementById("paper-tex-scroll"),
+    texLines: document.getElementById("paper-tex-lines"),
+    texSelection: document.getElementById("paper-tex-selection"),
+    commentAdd: document.getElementById("btn-paper-comment-add"),
+    commentsCount: document.getElementById("paper-comments-count"),
+    commentsList: document.getElementById("paper-comments-list"),
+    commentCompose: document.getElementById("paper-comment-compose"),
+    commentComposeRange: document.getElementById("paper-comment-compose-range"),
+    commentComposeBody: document.getElementById("paper-comment-compose-body"),
+    commentThread: document.getElementById("paper-comment-thread"),
+    commentsPanel: document.getElementById("paper-comments-panel"),
+    commentsCollapseBtn: document.getElementById("btn-paper-comments-collapse"),
+    commentsExpandBtn: document.getElementById("btn-paper-comments-expand"),
+    commentsCountInline: document.getElementById("paper-comments-count-inline"),
+    selectionPopover: document.getElementById("paper-selection-popover"),
+    panel: document.querySelector(".paper-panel"),
   };
 }
 
@@ -6608,6 +6640,9 @@ function renderPaperTabs() {
       paperState.activeKey = key;
       paperState.lastPdfStamp = null;
       paperState.lastPdfKey = null;
+      paperState.lastTexKey = null;
+      paperState.activeCommentId = null;
+      resetPaperSelection();
       if (paperEls().frame) paperEls().frame.src = "about:blank";
       renderPaperTabs();
       renderPaperFromEntry(activePaperEntry());
@@ -6654,12 +6689,13 @@ function bindPaperFrameLoad() {
     if (!frame.src || frame.src === "about:blank") return;
     hidePaperLoader();
     frame.classList.remove("hidden");
+    paperEls().pdfMissing?.classList.add("hidden");
   });
   frame.addEventListener("error", () => {
     hidePaperLoader();
-    const { status, empty } = paperEls();
+    const { status, pdfMissing } = paperEls();
     if (status) status.textContent = "Не удалось загрузить PDF в просмотрщике — откройте ссылку «Открыть PDF».";
-    if (empty) empty.classList.remove("hidden");
+    pdfMissing?.classList.remove("hidden");
   });
 }
 
@@ -6678,15 +6714,765 @@ function hidePaperLoader() {
   hideKoiLoader("paper-loader");
 }
 
+function paperViewerKey(projectId, slug) {
+  return `${projectId}:${slug}`;
+}
+
+function paperLineRangeLabel(lineStart, lineEnd) {
+  if (!lineStart) return "";
+  if (lineEnd === lineStart) return `строка ${lineStart}`;
+  return `строки ${lineStart}–${lineEnd}`;
+}
+
+function commentAnchorMeta(comment) {
+  const anchor = comment?.anchor || {};
+  return {
+    start: Number(anchor.line_start) || 1,
+    end: Number(anchor.line_end) || Number(anchor.line_start) || 1,
+    charStart: anchor.char_start ?? null,
+    charEnd: anchor.char_end ?? null,
+    selectedText: anchor.selected_text || "",
+  };
+}
+
+function commentLinesFor(comment) {
+  const { start, end } = commentAnchorMeta(comment);
+  return { start, end };
+}
+
+function paperSelectionLabel() {
+  const {
+    selectedLineStart: start,
+    selectedLineEnd: end,
+    selectedCharStart: cs,
+    selectedCharEnd: ce,
+    selectedText,
+  } = paperState;
+  if (!start) return "Выделите фрагмент текста";
+  let label = paperLineRangeLabel(start, end);
+  if (start === end && cs != null && ce != null) {
+    const lineLen = (paperState.texLines[start - 1] || "").length;
+    if (cs > 0 || ce < lineLen) label += ` · col ${cs + 1}–${ce}`;
+  }
+  const excerpt = (selectedText || "").replace(/\s+/g, " ").trim();
+  if (excerpt) {
+    label += excerpt.length <= 42 ? ` · “${excerpt}”` : ` · “${excerpt.slice(0, 40)}…”`;
+  }
+  return label;
+}
+
+async function paperContentHash(lineStart, lineEnd, charStart = null, charEnd = null) {
+  const lines = paperState.texLines || [];
+  const start = Math.max(1, lineStart);
+  const end = Math.min(lines.length, lineEnd);
+  if (start > end || !lines.length || !crypto?.subtle) return "";
+  let chunk;
+  if (start === end) {
+    const line = lines[start - 1] || "";
+    chunk =
+      charStart != null && charEnd != null ? line.slice(charStart, charEnd) : line;
+  } else {
+    const parts = [];
+    for (let lineNo = start; lineNo <= end; lineNo += 1) {
+      const line = lines[lineNo - 1] || "";
+      if (lineNo === start && charStart != null) parts.push(line.slice(charStart));
+      else if (lineNo === end && charEnd != null) parts.push(line.slice(0, charEnd));
+      else parts.push(line);
+    }
+    chunk = parts.join("\n");
+  }
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(chunk));
+  const hex = Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, 16);
+  return `sha256:${hex}`;
+}
+
+function commentFirstMessage(comment) {
+  const thread = comment?.thread || [];
+  return thread[0]?.body || "";
+}
+
+function paperCommentUrl(projectId, slug, commentId) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("project", projectId);
+  url.searchParams.set("paper", slug);
+  url.searchParams.set("paper_comment", commentId);
+  return url.toString();
+}
+
+function paperCommentClipboardText(projectId, slug, comment) {
+  const { start, end, charStart, charEnd, selectedText } = commentAnchorMeta(comment);
+  const body = commentFirstMessage(comment);
+  const url = paperCommentUrl(projectId, slug, comment.id);
+  const loc =
+    start === end && charStart != null && charEnd != null
+      ? `L${start}:${charStart + 1}–${charEnd}`
+      : `L${start}${end !== start ? `–${end}` : ""}`;
+  const lines = [
+    `Paper review · main.tex ${loc} · ${projectId}/${slug}`,
+    "",
+  ];
+  if (selectedText) lines.push(`Selected: ${selectedText}`, "");
+  lines.push(
+    `> ${body}`,
+    "",
+    `Link: ${url}`,
+    `Storage: koi-structure/paper/${slug}/comments.json · id=${comment.id}`
+  );
+  return lines.join("\n");
+}
+
+function isPaperCommentsPanelCollapsed() {
+  try {
+    return localStorage.getItem(PAPER_COMMENTS_COLLAPSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function applyPaperCommentsPanelCollapsed() {
+  const els = paperEls();
+  const collapsed = paperState.commentsPanelCollapsed;
+  els.split?.classList.toggle("paper-split--comments-collapsed", collapsed);
+  els.commentsCollapseBtn?.setAttribute("aria-expanded", String(!collapsed));
+  if (els.commentsCollapseBtn) {
+    els.commentsCollapseBtn.textContent = collapsed ? "Показать" : "Скрыть";
+    els.commentsCollapseBtn.title = collapsed
+      ? "Показать панель комментариев"
+      : "Скрыть панель комментариев";
+  }
+  els.commentsExpandBtn?.classList.toggle("hidden", !collapsed);
+}
+
+function setPaperCommentsPanelCollapsed(collapsed) {
+  paperState.commentsPanelCollapsed = Boolean(collapsed);
+  try {
+    localStorage.setItem(PAPER_COMMENTS_COLLAPSED_KEY, collapsed ? "1" : "0");
+  } catch {
+    /* private mode */
+  }
+  applyPaperCommentsPanelCollapsed();
+}
+
+function togglePaperCommentsPanel() {
+  setPaperCommentsPanelCollapsed(!paperState.commentsPanelCollapsed);
+}
+
+function setPaperViewerVisible({ split = false, empty = false } = {}) {
+  const els = paperEls();
+  els.empty?.classList.toggle("hidden", !empty);
+  els.split?.classList.toggle("hidden", !split);
+  els.panel?.classList.toggle("is-workspace", split);
+  if (split) applyPaperCommentsPanelCollapsed();
+}
+
+function resetPaperSelection() {
+  paperState.selectedLineStart = null;
+  paperState.selectedLineEnd = null;
+  paperState.selectedCharStart = null;
+  paperState.selectedCharEnd = null;
+  paperState.selectedText = "";
+  paperState.composeOpen = false;
+  hidePaperSelectionPopover();
+  updatePaperSelectionUi();
+}
+
+function applyPaperTextSelection(parsed) {
+  if (!parsed) {
+    paperState.selectedLineStart = null;
+    paperState.selectedLineEnd = null;
+    paperState.selectedCharStart = null;
+    paperState.selectedCharEnd = null;
+    paperState.selectedText = "";
+  } else {
+    let { lineStart, lineEnd, charStart, charEnd, selectedText } = parsed;
+    if (lineStart > lineEnd) {
+      [lineStart, lineEnd] = [lineEnd, lineStart];
+      [charStart, charEnd] = [charEnd, charStart];
+    }
+    paperState.selectedLineStart = lineStart;
+    paperState.selectedLineEnd = lineEnd;
+    paperState.selectedCharStart = charStart;
+    paperState.selectedCharEnd = charEnd;
+    paperState.selectedText = selectedText;
+  }
+  updatePaperSelectionUi();
+}
+
+function getTexLineEl(node) {
+  const el = node?.nodeType === Node.TEXT_NODE ? node.parentElement : node;
+  return el?.closest?.(".paper-tex-line") ?? null;
+}
+
+function charOffsetInLine(lineEl, container, offset) {
+  const code = lineEl?.querySelector(".paper-tex-code");
+  if (!code) return 0;
+  const range = document.createRange();
+  range.selectNodeContents(code);
+  try {
+    range.setEnd(container, offset);
+    return range.toString().length;
+  } catch {
+    return 0;
+  }
+}
+
+function parseTexSelection() {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
+  const range = sel.getRangeAt(0);
+  const scroll = paperEls().texScroll;
+  if (!scroll?.contains(range.commonAncestorContainer)) return null;
+
+  const startLine = getTexLineEl(range.startContainer);
+  const endLine = getTexLineEl(range.endContainer);
+  if (!startLine || !endLine) return null;
+
+  const selectedText = range.toString();
+  if (!selectedText.trim()) return null;
+
+  return {
+    lineStart: Number(startLine.dataset.line),
+    lineEnd: Number(endLine.dataset.line),
+    charStart: charOffsetInLine(startLine, range.startContainer, range.startOffset),
+    charEnd: charOffsetInLine(endLine, range.endContainer, range.endOffset),
+    selectedText,
+  };
+}
+
+function hidePaperSelectionPopover() {
+  paperEls().selectionPopover?.classList.add("hidden");
+}
+
+function positionPaperSelectionPopover(parsed) {
+  const pop = paperEls().selectionPopover;
+  const scroll = paperEls().texScroll;
+  if (!pop || !scroll || !parsed) {
+    hidePaperSelectionPopover();
+    return;
+  }
+  const sel = window.getSelection();
+  if (!sel?.rangeCount) {
+    hidePaperSelectionPopover();
+    return;
+  }
+  const rect = sel.getRangeAt(0).getBoundingClientRect();
+  const host = scroll.getBoundingClientRect();
+  if (!rect.width && !rect.height) {
+    hidePaperSelectionPopover();
+    return;
+  }
+  pop.classList.remove("hidden");
+  pop.style.left = `${rect.left - host.left + scroll.scrollLeft + rect.width / 2}px`;
+  pop.style.top = `${rect.top - host.top + scroll.scrollTop}px`;
+}
+
+function syncPaperTextSelection() {
+  const parsed = parseTexSelection();
+  applyPaperTextSelection(parsed);
+  positionPaperSelectionPopover(parsed);
+}
+
+function bindPaperTexSelection() {
+  const scroll = paperEls().texScroll;
+  if (!scroll || scroll.dataset.selectionBound === "1") return;
+  scroll.dataset.selectionBound = "1";
+  scroll.addEventListener("mouseup", () => {
+    requestAnimationFrame(syncPaperTextSelection);
+  });
+  scroll.addEventListener("keyup", () => {
+    requestAnimationFrame(syncPaperTextSelection);
+  });
+  document.addEventListener("selectionchange", () => {
+    const sel = window.getSelection();
+    if (!sel?.anchorNode || !scroll.contains(sel.anchorNode)) return;
+    requestAnimationFrame(syncPaperTextSelection);
+  });
+}
+
+function highlightRangesForLine(lineNo) {
+  const ranges = [];
+  for (const comment of paperState.comments) {
+    const { start, end, charStart, charEnd } = commentAnchorMeta(comment);
+    if (lineNo < start || lineNo > end) continue;
+    const textLen = (paperState.texLines[lineNo - 1] || "").length;
+    let from = 0;
+    let to = textLen;
+    if (start === end) {
+      if (charStart != null) from = charStart;
+      if (charEnd != null) to = charEnd;
+    } else if (lineNo === start && charStart != null) {
+      from = charStart;
+    } else if (lineNo === end && charEnd != null) {
+      to = charEnd;
+    }
+    ranges.push({
+      from: Math.max(0, from),
+      to: Math.min(textLen, to),
+      commentId: comment.id,
+      active: comment.id === paperState.activeCommentId,
+    });
+  }
+  return ranges.sort((a, b) => a.from - b.from);
+}
+
+function renderLineContent(text, lineNo) {
+  const raw = text || " ";
+  const ranges = highlightRangesForLine(lineNo);
+  if (!ranges.length) return escapeHtml(raw);
+  let html = "";
+  let pos = 0;
+  for (const span of ranges) {
+    if (span.from > pos) html += escapeHtml(raw.slice(pos, span.from));
+    html += `<mark class="paper-tex-highlight${span.active ? " is-active" : ""}" data-comment-id="${escapeHtml(span.commentId)}">${escapeHtml(raw.slice(span.from, span.to))}</mark>`;
+    pos = Math.max(pos, span.to);
+  }
+  if (pos < raw.length) html += escapeHtml(raw.slice(pos));
+  return html;
+}
+
+function selectPaperLines(lineStart, lineEnd, anchor = {}) {
+  const maxLine = Math.max(1, paperState.texLines.length);
+  let start = Math.max(1, Math.min(lineStart, maxLine));
+  let end = Math.max(1, Math.min(lineEnd, maxLine));
+  if (start > end) [start, end] = [end, start];
+  paperState.selectedLineStart = start;
+  paperState.selectedLineEnd = end;
+  paperState.selectedCharStart = anchor.charStart ?? null;
+  paperState.selectedCharEnd = anchor.charEnd ?? null;
+  paperState.selectedText = anchor.selectedText || "";
+  updatePaperSelectionUi();
+}
+
+function updatePaperSelectionUi() {
+  const els = paperEls();
+  const { selectedLineStart: start, selectedLineEnd: end } = paperState;
+  const hasSelection = Boolean(start && paperState.selectedText);
+  if (els.texSelection) {
+    els.texSelection.textContent = paperSelectionLabel();
+    els.texSelection.classList.toggle("has-selection", hasSelection);
+  }
+  if (els.commentAdd) els.commentAdd.disabled = !hasSelection || paperState.composeOpen;
+
+  els.texLines?.querySelectorAll(".paper-tex-line").forEach((row) => {
+    const lineNo = Number(row.dataset.line);
+    const inRange = Boolean(start) && lineNo >= start && lineNo <= end;
+    row.classList.toggle("is-in-range", inRange);
+    row.classList.toggle(
+      "is-active-comment",
+      Boolean(paperState.activeCommentId) &&
+        row.dataset.commentId === paperState.activeCommentId
+    );
+  });
+
+  if (paperState.composeOpen && els.commentCompose && els.commentComposeRange) {
+    els.commentCompose.classList.remove("hidden");
+    els.commentComposeRange.textContent = `Новый комментарий · ${paperSelectionLabel()}`;
+    els.commentThread?.classList.add("hidden");
+  } else if (els.commentCompose) {
+    els.commentCompose.classList.add("hidden");
+  }
+}
+
+function linesWithComments() {
+  const map = new Map();
+  for (const comment of paperState.comments) {
+    const { start, end } = commentLinesFor(comment);
+    for (let line = start; line <= end; line += 1) {
+      if (!map.has(line)) map.set(line, comment.id);
+    }
+  }
+  return map;
+}
+
+async function renderPaperTexEditor() {
+  const els = paperEls();
+  if (!els.texLines) return;
+  const commentByLine = linesWithComments();
+  const staleChecks = await Promise.all(
+    paperState.comments.map(async (comment) => {
+      const { start, end, charStart, charEnd } = commentAnchorMeta(comment);
+      const current = await paperContentHash(start, end, charStart, charEnd);
+      return [comment.id, comment.anchor?.content_hash && current !== comment.anchor.content_hash];
+    })
+  );
+  const staleById = new Map(staleChecks);
+
+  els.texLines.innerHTML = paperState.texLines
+    .map((text, index) => {
+      const lineNo = index + 1;
+      const commentId = commentByLine.get(lineNo) || "";
+      const hasComment = Boolean(commentId);
+      const stale = hasComment && staleById.get(commentId);
+      return `<div class="paper-tex-line${hasComment ? " is-commented" : ""}${stale ? " is-stale" : ""}" data-line="${lineNo}"${commentId ? ` data-comment-id="${escapeHtml(commentId)}"` : ""}>
+        <span class="paper-tex-ln">${lineNo}</span>
+        <button type="button" class="paper-tex-mark" aria-label="Комментарий на строке ${lineNo}"${commentId ? ` data-focus-comment="${escapeHtml(commentId)}"` : ""}></button>
+        <code class="paper-tex-code">${renderLineContent(text, lineNo)}</code>
+      </div>`;
+    })
+    .join("");
+
+  els.texLines.querySelectorAll("[data-focus-comment]").forEach((btn) => {
+    btn.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      focusPaperComment(btn.getAttribute("data-focus-comment"));
+    });
+  });
+  els.texLines.querySelectorAll(".paper-tex-highlight").forEach((mark) => {
+    mark.addEventListener("click", (event) => {
+      event.stopPropagation();
+      focusPaperComment(mark.getAttribute("data-comment-id"));
+    });
+  });
+  bindPaperTexSelection();
+  updatePaperSelectionUi();
+  if (paperState.activeCommentId) scrollPaperToComment(paperState.activeCommentId);
+}
+
+function renderPaperCommentsList() {
+  const els = paperEls();
+  if (!els.commentsList) return;
+  const comments = [...(paperState.comments || [])].sort((a, b) => {
+    return commentLinesFor(a).start - commentLinesFor(b).start;
+  });
+  if (els.commentsCount) els.commentsCount.textContent = String(comments.length);
+  if (els.commentsCountInline) els.commentsCountInline.textContent = String(comments.length);
+
+  if (!comments.length) {
+    els.commentsList.innerHTML = `<p class="paper-comments-empty">Выделите фрагмент в LaTeX и нажмите «Комментировать» — ссылку можно сразу отправить агенту.</p>`;
+    return;
+  }
+
+  els.commentsList.innerHTML = comments
+    .map((comment) => {
+      const { start, end, selectedText } = commentAnchorMeta(comment);
+      const active = comment.id === paperState.activeCommentId;
+      const snippet = selectedText
+        ? escapeHtml(selectedText.replace(/\s+/g, " ").trim().slice(0, 72))
+        : "";
+      return `<article class="paper-comment-card${active ? " is-active" : ""}${comment.resolved ? " is-resolved" : ""}" data-comment-id="${escapeHtml(comment.id)}">
+        <div class="paper-comment-card__meta">
+          <span class="paper-comment-card__badge">L${start}${end !== start ? `–${end}` : ""}</span>
+          <span>${comment.resolved ? "resolved" : ""}</span>
+        </div>
+        ${snippet ? `<span class="paper-comment-card__snippet">${snippet}</span>` : ""}
+        <div class="paper-comment-card__body">${escapeHtml(commentFirstMessage(comment))}</div>
+        <div class="paper-comment-card__actions">
+          <button type="button" class="btn btn-small" data-paper-comment-copy="${escapeHtml(comment.id)}">Копировать</button>
+          <button type="button" class="btn btn-small btn-danger" data-paper-comment-delete="${escapeHtml(comment.id)}">Удалить</button>
+        </div>
+      </article>`;
+    })
+    .join("");
+
+  els.commentsList.querySelectorAll("[data-comment-id]").forEach((card) => {
+    card.addEventListener("click", (event) => {
+      if (event.target.closest("[data-paper-comment-copy], [data-paper-comment-delete]")) return;
+      focusPaperComment(card.getAttribute("data-comment-id"));
+    });
+  });
+  els.commentsList.querySelectorAll("[data-paper-comment-copy]").forEach((btn) => {
+    btn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      void copyPaperCommentLink(btn.getAttribute("data-paper-comment-copy"));
+    });
+  });
+  els.commentsList.querySelectorAll("[data-paper-comment-delete]").forEach((btn) => {
+    btn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      void deletePaperComment(btn.getAttribute("data-paper-comment-delete"));
+    });
+  });
+}
+
+function renderPaperCommentThread() {
+  const els = paperEls();
+  const entry = activePaperEntry();
+  if (!els.commentThread || !entry || !paperState.activeCommentId || paperState.composeOpen) {
+    els.commentThread?.classList.add("hidden");
+    return;
+  }
+  const comment = paperState.comments.find((item) => item.id === paperState.activeCommentId);
+  if (!comment) {
+    els.commentThread.classList.add("hidden");
+    return;
+  }
+  const { start, end } = commentLinesFor(comment);
+  const messages = comment.thread || [];
+  els.commentThread.classList.remove("hidden");
+  els.commentThread.innerHTML = `
+    <div class="paper-comment-thread__head">
+      <span class="paper-comment-thread__title">L${start}${end !== start ? `–${end}` : ""}</span>
+      <button type="button" class="btn btn-small" data-paper-thread-copy="${escapeHtml(comment.id)}">Копировать ссылку</button>
+    </div>
+    <div class="paper-comment-thread__messages">
+      ${messages
+        .map(
+          (msg) => `<div class="paper-comment-message">
+            <div class="paper-comment-message__meta">${escapeHtml(msg.author || "reviewer")} · ${escapeHtml(new Date(msg.created_at || "").toLocaleString() || "")}</div>
+            <div>${escapeHtml(msg.body || "")}</div>
+          </div>`
+        )
+        .join("")}
+    </div>
+    <textarea class="paper-comment-thread-reply" rows="2" placeholder="Ответ…" data-paper-thread-reply="${escapeHtml(comment.id)}"></textarea>
+    <div class="paper-comment-thread-actions">
+      <button type="button" class="btn btn-primary btn-small" data-paper-thread-send="${escapeHtml(comment.id)}">Ответить</button>
+      <button type="button" class="btn btn-small" data-paper-thread-resolve="${escapeHtml(comment.id)}">${comment.resolved ? "Открыть снова" : "Resolve"}</button>
+      <button type="button" class="btn btn-small btn-danger" data-paper-thread-delete="${escapeHtml(comment.id)}">Удалить</button>
+    </div>`;
+
+  els.commentThread.querySelector("[data-paper-thread-copy]")?.addEventListener("click", () => {
+    void copyPaperCommentLink(comment.id);
+  });
+  els.commentThread.querySelector("[data-paper-thread-send]")?.addEventListener("click", () => {
+    void replyPaperComment(comment.id);
+  });
+  els.commentThread.querySelector("[data-paper-thread-resolve]")?.addEventListener("click", () => {
+    void togglePaperCommentResolved(comment.id, !comment.resolved);
+  });
+  els.commentThread.querySelector("[data-paper-thread-delete]")?.addEventListener("click", () => {
+    void deletePaperComment(comment.id);
+  });
+}
+
+function scrollPaperToComment(commentId) {
+  const els = paperEls();
+  const comment = paperState.comments.find((item) => item.id === commentId);
+  if (!comment || !els.texScroll) return;
+  const { start } = commentLinesFor(comment);
+  const row = els.texLines?.querySelector(`.paper-tex-line[data-line="${start}"]`);
+  if (row) row.scrollIntoView({ block: "center" });
+}
+
+function focusPaperComment(commentId) {
+  if (!commentId) return;
+  if (paperState.commentsPanelCollapsed) setPaperCommentsPanelCollapsed(false);
+  paperState.activeCommentId = commentId;
+  const comment = paperState.comments.find((item) => item.id === commentId);
+  if (comment) {
+    const anchor = commentAnchorMeta(comment);
+    selectPaperLines(anchor.start, anchor.end, anchor);
+  }
+  hidePaperSelectionPopover();
+  renderPaperCommentsList();
+  void renderPaperTexEditor().then(() => renderPaperCommentThread());
+}
+
+async function loadPaperComments(projectId, slug) {
+  try {
+    const data = await KoiApi.getPaperComments(projectId, slug);
+    paperState.comments = Array.isArray(data?.comments) ? data.comments : [];
+  } catch {
+    paperState.comments = [];
+  }
+  renderPaperCommentsList();
+  renderPaperCommentThread();
+}
+
+async function loadPaperTex(projectId, slug) {
+  const key = paperViewerKey(projectId, slug);
+  if (paperState.lastTexKey === key && paperState.texLines.length) {
+    await renderPaperTexEditor();
+    return;
+  }
+  const text = await KoiApi.getPaperTex(projectId, slug);
+  paperState.texText = text;
+  paperState.texLines = text.split("\n");
+  paperState.lastTexKey = key;
+  await renderPaperTexEditor();
+}
+
+async function loadPaperWorkspace(projectId, slug, { pdfExists = false, pdfStamp = "" } = {}) {
+  const els = paperEls();
+  let texLoaded = false;
+  try {
+    await loadPaperTex(projectId, slug);
+    texLoaded = true;
+  } catch {
+    paperState.texText = "";
+    paperState.texLines = [];
+  }
+  await loadPaperComments(projectId, slug);
+
+  if (pdfExists) {
+    showPaperPdf(projectId, slug, pdfStamp);
+    els.frame?.classList.remove("hidden");
+    els.pdfMissing?.classList.add("hidden");
+  } else {
+    paperState.lastPdfStamp = null;
+    if (els.frame) els.frame.src = "about:blank";
+    els.frame?.classList.add("hidden");
+    els.pdfMissing?.classList.toggle("hidden", false);
+  }
+
+  if (texLoaded || pdfExists) {
+    setPaperViewerVisible({ split: true, empty: false });
+  } else {
+    setPaperViewerVisible({ split: false, empty: true });
+  }
+
+  if (paperState.pendingDeepLink?.commentId) {
+    focusPaperComment(paperState.pendingDeepLink.commentId);
+  } else if (paperState.activeCommentId) {
+    focusPaperComment(paperState.activeCommentId);
+  }
+  paperState.pendingDeepLink = null;
+}
+
+async function copyPaperCommentLink(commentId) {
+  const entry = activePaperEntry();
+  const comment = paperState.comments.find((item) => item.id === commentId);
+  if (!entry || !comment) return false;
+  const text = paperCommentClipboardText(entry.project_id, entry.slug, comment);
+  try {
+    await navigator.clipboard.writeText(text);
+    const els = paperEls();
+    if (els.status) {
+      els.status.textContent = "Ссылка на комментарий скопирована — вставьте агенту.";
+      setTimeout(() => {
+        if (els.status.textContent.startsWith("Ссылка на комментарий")) els.status.textContent = "";
+      }, 4000);
+    }
+    return true;
+  } catch {
+    if (paperEls().status) paperEls().status.textContent = "Не удалось скопировать ссылку.";
+    return false;
+  }
+}
+
+function openPaperCommentCompose() {
+  if (!paperState.selectedLineStart) return;
+  if (paperState.commentsPanelCollapsed) setPaperCommentsPanelCollapsed(false);
+  paperState.composeOpen = true;
+  paperState.activeCommentId = null;
+  const els = paperEls();
+  if (els.commentComposeBody) {
+    els.commentComposeBody.value = "";
+    els.commentComposeBody.focus();
+  }
+  updatePaperSelectionUi();
+  renderPaperCommentsList();
+  renderPaperCommentThread();
+}
+
+function closePaperCommentCompose() {
+  paperState.composeOpen = false;
+  if (paperEls().commentComposeBody) paperEls().commentComposeBody.value = "";
+  updatePaperSelectionUi();
+  renderPaperCommentThread();
+}
+
+async function savePaperComment() {
+  const entry = activePaperEntry();
+  const els = paperEls();
+  const body = els.commentComposeBody?.value?.trim();
+  if (!entry || !body || !paperState.selectedLineStart) return;
+  try {
+    const payload = {
+      line_start: paperState.selectedLineStart,
+      line_end: paperState.selectedLineEnd || paperState.selectedLineStart,
+      body,
+      author: "reviewer",
+    };
+    if (paperState.selectedCharStart != null) payload.char_start = paperState.selectedCharStart;
+    if (paperState.selectedCharEnd != null) payload.char_end = paperState.selectedCharEnd;
+    if (paperState.selectedText) payload.selected_text = paperState.selectedText;
+    const res = await KoiApi.createPaperComment(entry.project_id, entry.slug, payload);
+    if (res?.comment) {
+      paperState.comments.push(res.comment);
+      paperState.activeCommentId = res.comment.id;
+    }
+    paperState.composeOpen = false;
+    renderPaperCommentsList();
+    await renderPaperTexEditor();
+    renderPaperCommentThread();
+    void copyPaperCommentLink(paperState.activeCommentId);
+  } catch (err) {
+    if (els.status) els.status.textContent = `Не удалось сохранить комментарий: ${err.message}`;
+  }
+}
+
+async function replyPaperComment(commentId) {
+  const entry = activePaperEntry();
+  const els = paperEls();
+  const textarea = els.commentThread?.querySelector(`[data-paper-thread-reply="${commentId}"]`);
+  const body = textarea?.value?.trim();
+  if (!entry || !body) return;
+  try {
+    const res = await KoiApi.replyPaperComment(entry.project_id, entry.slug, commentId, {
+      body,
+      author: "reviewer",
+    });
+    const comment = paperState.comments.find((item) => item.id === commentId);
+    if (comment && res?.message) {
+      comment.thread = [...(comment.thread || []), res.message];
+    }
+    if (textarea) textarea.value = "";
+    renderPaperCommentsList();
+    renderPaperCommentThread();
+  } catch (err) {
+    if (els.status) els.status.textContent = `Не удалось отправить ответ: ${err.message}`;
+  }
+}
+
+async function togglePaperCommentResolved(commentId, resolved) {
+  const entry = activePaperEntry();
+  try {
+    const res = await KoiApi.resolvePaperComment(entry.project_id, entry.slug, commentId, resolved);
+    const comment = paperState.comments.find((item) => item.id === commentId);
+    if (comment && res?.comment) Object.assign(comment, res.comment);
+    renderPaperCommentsList();
+    renderPaperCommentThread();
+  } catch (err) {
+    if (paperEls().status) paperEls().status.textContent = `Не удалось обновить комментарий: ${err.message}`;
+  }
+}
+
+async function deletePaperComment(commentId) {
+  const entry = activePaperEntry();
+  if (!window.confirm("Удалить комментарий?")) return;
+  try {
+    await KoiApi.deletePaperComment(entry.project_id, entry.slug, commentId);
+    paperState.comments = paperState.comments.filter((item) => item.id !== commentId);
+    if (paperState.activeCommentId === commentId) paperState.activeCommentId = null;
+    renderPaperCommentsList();
+    await renderPaperTexEditor();
+    renderPaperCommentThread();
+  } catch (err) {
+    if (paperEls().status) paperEls().status.textContent = `Не удалось удалить: ${err.message}`;
+  }
+}
+
+function capturePaperDeepLinkFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get("paper");
+  const commentId = params.get("paper_comment");
+  if (!slug) return;
+  paperState.pendingDeepLink = { slug, commentId: commentId || null };
+}
+
+function maybeOpenPaperFromDeepLink() {
+  if (!paperState.pendingDeepLink || !state.project) return;
+  const projectId = paperScopeProjectIds()[0];
+  if (!projectId) return;
+  const slug = paperState.pendingDeepLink.slug;
+  paperState.activeKey = `${projectId}:${slug}`;
+  openPaperModal();
+}
+
 function showPaperPdf(projectId, slug, stamp) {
   const els = paperEls();
   bindPaperFrameLoad();
   const url = `${KoiApi.paperPdfUrl(projectId, slug)}#view=FitH`;
   const cacheKey = `${projectId}:${slug}:${stamp || ""}`;
   const tabKey = paperTabKey({ project_id: projectId, slug });
-  if (paperState.lastPdfStamp === cacheKey && paperState.lastPdfKey === tabKey && els.frame.src && els.frame.src !== "about:blank") {
+  if (paperState.lastPdfStamp === cacheKey && paperState.lastPdfKey === tabKey && els.frame?.src && els.frame.src !== "about:blank") {
     els.frame.classList.remove("hidden");
-    els.empty.classList.add("hidden");
+    els.pdfMissing?.classList.add("hidden");
     els.pdfLink.href = url;
     els.pdfLink.classList.remove("hidden");
     els.texLink.href = KoiApi.paperTexUrl(projectId, slug);
@@ -6694,11 +7480,10 @@ function showPaperPdf(projectId, slug, stamp) {
     return;
   }
   showPaperLoader("Загрузка PDF…");
-  els.frame.classList.add("hidden");
-  els.frame.src = `${KoiApi.paperPdfUrl(projectId, slug)}?t=${encodeURIComponent(stamp || "")}#view=FitH`;
+  els.frame?.classList.add("hidden");
+  if (els.frame) els.frame.src = `${KoiApi.paperPdfUrl(projectId, slug)}?t=${encodeURIComponent(stamp || "")}#view=FitH`;
   paperState.lastPdfStamp = cacheKey;
   paperState.lastPdfKey = tabKey;
-  els.empty.classList.add("hidden");
   els.pdfLink.href = url;
   els.pdfLink.classList.remove("hidden");
   els.texLink.href = KoiApi.paperTexUrl(projectId, slug);
@@ -6726,8 +7511,7 @@ function renderPaperState(st) {
       ? "Paper Inbox пишет статью…"
       : "Генерация статьи…";
     showPaperLoader(step);
-    els.frame.classList.add("hidden");
-    els.empty.classList.add("hidden");
+    setPaperViewerVisible({ split: false, empty: false });
     els.status.textContent = "";
     if (st.tex_exists) {
       els.texLink.href = KoiApi.paperTexUrl(projectId, slug);
@@ -6735,14 +7519,15 @@ function renderPaperState(st) {
     }
   } else {
     hidePaperLoader();
-    if (st.pdf_exists) {
-      showPaperPdf(projectId, slug, st.pdf_mtime);
+    if (st.pdf_exists || st.tex_exists) {
+      void loadPaperWorkspace(projectId, slug, {
+        pdfExists: Boolean(st.pdf_exists),
+        pdfStamp: st.pdf_mtime,
+      });
     } else {
-      els.frame.classList.add("hidden");
-      els.empty.classList.remove("hidden");
+      setPaperViewerVisible({ split: false, empty: true });
       els.pdfLink.classList.add("hidden");
-      els.texLink.classList.toggle("hidden", !st.tex_exists);
-      if (st.tex_exists) els.texLink.href = KoiApi.paperTexUrl(projectId, slug);
+      els.texLink.classList.add("hidden");
     }
   }
 
@@ -6750,6 +7535,7 @@ function renderPaperState(st) {
     const hint = st.log_tail ? ` · ${String(st.log_tail).split("\n")[0]}` : "";
     els.status.textContent = `Ошибка: ${st.error || "не удалось сгенерировать статью"}${hint}`;
     els.empty.textContent = "Статья не сгенерирована — попробуйте ещё раз.";
+    setPaperViewerVisible({ split: false, empty: true });
   } else if (!running && st.state === "done" && st.pdf_exists) {
     const when = st.finished_at ? ` · ${new Date(st.finished_at).toLocaleString()}` : "";
     const how = st.mode === "agent" ? `агент (${st.backend || "LLM"})` : "автосборка из графа";
@@ -6762,8 +7548,9 @@ function renderPaperState(st) {
         "PDF не найден — откройте main.tex или положите paper.pdf в папку статьи.";
       els.texLink.href = KoiApi.paperTexUrl(projectId, slug);
       els.texLink.classList.remove("hidden");
-    } else {
+    } else if (!st.pdf_exists && !st.tex_exists) {
       els.empty.textContent = entry.description || "Статья ещё не генерировалась.";
+      setPaperViewerVisible({ split: false, empty: true });
     }
   }
 }
@@ -6811,8 +7598,7 @@ async function requestPaperGeneration() {
   els.regenerate.disabled = true;
   els.status.textContent = "";
   showPaperLoader("Запуск генерации…");
-  els.frame.classList.add("hidden");
-  els.empty.classList.add("hidden");
+  setPaperViewerVisible({ split: false, empty: false });
   try {
     const res = await KoiApi.generatePaper(projectId, slug);
     if (res?.inbox_message && isInboxAgentMode() && !isPaperInboxConfigured()) {
@@ -6826,7 +7612,7 @@ async function requestPaperGeneration() {
     renderPaperTabs();
   } catch (err) {
     hidePaperLoader();
-    els.empty.classList.remove("hidden");
+    setPaperViewerVisible({ split: false, empty: true });
     els.status.textContent = `Не удалось запустить генерацию: ${err.message}`;
     els.generate.disabled = false;
     els.regenerate.disabled = false;
@@ -6865,12 +7651,35 @@ function openPaperModal() {
 }
 
 function initPaper() {
+  capturePaperDeepLinkFromUrl();
+  paperState.commentsPanelCollapsed = isPaperCommentsPanelCollapsed();
+  bindPaperTexSelection();
+  applyPaperCommentsPanelCollapsed();
   document.getElementById("btn-paper")?.addEventListener("click", openPaperModal);
   document.getElementById("btn-paper-generate")?.addEventListener("click", () => {
     void requestPaperGeneration();
   });
   document.getElementById("btn-paper-regenerate")?.addEventListener("click", () => {
     void requestPaperGeneration();
+  });
+  document.getElementById("btn-paper-comment-add")?.addEventListener("click", () => {
+    openPaperCommentCompose();
+  });
+  document.getElementById("btn-paper-comment-popover")?.addEventListener("click", () => {
+    hidePaperSelectionPopover();
+    openPaperCommentCompose();
+  });
+  document.getElementById("btn-paper-comments-collapse")?.addEventListener("click", () => {
+    togglePaperCommentsPanel();
+  });
+  document.getElementById("btn-paper-comments-expand")?.addEventListener("click", () => {
+    setPaperCommentsPanelCollapsed(false);
+  });
+  document.getElementById("btn-paper-comment-save")?.addEventListener("click", () => {
+    void savePaperComment();
+  });
+  document.getElementById("btn-paper-comment-cancel")?.addEventListener("click", () => {
+    closePaperCommentCompose();
   });
   document.getElementById("paper-inbox-message-copy")?.addEventListener("click", () => {
     void copyPaperInboxBootstrap(document.getElementById("paper-inbox-message-status"));
@@ -7033,6 +7842,7 @@ async function init() {
     updatePaperReviewLink();
     updateAgentChatScope();
     void refreshAgentChat();
+    maybeOpenPaperFromDeepLink();
   } catch (err) {
     console.error("ResearchOS init failed:", err);
     setStatus(
