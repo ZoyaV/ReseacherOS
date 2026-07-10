@@ -4,6 +4,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
+from datetime import datetime, timezone
 from pathlib import Path
 
 from api.deps import parse_project
@@ -13,7 +14,9 @@ from koi.services.paper_catalog import (
     list_project_papers,
     normalize_paper_slug,
     find_pdf,
+    update_paper_progress,
 )
+from koi.services.paper_page_counts import analyze_paper_pages
 from koi.adapters.settings_store import is_cursor_inbox_agent_mode
 from koi.services.paper_generator import (
     PDF_NAME,
@@ -59,6 +62,13 @@ class PaperCommentResolveBody(BaseModel):
 
 class PaperTexUpdateBody(BaseModel):
     content: str = Field(default="")
+
+
+class PaperProgressUpdateBody(BaseModel):
+    main_pages: int | None = Field(default=None, ge=1)
+    references_pages: int | None = Field(default=None, ge=1)
+    appendix_pages: int | None = Field(default=None, ge=1)
+    deadline: str | None = None
 
 
 def _resolve_slot(project_id: str, slug: str | None) -> tuple[str, Path | None]:
@@ -144,7 +154,10 @@ def get_project_paper_pdf_legacy(
     return FileResponse(
         path,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'inline; filename="{path.name}"'},
+        headers={
+            "Content-Disposition": f'inline; filename="{path.name}"',
+            "Cache-Control": "no-store",
+        },
     )
 
 
@@ -161,7 +174,10 @@ def get_project_paper_pdf(project_id: str, slug: str) -> FileResponse:
     return FileResponse(
         path,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'inline; filename="{path.name}"'},
+        headers={
+            "Content-Disposition": f'inline; filename="{path.name}"',
+            "Cache-Control": "no-store",
+        },
     )
 
 
@@ -178,7 +194,9 @@ def get_project_paper_tex_legacy(
     if not path.is_file():
         raise HTTPException(404, "main.tex ещё не сгенерирован")
     return PlainTextResponse(
-        path.read_text(encoding="utf-8"), media_type="text/plain; charset=utf-8"
+        path.read_text(encoding="utf-8"),
+        media_type="text/plain; charset=utf-8",
+        headers={"Cache-Control": "no-store"},
     )
 
 
@@ -203,7 +221,9 @@ def get_project_paper_tex(project_id: str, slug: str):
     if not path.is_file():
         raise HTTPException(404, "main.tex ещё не сгенерирован")
     return PlainTextResponse(
-        path.read_text(encoding="utf-8"), media_type="text/plain; charset=utf-8"
+        path.read_text(encoding="utf-8"),
+        media_type="text/plain; charset=utf-8",
+        headers={"Cache-Control": "no-store"},
     )
 
 
@@ -216,6 +236,16 @@ def put_project_paper_tex(project_id: str, slug: str, body: PaperTexUpdateBody) 
     return {"ok": True, "tex_mtime": path.stat().st_mtime}
 
 
+@router.patch("/projects/{project_id}/papers/{slug}/meta")
+def patch_project_paper_meta(project_id: str, slug: str, body: PaperProgressUpdateBody) -> dict:
+    _, slot_dir = _require_paper_slot(project_id, slug)
+    progress = update_paper_progress(
+        slot_dir,
+        body.model_dump(exclude_unset=True),
+    )
+    return {"ok": True, "progress": progress}
+
+
 @router.post("/projects/{project_id}/papers/{slug}/compile")
 def post_project_paper_compile(project_id: str, slug: str) -> dict:
     _, slot_dir = _require_paper_slot(project_id, slug)
@@ -226,12 +256,20 @@ def post_project_paper_compile(project_id: str, slug: str) -> dict:
     if not ok:
         raise HTTPException(422, log_tail or "Не удалось собрать PDF")
     pdf_path = find_pdf(slot_dir)
-    pdf_mtime = pdf_path.stat().st_mtime if pdf_path and pdf_path.is_file() else None
+    pdf_mtime = (
+        datetime.fromtimestamp(pdf_path.stat().st_mtime, tz=timezone.utc).isoformat(
+            timespec="seconds"
+        )
+        if pdf_path and pdf_path.is_file()
+        else None
+    )
+    page_counts = analyze_paper_pages(slot_dir) if pdf_path and pdf_path.is_file() else None
     return {
         "ok": True,
         "engine": engine,
         "log_tail": log_tail,
         "pdf_mtime": pdf_mtime,
+        "page_counts": page_counts,
     }
 
 

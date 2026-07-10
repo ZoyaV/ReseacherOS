@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from koi.adapters.paths import paper_dir
+from koi.services.paper_page_counts import analyze_paper_pages
 
 DEFAULT_PAPER_SLUG = "default"
 META_NAME = "paper.json"
@@ -102,6 +103,70 @@ def read_paper_meta(slot_dir: Path) -> dict[str, Any]:
     return _read_json(slot_dir / META_NAME)
 
 
+def read_paper_progress(meta: dict[str, Any]) -> dict[str, Any]:
+    raw = meta.get("progress")
+    progress = raw if isinstance(raw, dict) else {}
+
+    def _optional_int(key: str) -> int | None:
+        value = progress.get(key)
+        if value is None or value == "":
+            return None
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            return None
+        return parsed if parsed > 0 else None
+
+    deadline = progress.get("deadline")
+    deadline_str = str(deadline).strip() if deadline not in (None, "") else None
+
+    return {
+        "main_pages": _optional_int("main_pages"),
+        "references_pages": _optional_int("references_pages"),
+        "appendix_pages": _optional_int("appendix_pages"),
+        "deadline": deadline_str,
+    }
+
+
+def write_paper_meta(slot_dir: Path, patch: dict[str, Any]) -> dict[str, Any]:
+    slot_dir.mkdir(parents=True, exist_ok=True)
+    path = slot_dir / META_NAME
+    meta = read_paper_meta(slot_dir)
+    meta.update(patch)
+    path.write_text(json.dumps(meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return meta
+
+
+def update_paper_progress(slot_dir: Path, progress_patch: dict[str, Any]) -> dict[str, Any]:
+    meta = read_paper_meta(slot_dir)
+    current = read_paper_progress(meta)
+    for key in ("main_pages", "references_pages", "appendix_pages", "deadline"):
+        if key in progress_patch:
+            current[key] = progress_patch[key]
+    meta["progress"] = current
+    write_paper_meta(slot_dir, meta)
+    return current
+
+
+def deadline_hours_left(deadline: str | None) -> float | None:
+    if not deadline:
+        return None
+    text = deadline.strip()
+    if not text:
+        return None
+    try:
+        if len(text) == 10 and text[4] == "-" and text[7] == "-":
+            dt = datetime.fromisoformat(f"{text}T23:59:59")
+            dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+    except (TypeError, ValueError):
+        return None
+    return (dt - datetime.now(timezone.utc)).total_seconds() / 3600.0
+
+
 def read_paper_status(slot_dir: Path) -> dict[str, Any]:
     return _read_json(slot_dir / STATUS_NAME)
 
@@ -142,6 +207,13 @@ def paper_entry(project_id: str, slug: str, slot_dir: Path) -> dict[str, Any]:
         ).isoformat(timespec="seconds")
     if tex.is_file():
         out["tex_mtime"] = tex.stat().st_mtime
+    progress = read_paper_progress(meta)
+    out["progress"] = progress
+    out["deadline_hours_left"] = deadline_hours_left(progress.get("deadline"))
+    if pdf_exists:
+        out["page_counts"] = analyze_paper_pages(slot_dir)
+    else:
+        out["page_counts"] = None
     return out
 
 

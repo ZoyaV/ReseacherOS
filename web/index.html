@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260710e" />
+  <link rel="stylesheet" href="styles.css?v=20260710f" />
   <script>
     (function () {
       var t = localStorage.getItem("koi-theme");
@@ -471,6 +471,52 @@
       <p class="modal-type">Статья · NeurIPS preprint</p>
       <h2 id="paper-modal-title" class="inline-edit-title">Статья</h2>
       <div id="paper-tabs" class="card-live-card-tabs paper-tabs" role="tablist" aria-label="Статьи проекта"></div>
+      <div id="paper-progress-wrap" class="paper-progress hidden" aria-live="polite">
+        <div class="paper-progress__shell">
+          <div class="paper-progress__row">
+            <div id="paper-progress-summary" class="paper-progress__metrics"></div>
+            <div class="paper-progress__aside">
+              <div id="paper-progress-deadline-badge" class="paper-progress__deadline hidden"></div>
+              <button
+                type="button"
+                id="btn-paper-progress-settings"
+                class="paper-progress__toggle"
+                aria-expanded="false"
+                aria-controls="paper-progress-settings"
+                title="Цели и дедлайн"
+              >
+                <svg class="paper-progress__toggle-icon" viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M4 7.5 10 13.5 16 7.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <form id="paper-progress-settings" class="paper-progress__settings hidden" aria-label="Настройки прогресса статьи">
+            <div class="paper-progress__settings-grid">
+              <label class="paper-progress-field" for="paper-progress-main">
+                <span class="paper-progress-field__label">Главный</span>
+                <input type="number" id="paper-progress-main" min="1" step="1" placeholder="∞" inputmode="numeric" aria-label="Главный текст, страниц">
+              </label>
+              <label class="paper-progress-field" for="paper-progress-references">
+                <span class="paper-progress-field__label">Референсы</span>
+                <input type="number" id="paper-progress-references" min="1" step="1" placeholder="∞" inputmode="numeric" aria-label="Референсы, страниц">
+              </label>
+              <label class="paper-progress-field" for="paper-progress-appendix">
+                <span class="paper-progress-field__label">Аппендикс</span>
+                <input type="number" id="paper-progress-appendix" min="1" step="1" placeholder="∞" inputmode="numeric" aria-label="Аппендикс, страниц">
+              </label>
+              <label class="paper-progress-field paper-progress-field--deadline" for="paper-progress-deadline">
+                <span class="paper-progress-field__label">Дедлайн</span>
+                <input type="datetime-local" id="paper-progress-deadline" aria-label="Дедлайн отправки">
+              </label>
+            </div>
+            <div class="paper-progress__settings-actions">
+              <span class="paper-progress__settings-hint">Пусто = без лимита</span>
+              <button type="submit" id="btn-paper-progress-save" class="btn btn-small btn-primary">Сохранить</button>
+            </div>
+          </form>
+        </div>
+      </div>
       <div class="paper-toolbar">
         <button type="button" id="btn-paper-generate" class="btn btn-primary">Сгенерировать статью</button>
         <button type="button" id="btn-paper-regenerate" class="btn hidden">Перегенерировать</button>
@@ -614,6 +660,28 @@
     aria-relevant="additions"
   ></div>
 
-  <script type="module" src="app.js?v=20260710e"></script>
+  <div
+    id="cursor-usage-widget"
+    class="cursor-usage-widget hidden"
+    aria-live="polite"
+  >
+    <button
+      type="button"
+      class="cursor-usage-widget__ring"
+      aria-label="Квота Cursor"
+      title="Квота Cursor"
+    >
+      <svg class="cursor-usage-widget__svg" viewBox="0 0 76 76" aria-hidden="true">
+        <circle class="cursor-usage-widget__track" cx="38" cy="38" r="32" />
+        <circle class="cursor-usage-widget__progress" cx="38" cy="38" r="32" />
+      </svg>
+      <span class="cursor-usage-widget__label">
+        <span class="cursor-usage-widget__primary">—</span>
+        <span class="cursor-usage-widget__secondary"></span>
+      </span>
+    </button>
+  </div>
+
+  <script type="module" src="app.js?v=20260710h"></script>
 </body>
 </html>

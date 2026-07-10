@@ -6,7 +6,7 @@ import {
   runningCardContextsFromProjects,
   setRunningSeedProvider,
 } from "./card-live.js";
-import { KoiApi } from "./api.js?v=20260701c";
+import { KoiApi } from "./api.js?v=20260710h";
 import {
   koiLoaderTypingHtml,
   refreshInlineLoaderHints,
@@ -6529,6 +6529,7 @@ const paperState = {
   pollTimer: null,
   texPollTimer: null,
   lastRemoteTexMtime: null,
+  lastRemotePdfMtime: null,
   pendingRemoteTexMtime: null,
   lastPdfStamp: null,
   lastPdfKey: null,
@@ -6549,10 +6550,14 @@ const paperState = {
   texDirty: false,
   texSaving: false,
   texCompiling: false,
+  texSavedAt: 0,
   gutterLineCount: 0,
+  progressSettingsOpen: false,
+  progressDeadlineTimer: null,
 };
 const PAPER_INBOX_CONFIGURED_KEY = "koi_paper_inbox_configured";
 const PAPER_TEX_POLL_MS = 3000;
+const PAPER_TEX_SAVE_GRACE_MS = 15000;
 let paperInboxBootstrapCopied = false;
 let lastPaperInboxMessage = "";
 
@@ -6681,6 +6686,16 @@ function paperEls() {
     modal: document.getElementById("paper-modal"),
     title: document.getElementById("paper-modal-title"),
     tabs: document.getElementById("paper-tabs"),
+    progressWrap: document.getElementById("paper-progress-wrap"),
+    progressSummary: document.getElementById("paper-progress-summary"),
+    progressDeadlineBadge: document.getElementById("paper-progress-deadline-badge"),
+    progressSettings: document.getElementById("paper-progress-settings"),
+    progressSettingsToggle: document.getElementById("btn-paper-progress-settings"),
+    progressMain: document.getElementById("paper-progress-main"),
+    progressReferences: document.getElementById("paper-progress-references"),
+    progressAppendix: document.getElementById("paper-progress-appendix"),
+    progressDeadline: document.getElementById("paper-progress-deadline"),
+    progressSave: document.getElementById("btn-paper-progress-save"),
     generate: document.getElementById("btn-paper-generate"),
     regenerate: document.getElementById("btn-paper-regenerate"),
     pdfLink: document.getElementById("paper-pdf-link"),
@@ -6705,6 +6720,240 @@ function paperEls() {
     commentsCount: document.getElementById("paper-comments-count"),
     panel: document.querySelector(".paper-panel"),
   };
+}
+
+function paperProgressHasConfig(progress = {}) {
+  return Boolean(
+    progress?.main_pages ||
+      progress?.references_pages ||
+      progress?.appendix_pages ||
+      progress?.deadline
+  );
+}
+
+function paperProgressTargetLabel(target) {
+  return target != null && target > 0 ? String(target) : "∞";
+}
+
+function paperProgressChipClass(current, target) {
+  if (target == null || target <= 0) return "is-unlimited";
+  if (current > target) return "is-over";
+  if (current >= target) return "is-complete";
+  if (current > 0) return "is-active";
+  return "is-empty";
+}
+
+function paperProgressFillPercent(current, target) {
+  if (target == null || target <= 0) {
+    return current > 0 ? 100 : 18;
+  }
+  if (target <= 0) return 0;
+  return Math.min(100, Math.round((current / target) * 100));
+}
+
+function paperProgressMetricHtml(label, current, target) {
+  const targetLabel = paperProgressTargetLabel(target);
+  const stateClass = paperProgressChipClass(current, target);
+  const fill = paperProgressFillPercent(current, target);
+  return `<span class="paper-progress-metric ${stateClass}" title="${escapeHtml(label)}">
+    <span class="paper-progress-metric__label">${escapeHtml(label)}</span>
+    <span class="paper-progress-metric__value">${current}/${escapeHtml(targetLabel)}</span>
+    <span class="paper-progress-metric__bar" aria-hidden="true"><span class="paper-progress-metric__fill" style="width:${fill}%"></span></span>
+  </span>`;
+}
+
+function paperProgressDeadlineIconHtml() {
+  return `<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 5.8v4.4l2.6 1.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+}
+
+function formatPaperDeadlineHours(hours, { compact = false } = {}) {
+  if (hours == null || Number.isNaN(hours)) return "";
+  const rounded = Math.max(0, Math.round(Math.abs(hours)));
+  if (hours >= 0) {
+    if (compact) {
+      if (rounded === 0) return "<1 ч";
+      if (rounded < 24) return `${rounded} ч`;
+      const days = Math.floor(rounded / 24);
+      const rest = rounded % 24;
+      return rest === 0 ? `${days} д` : `${days} д ${rest} ч`;
+    }
+    if (rounded === 0) return "до отправки меньше часа";
+    if (rounded === 1) return "до отправки 1 час";
+    if (rounded < 24) return `до отправки ${rounded} ч`;
+    const days = Math.floor(rounded / 24);
+    const rest = rounded % 24;
+    if (rest === 0) return `до отправки ${days} д`;
+    return `до отправки ${days} д ${rest} ч`;
+  }
+  if (compact) {
+    if (rounded === 0) return "просрочено";
+    if (rounded < 24) return `−${rounded} ч`;
+    return `−${Math.floor(rounded / 24)} д`;
+  }
+  if (rounded === 1) return "дедлайн прошёл 1 час назад";
+  if (rounded < 24) return `дедлайн прошёл ${rounded} ч назад`;
+  const days = Math.floor(rounded / 24);
+  return `дедлайн прошёл ${days} д назад`;
+}
+
+function computePaperDeadlineHoursLeft(deadline) {
+  if (!deadline) return null;
+  const parsed = Date.parse(deadline);
+  if (Number.isNaN(parsed)) return null;
+  return (parsed - Date.now()) / 3600000;
+}
+
+function isoToDatetimeLocalValue(iso) {
+  if (!iso) return "";
+  const parsed = Date.parse(iso);
+  if (Number.isNaN(parsed)) return "";
+  const date = new Date(parsed);
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function datetimeLocalToIso(value) {
+  const text = String(value || "").trim();
+  if (!text) return null;
+  const parsed = Date.parse(text);
+  if (Number.isNaN(parsed)) return null;
+  return new Date(parsed).toISOString();
+}
+
+function parseOptionalPaperTargetInput(input) {
+  const text = String(input?.value ?? "").trim();
+  if (!text) return null;
+  const parsed = Number.parseInt(text, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function stopPaperProgressDeadlineTimer() {
+  if (paperState.progressDeadlineTimer) {
+    clearInterval(paperState.progressDeadlineTimer);
+    paperState.progressDeadlineTimer = null;
+  }
+}
+
+function startPaperProgressDeadlineTimer() {
+  stopPaperProgressDeadlineTimer();
+  paperState.progressDeadlineTimer = setInterval(() => {
+    renderPaperProgress(activePaperEntry());
+  }, 60000);
+}
+
+function renderPaperProgress(entry) {
+  const els = paperEls();
+  if (!els.progressWrap || !els.progressSummary) return;
+
+  if (!entry) {
+    els.progressWrap.classList.add("hidden");
+    els.progressDeadlineBadge?.classList.add("hidden");
+    stopPaperProgressDeadlineTimer();
+    return;
+  }
+
+  const progress = entry.progress || {};
+  const counts = entry.page_counts || null;
+  const hasConfig = paperProgressHasConfig(progress);
+  const hasCounts = Boolean(counts && counts.total > 0);
+
+  els.progressWrap.classList.remove("hidden");
+  const metrics = [];
+
+  if (hasCounts || hasConfig || progress.main_pages != null) {
+    metrics.push(paperProgressMetricHtml("Главный", counts?.main ?? 0, progress.main_pages));
+  }
+
+  if (hasCounts || hasConfig || progress.references_pages != null) {
+    metrics.push(
+      paperProgressMetricHtml("Реф.", counts?.references ?? 0, progress.references_pages)
+    );
+  }
+
+  if (hasCounts || hasConfig || progress.appendix_pages != null) {
+    metrics.push(
+      paperProgressMetricHtml("Апп.", counts?.appendix ?? 0, progress.appendix_pages)
+    );
+  }
+
+  if (!metrics.length) {
+    metrics.push(`<span class="paper-progress__empty">PDF не собран</span>`);
+  }
+
+  els.progressSummary.innerHTML = metrics.join("");
+
+  const hoursLeft =
+    entry.deadline_hours_left != null
+      ? entry.deadline_hours_left
+      : computePaperDeadlineHoursLeft(progress.deadline);
+  if (progress.deadline && els.progressDeadlineBadge) {
+    const deadlineText = formatPaperDeadlineHours(hoursLeft, { compact: true });
+    if (deadlineText) {
+      const urgent = hoursLeft != null && hoursLeft >= 0 && hoursLeft <= 24;
+      const overdue = hoursLeft != null && hoursLeft < 0;
+      els.progressDeadlineBadge.className = `paper-progress__deadline${
+        overdue ? " is-overdue" : urgent ? " is-urgent" : ""
+      }`;
+      els.progressDeadlineBadge.innerHTML = `${paperProgressDeadlineIconHtml()}<span>${escapeHtml(deadlineText)}</span>`;
+      els.progressDeadlineBadge.classList.remove("hidden");
+    } else {
+      els.progressDeadlineBadge.classList.add("hidden");
+    }
+  } else {
+    els.progressDeadlineBadge?.classList.add("hidden");
+  }
+
+  if (progress.deadline) startPaperProgressDeadlineTimer();
+  else stopPaperProgressDeadlineTimer();
+
+  if (els.progressSettingsToggle) {
+    els.progressSettingsToggle.setAttribute("aria-expanded", String(paperState.progressSettingsOpen));
+  }
+  els.progressSettings?.classList.toggle("hidden", !paperState.progressSettingsOpen);
+  els.progressWrap.classList.toggle("is-settings-open", paperState.progressSettingsOpen);
+}
+
+function fillPaperProgressForm(entry) {
+  const els = paperEls();
+  const progress = entry?.progress || {};
+  if (els.progressMain) els.progressMain.value = progress.main_pages ?? "";
+  if (els.progressReferences) els.progressReferences.value = progress.references_pages ?? "";
+  if (els.progressAppendix) els.progressAppendix.value = progress.appendix_pages ?? "";
+  if (els.progressDeadline) els.progressDeadline.value = isoToDatetimeLocalValue(progress.deadline);
+}
+
+async function savePaperProgress(event) {
+  event?.preventDefault();
+  const entry = activePaperEntry();
+  const els = paperEls();
+  if (!entry || !els.progressSave) return;
+
+  const payload = {
+    main_pages: parseOptionalPaperTargetInput(els.progressMain),
+    references_pages: parseOptionalPaperTargetInput(els.progressReferences),
+    appendix_pages: parseOptionalPaperTargetInput(els.progressAppendix),
+    deadline: datetimeLocalToIso(els.progressDeadline?.value),
+  };
+
+  els.progressSave.disabled = true;
+  try {
+    const res = await KoiApi.updatePaperProgress(entry.project_id, entry.slug, payload);
+    const idx = paperState.papers.findIndex((paper) => paperTabKey(paper) === paperTabKey(entry));
+    const progress = res?.progress || payload;
+    const updated = {
+      ...entry,
+      progress,
+      deadline_hours_left: computePaperDeadlineHoursLeft(progress.deadline),
+    };
+    if (idx >= 0) paperState.papers[idx] = { ...paperState.papers[idx], ...updated };
+    renderPaperProgress(updated);
+    paperState.progressSettingsOpen = false;
+    showPaperToast("Настройки прогресса сохранены");
+  } catch (err) {
+    showPaperToast(`Не удалось сохранить прогресс: ${err.message}`, "error");
+  } finally {
+    els.progressSave.disabled = false;
+  }
 }
 
 function renderPaperTabs() {
@@ -6737,11 +6986,13 @@ function renderPaperTabs() {
       paperState.lastPdfKey = null;
       paperState.lastTexKey = null;
       paperState.lastRemoteTexMtime = null;
+      paperState.lastRemotePdfMtime = null;
       paperState.pendingRemoteTexMtime = null;
       paperState.texDirty = false;
       paperState.activeCommentId = null;
       resetPaperSelection();
       if (paperEls().frame) paperEls().frame.src = "about:blank";
+      paperState.progressSettingsOpen = false;
       renderPaperTabs();
       renderPaperFromEntry(activePaperEntry());
       void refreshPaperStatus({ quiet: true });
@@ -6776,6 +7027,8 @@ async function loadProjectPapers() {
 
 function renderPaperFromEntry(entry) {
   if (!entry) return;
+  fillPaperProgressForm(entry);
+  renderPaperProgress(entry);
   renderPaperState({ ...entry, slug: entry.slug });
 }
 
@@ -6814,7 +7067,7 @@ function stopPaperTexPolling() {
 function startPaperTexPolling() {
   stopPaperTexPolling();
   paperState.texPollTimer = setInterval(() => {
-    void pollPaperTexChanges();
+    void pollPaperDiskChanges();
   }, PAPER_TEX_POLL_MS);
 }
 
@@ -6845,11 +7098,16 @@ async function syncPaperTexRemoteMtime(projectId, slug) {
   }
 }
 
-async function reloadPaperTexFromDisk({ quiet = false } = {}) {
+async function reloadPaperTexFromDisk({ quiet = false, remoteText = null } = {}) {
   const entry = activePaperEntry();
   if (!entry) return false;
   try {
-    const text = await KoiApi.getPaperTex(entry.project_id, entry.slug);
+    const text = remoteText ?? (await KoiApi.getPaperTex(entry.project_id, entry.slug));
+    if (text === paperState.texText) {
+      await syncPaperTexRemoteMtime(entry.project_id, entry.slug);
+      dismissPaperTexExternalChange();
+      return true;
+    }
     paperState.lastTexKey = null;
     paperState.composeOpen = false;
     dismissPaperTexExternalChange();
@@ -6865,35 +7123,86 @@ async function reloadPaperTexFromDisk({ quiet = false } = {}) {
   }
 }
 
-async function pollPaperTexChanges() {
+async function pollPaperDiskChanges() {
   const entry = activePaperEntry();
   if (!entry || !isPaperWorkspaceVisible()) return;
-  if (paperState.texSaving || paperState.texCompiling) return;
+  if (paperState.texSaving) return;
 
   try {
-    const meta = await KoiApi.getPaperTexMeta(entry.project_id, entry.slug);
-    const remoteMtime = meta?.tex_mtime;
-    if (remoteMtime == null) return;
-
-    if (paperState.lastRemoteTexMtime == null) {
-      paperState.lastRemoteTexMtime = remoteMtime;
-      return;
+    const st = await KoiApi.getPaperStatus(entry.project_id, entry.slug);
+    await pollPaperPdfChanges(entry, st);
+    if (!paperState.texCompiling) {
+      await pollPaperTexChanges(entry, st);
     }
-
-    if (Math.abs(remoteMtime - paperState.lastRemoteTexMtime) < 0.001) return;
-
-    if (paperState.texDirty || paperState.composeOpen) {
-      paperState.pendingRemoteTexMtime = remoteMtime;
-      showPaperTexExternalChangeBanner(true);
-      return;
-    }
-
-    paperState.lastRemoteTexMtime = remoteMtime;
-    await reloadPaperTexFromDisk({ quiet: true });
-    showPaperToast("main.tex обновлён с диска");
   } catch {
     /* transient network errors */
   }
+}
+
+async function pollPaperPdfChanges(entry, st) {
+  if (!st?.pdf_exists) return;
+  const remoteMtime = st.pdf_mtime;
+  if (remoteMtime == null) return;
+
+  if (paperState.lastRemotePdfMtime == null) {
+    paperState.lastRemotePdfMtime = remoteMtime;
+    return;
+  }
+
+  if (remoteMtime === paperState.lastRemotePdfMtime) return;
+
+  paperState.lastRemotePdfMtime = remoteMtime;
+  paperState.lastPdfStamp = null;
+  showPaperPdf(entry.project_id, entry.slug, remoteMtime);
+  const idx = paperState.papers.findIndex((paper) => paperTabKey(paper) === paperTabKey(entry));
+  if (idx >= 0) {
+    paperState.papers[idx] = {
+      ...paperState.papers[idx],
+      pdf_exists: true,
+      pdf_mtime: remoteMtime,
+      page_counts: st?.page_counts ?? paperState.papers[idx].page_counts,
+    };
+    renderPaperProgress(paperState.papers[idx]);
+    renderPaperTabs();
+  }
+}
+
+async function pollPaperTexChanges(entry, st) {
+  if (Date.now() - paperState.texSavedAt < PAPER_TEX_SAVE_GRACE_MS) return;
+
+  const remoteMtime = st?.tex_mtime;
+  if (remoteMtime == null) return;
+
+  if (paperState.lastRemoteTexMtime == null) {
+    paperState.lastRemoteTexMtime = remoteMtime;
+    return;
+  }
+
+  if (Math.abs(remoteMtime - paperState.lastRemoteTexMtime) < 0.001) return;
+
+  let remoteText = null;
+  try {
+    remoteText = await KoiApi.getPaperTex(entry.project_id, entry.slug);
+  } catch {
+    return;
+  }
+
+  if (remoteText === paperState.texText) {
+    paperState.lastRemoteTexMtime = remoteMtime;
+    paperState.pendingRemoteTexMtime = null;
+    showPaperTexExternalChangeBanner(false);
+    return;
+  }
+
+  if (paperState.texDirty || paperState.composeOpen) {
+    paperState.pendingRemoteTexMtime = remoteMtime;
+    showPaperTexExternalChangeBanner(true);
+    return;
+  }
+
+  paperState.lastRemoteTexMtime = remoteMtime;
+  await reloadPaperTexFromDisk({ quiet: true, remoteText });
+  showPaperToast("main.tex обновлён с диска");
 }
 
 function stopPaperPollingAll() {
@@ -7409,8 +7718,13 @@ async function renderPaperTexEditor() {
 async function savePaperTex({ quiet = false } = {}) {
   const entry = activePaperEntry();
   const els = paperEls();
-  if (!entry || paperState.texSaving) return false;
-  const content = els.texInput?.value ?? paperState.texText;
+  if (!entry) {
+    if (els.status) els.status.textContent = "Не удалось сохранить: статья не выбрана";
+    return false;
+  }
+  if (paperState.texSaving) return false;
+  syncTexFromInput();
+  const content = paperState.texText ?? els.texInput?.value ?? "";
   paperState.texSaving = true;
   updatePaperSaveUi();
   try {
@@ -7425,15 +7739,19 @@ async function savePaperTex({ quiet = false } = {}) {
     }
     dismissPaperTexExternalChange();
     updatePaperSaveUi();
+    paperState.texSavedAt = Date.now();
+    const label = `${entry.project_id}/${entry.slug}`;
     if (!quiet && els.status) {
-      els.status.textContent = "main.tex сохранён";
+      els.status.textContent = `main.tex сохранён · ${label}`;
       setTimeout(() => {
-        if (els.status?.textContent === "main.tex сохранён") els.status.textContent = "";
-      }, 3000);
+        if (els.status?.textContent?.startsWith("main.tex сохранён")) els.status.textContent = "";
+      }, 5000);
     }
+    if (!quiet) showPaperToast(`main.tex сохранён · ${label}`);
     return true;
   } catch (err) {
     if (els.status) els.status.textContent = `Не удалось сохранить main.tex: ${err.message}`;
+    showPaperToast(`Ошибка сохранения: ${err.message}`, { variant: "error" });
     return false;
   } finally {
     paperState.texSaving = false;
@@ -7461,20 +7779,27 @@ async function compilePaperPdf() {
         if (els.status?.textContent?.startsWith("PDF собран")) els.status.textContent = "";
       }, 4000);
     }
+    const pdfMtime = res?.pdf_mtime || Date.now();
     paperState.lastPdfStamp = null;
-    showPaperPdf(entry.project_id, entry.slug, res?.pdf_mtime || Date.now());
+    paperState.lastRemotePdfMtime = pdfMtime;
+    showPaperPdf(entry.project_id, entry.slug, pdfMtime);
     const idx = paperState.papers.findIndex((paper) => paperTabKey(paper) === paperTabKey(entry));
     if (idx >= 0) {
       paperState.papers[idx] = {
         ...paperState.papers[idx],
         pdf_exists: true,
-        pdf_mtime: res?.pdf_mtime,
+        pdf_mtime: pdfMtime,
+        page_counts: res?.page_counts ?? paperState.papers[idx].page_counts,
       };
+      renderPaperProgress(paperState.papers[idx]);
     }
     renderPaperTabs();
+    showPaperToast(`PDF собран (${res?.engine || "ok"})`);
   } catch (err) {
     hidePaperLoader();
-    if (els.status) els.status.textContent = `Ошибка сборки PDF: ${err.message}`;
+    const detail = String(err.message || err).trim();
+    if (els.status) els.status.textContent = `Ошибка сборки PDF: ${detail}`;
+    showPaperToast(detail.slice(0, 240) || "Ошибка сборки PDF", { variant: "error" });
   } finally {
     paperState.texCompiling = false;
     updatePaperSaveUi();
@@ -7721,10 +8046,12 @@ async function loadPaperWorkspace(projectId, slug, { pdfExists = false, pdfStamp
   await loadPaperComments(projectId, slug);
 
   if (pdfExists) {
+    paperState.lastRemotePdfMtime = pdfStamp || null;
     showPaperPdf(projectId, slug, pdfStamp);
     els.frame?.classList.remove("hidden");
     els.pdfMissing?.classList.add("hidden");
   } else {
+    paperState.lastRemotePdfMtime = null;
     paperState.lastPdfStamp = null;
     if (els.frame) els.frame.src = "about:blank";
     els.frame?.classList.add("hidden");
@@ -7988,6 +8315,7 @@ async function refreshPaperStatus({ quiet = false } = {}) {
     }
     renderPaperTabs();
     renderPaperState(st);
+    renderPaperProgress(paperState.papers.find((paper) => paperTabKey(paper) === paperTabKey(entry)) || entry);
     const modalOpen = !paperEls().modal?.classList.contains("hidden");
     if (st.state === "running" && modalOpen) {
       if (!paperState.pollTimer) {
@@ -8045,6 +8373,7 @@ function openPaperModal() {
   bindPaperFrameLoad();
   paperState.lastPdfStamp = null;
   paperState.lastPdfKey = null;
+  paperState.lastRemotePdfMtime = null;
   if (els.frame) els.frame.src = "about:blank";
   showPaperLoader("Загрузка статей…");
   void refreshAppSettings().then(() => {
@@ -8109,6 +8438,13 @@ function initPaper() {
       const status = document.getElementById("paper-inbox-message-status");
       if (ok && status) status.textContent = "Paper Inbox отмечен как настроенный.";
     });
+  });
+  paperEls().progressSettingsToggle?.addEventListener("click", () => {
+    paperState.progressSettingsOpen = !paperState.progressSettingsOpen;
+    renderPaperProgress(activePaperEntry());
+  });
+  paperEls().progressSettings?.addEventListener("submit", (event) => {
+    void savePaperProgress(event);
   });
 }
 
@@ -8181,6 +8517,13 @@ async function init() {
       hideModal("knowledge-modal");
     }
     if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+      const paperModal = document.getElementById("paper-modal");
+      const paperOpen = paperModal && !paperModal.classList.contains("hidden");
+      if (paperOpen && paperState.texDirty) {
+        e.preventDefault();
+        void savePaperTex();
+        return;
+      }
       if (document.activeElement?.id === "card-report-editor") {
         e.preventDefault();
         void saveCardReport();

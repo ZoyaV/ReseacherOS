@@ -13,8 +13,11 @@ export function apiBase() {
 export const API_BASE = apiBase();
 
 /** GET, возвращающий сырой текст (markdown базы знаний). */
-async function apiText(path) {
-  const res = await fetch(`${apiBase()}${path}`);
+async function apiText(path, options = {}) {
+  const res = await fetch(`${apiBase()}${path}`, {
+    cache: "no-store",
+    ...options,
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail || res.statusText);
@@ -24,6 +27,7 @@ async function apiText(path) {
 
 async function api(path, options = {}) {
   const res = await fetch(`${apiBase()}${path}`, {
+    cache: "no-store",
     headers: { "Content-Type": "application/json", ...options.headers },
     ...options,
   });
@@ -233,6 +237,11 @@ export const KoiApi = {
   compilePaper: (projectId, slug = "default") =>
     api(`/projects/${projectId}/papers/${encodeURIComponent(slug)}/compile`, {
       method: "POST",
+    }),
+  updatePaperProgress: (projectId, slug, payload) =>
+    api(`/projects/${projectId}/papers/${encodeURIComponent(slug)}/meta`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
     }),
   getPaperComments: (projectId, slug = "default") =>
     api(`/projects/${projectId}/papers/${encodeURIComponent(slug)}/comments`),
