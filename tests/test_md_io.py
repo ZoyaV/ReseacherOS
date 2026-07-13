@@ -132,3 +132,33 @@ Method
     reloaded = parse_project_md(reserialized, project_id="proj-test")
     reloaded_by_id = {c.id: c.column_id for c in reloaded.boards[0].cards}
     assert reloaded_by_id == by_id
+
+
+def test_roundtrip_preserves_card_depends_on() -> None:
+    text = """---
+id: proj-deps
+title: Deps
+---
+# problem: root
+
+Root
+
+#### method: m1
+
+Method
+
+<!-- koi:kanban board-m1 -->
+| backlog | running | done | successful |
+| --- | --- | --- | --- |
+| Follow-up <!-- id:c-b desc:next step deps:c-a --> | | Base <!-- id:c-a desc:baseline --> | |
+"""
+    project = parse_project_md(text, project_id="proj-deps")
+    by_id = {c.id: c for c in project.boards[0].cards}
+    assert by_id["c-b"].depends_on == ["c-a"]
+    assert by_id["c-a"].depends_on == []
+
+    reserialized = serialize_project_md(project)
+    assert "deps:c-a" in reserialized
+    reloaded = parse_project_md(reserialized, project_id="proj-deps")
+    reloaded_by_id = {c.id: c.depends_on for c in reloaded.boards[0].cards}
+    assert reloaded_by_id == {"c-a": [], "c-b": ["c-a"]}

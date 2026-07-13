@@ -83,6 +83,7 @@ class ExperimentCard(BaseModel):
     title: str
     description: str = ""
     tags: list[str] = Field(default_factory=list)
+    depends_on: list[str] = Field(default_factory=list)  # prerequisite card ids (DAG edges)
     linked_node_id: Optional[str] = None  # optional link to tree experiment node
 
 

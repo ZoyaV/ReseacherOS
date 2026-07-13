@@ -107,14 +107,32 @@ def _decode_card_desc(desc: str) -> str:
     return desc.replace(r"\n", "\n")
 
 
-def _parse_card_comment(meta: str) -> tuple[Optional[str], str, list[str]]:
+def _parse_card_deps(raw: str) -> list[str]:
+    parts = re.split(r"[,;]+", raw)
+    out: list[str] = []
+    seen: set[str] = set()
+    for part in parts:
+        dep = str(part or "").strip()
+        if not dep or dep in seen:
+            continue
+        seen.add(dep)
+        out.append(dep)
+    return out
+
+
+def _parse_card_comment(meta: str) -> tuple[Optional[str], str, list[str], list[str]]:
     card_id: Optional[str] = None
     desc = ""
     tags: list[str] = []
+    depends_on: list[str] = []
 
     id_m = re.search(r"\bid:(\S+)", meta)
     if id_m:
         card_id = id_m.group(1)
+
+    deps_m = re.search(r"\bdeps:([^\s]+)", meta)
+    if deps_m:
+        depends_on = _parse_card_deps(deps_m.group(1).strip())
 
     tags_m = re.search(r"\btags:(.+?)\s*$", meta)
     meta_without_tags = meta
@@ -122,23 +140,26 @@ def _parse_card_comment(meta: str) -> tuple[Optional[str], str, list[str]]:
         tags = _parse_card_tags(tags_m.group(1).strip())
         meta_without_tags = meta[: tags_m.start()].rstrip()
 
+    if deps_m:
+        meta_without_tags = meta_without_tags[: deps_m.start()].rstrip()
+
     desc_m = re.search(r"\bdesc:(.*)$", meta_without_tags, re.DOTALL)
     if desc_m:
         desc = _decode_card_desc(desc_m.group(1).strip())
 
-    return card_id, desc, tags
+    return card_id, desc, tags, depends_on
 
 
-def _parse_card_cell(raw: str) -> tuple[str, Optional[str], str, list[str]]:
+def _parse_card_cell(raw: str) -> tuple[str, Optional[str], str, list[str], list[str]]:
     m = CARD_META_RE.match(raw)
     if not m:
-        return raw.strip(), None, "", []
+        return raw.strip(), None, "", [], []
     title = m.group(1).strip()
     comment = m.group(2)
     if not comment:
-        return title, None, "", []
-    card_id, desc, tags = _parse_card_comment(comment)
-    return title, card_id, desc, tags
+        return title, None, "", [], []
+    card_id, desc, tags, depends_on = _parse_card_comment(comment)
+    return title, card_id, desc, tags, depends_on
 
 
 def _split_frontmatter(text: str) -> tuple[dict[str, Any], str]:
@@ -229,7 +250,7 @@ def _parse_kanban_table(lines: list[str], board_id: str, owner_node_id: str) -> 
         for col_id, raw in zip(header_cells, cells):
             if not raw or raw in ("—", "-", ""):
                 continue
-            title, card_id, desc, tags = _parse_card_cell(raw)
+            title, card_id, desc, tags, depends_on = _parse_card_cell(raw)
             cards.append(
                 ExperimentCard(
                     id=card_id or f"card-{len(cards)}",
@@ -238,6 +259,7 @@ def _parse_kanban_table(lines: list[str], board_id: str, owner_node_id: str) -> 
                     title=title,
                     description=desc,
                     tags=tags,
+                    depends_on=depends_on,
                 )
             )
 
@@ -376,6 +398,9 @@ def _format_card(cell: ExperimentCard) -> str:
     if cell.tags:
         tags = ",".join(t.replace(",", "") for t in cell.tags)
         parts.append(f"tags:{tags}")
+    if cell.depends_on:
+        deps = ",".join(d.replace(",", "") for d in cell.depends_on)
+        parts.append(f"deps:{deps}")
     if parts:
         return f"{base} <!-- {' '.join(parts)} -->"
     return base

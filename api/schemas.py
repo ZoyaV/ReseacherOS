@@ -50,6 +50,7 @@ class UpdateCardBody(BaseModel):
     description: Optional[str] = None
     column_id: Optional[str] = None
     tags: Optional[list[str]] = None
+    depends_on: Optional[list[str]] = None
 
 
 class CreateCardBody(BaseModel):
@@ -57,6 +58,17 @@ class CreateCardBody(BaseModel):
     title: str = Field(min_length=1)
     description: str = ""
     tags: list[str] = Field(default_factory=list)
+    depends_on: list[str] = Field(default_factory=list)
+
+
+class DagSuggestBody(BaseModel):
+    apply: bool = False
+
+
+class DagEdgeBody(BaseModel):
+    from_card_id: str = Field(min_length=1)
+    to_card_id: str = Field(min_length=1)
+    reason: str = ""
 
 
 class CardReportBody(BaseModel):

@@ -7,6 +7,7 @@ import {
   setRunningSeedProvider,
 } from "./card-live.js";
 import { KoiApi } from "./api.js?v=20260710h";
+import { destroyKanbanDagView, fitKanbanDagView, refreshKanbanDagView } from "./kanban-dag.js?v=20260713p";
 import {
   koiLoaderTypingHtml,
   refreshInlineLoaderHints,
@@ -17,6 +18,7 @@ import {
 import { MindmapCamera } from "./lab-canvas.js";
 import { renderMarkdown } from "./markdown.js";
 import { initImageLightbox } from "./image-lightbox.js?v=20260703b";
+import { initCursorUsageWidget } from "./cursor-usage-widget.js?v=20260710f";
 import {
   METHOD_ACTIVITY_H,
   bindMethodActivityZoomPreview,
@@ -145,7 +147,7 @@ let state = {
   lab: null,
   activeNodeId: null,
   kanbanNodeId: null,
-  kanbanActiveTagFilters: [],
+  kanbanDisabledTagFilters: [],
   questionsNodeId: null,
   reportCardId: null,
   reportBoardId: null,
@@ -2741,16 +2743,19 @@ function setupInlineEdits() {
     getValue: () =>
       state.project?.nodes.find((n) => n.id === state.kanbanNodeId)
         ?.description ?? "",
-    setDisplay: (v) =>
+    setDisplay: (v) => {
       renderInlineDisplay(
         document.getElementById("kanban-node-desc-display"),
         v,
         "Описание (двойной клик)"
-      ),
+      );
+      syncKanbanDescClamp();
+    },
     onCommit: async (description) => {
       const updated = await patchNodeFields(state.kanbanNodeId, {
         description,
       });
+      syncKanbanDescClamp();
       return updated?.description ?? null;
     },
   });
@@ -2800,6 +2805,49 @@ function fillKanbanNodeMeta(node) {
     node.description || "",
     "Описание (двойной клик)"
   );
+  syncKanbanDescClamp();
+}
+
+function syncKanbanDescClamp() {
+  const desc = document.getElementById("kanban-node-desc-display");
+  const toggle = document.getElementById("kanban-desc-toggle");
+  if (!desc || !toggle) return;
+  const expanded = desc.classList.contains("is-expanded");
+  if (expanded) {
+    toggle.classList.remove("hidden");
+    toggle.textContent = "свернуть";
+    toggle.setAttribute("aria-expanded", "true");
+    return;
+  }
+  desc.classList.add("is-clamped");
+  const needsToggle =
+    !!desc.textContent.trim() &&
+    (desc.scrollHeight > desc.clientHeight + 2 || desc.textContent.length > 120);
+  toggle.classList.toggle("hidden", !needsToggle);
+  toggle.textContent = "развернуть";
+  toggle.setAttribute("aria-expanded", "false");
+}
+
+function initKanbanModalChrome() {
+  document.getElementById("kanban-desc-toggle")?.addEventListener("click", () => {
+    const desc = document.getElementById("kanban-node-desc-display");
+    const toggle = document.getElementById("kanban-desc-toggle");
+    if (!desc || !toggle) return;
+    const expand = !desc.classList.contains("is-expanded");
+    desc.classList.toggle("is-expanded", expand);
+    desc.classList.toggle("is-clamped", !expand);
+    toggle.textContent = expand ? "свернуть" : "развернуть";
+    toggle.setAttribute("aria-expanded", expand ? "true" : "false");
+    if (!expand) syncKanbanDescClamp();
+  });
+  document.getElementById("kanban-hint-toggle")?.addEventListener("click", () => {
+    const hint = document.getElementById("kanban-modal-hint");
+    const btn = document.getElementById("kanban-hint-toggle");
+    if (!hint || !btn) return;
+    const show = hint.classList.toggle("hidden");
+    btn.classList.toggle("is-active", !show);
+    btn.setAttribute("aria-pressed", show ? "false" : "true");
+  });
 }
 
 function fillNodeEdit(node) {
@@ -3378,14 +3426,197 @@ function openKanbanModal(node) {
   const board = getBoardForNode(state.project, node);
   if (!board) return;
 
-  state.kanbanActiveTagFilters = loadKanbanTagFilters(state.project?.id);
+  state.kanbanDisabledTagFilters = loadKanbanDisabledTagFilters(state.project?.id, board.id);
+  state.kanbanViewMode = state.kanbanViewMode || "board";
 
   document.getElementById("kanban-modal-type").textContent =
     TYPE_LABELS[node.node_type];
   fillKanbanNodeMeta(node);
 
-  renderKanbanBoard(board);
+  setKanbanViewMode(state.kanbanViewMode);
+  renderActiveKanbanView(board, node);
   showModal("kanban-modal");
+}
+
+function setKanbanViewMode(mode) {
+  const boardTab = document.getElementById("kanban-tab-board");
+  const dagTab = document.getElementById("kanban-tab-dag");
+  const boardPane = document.getElementById("kanban-pane-board");
+  const dagPane = document.getElementById("kanban-pane-dag");
+  const tagFilter = document.getElementById("kanban-tag-filter");
+  const hint = document.getElementById("kanban-modal-hint");
+  const modalPanel = document.querySelector(".modal-panel--kanban");
+  const isBoard = mode !== "dag";
+  state.kanbanViewMode = isBoard ? "board" : "dag";
+  modalPanel?.classList.toggle("is-dag-mode", !isBoard);
+  boardTab?.classList.toggle("is-active", isBoard);
+  dagTab?.classList.toggle("is-active", !isBoard);
+  boardTab?.setAttribute("aria-selected", isBoard ? "true" : "false");
+  dagTab?.setAttribute("aria-selected", isBoard ? "false" : "true");
+  boardPane?.classList.toggle("is-active", isBoard);
+  dagPane?.classList.toggle("is-active", !isBoard);
+  if (boardPane) boardPane.hidden = !isBoard;
+  if (dagPane) dagPane.hidden = isBoard;
+  if (isBoard) destroyKanbanDagView();
+  tagFilter?.classList.toggle("hidden", !tagFilter.childElementCount);
+  if (hint) {
+    hint.textContent = isBoard
+      ? "⠿ — перетащить · + — новая карточка · двойной клик — правка · ↗ — отчёт"
+      : "DAG — → зажать на карточке, отпустить на цели · двойной клик на стрелке — удалить";
+  }
+}
+
+function getKanbanDagContext(board, node) {
+  const writeProjectId = boardWriteProjectId(board);
+  const boardId = board.id;
+  const liveBoard = () => state.project?.boards?.[boardId] || board;
+  const liveNode = () =>
+    state.project?.nodes?.find((n) => n.id === node?.id) || node;
+  const refreshDag = async () => {
+    state.project = await reloadProjectView();
+    syncLabProject(state.project);
+    const refreshedNode = liveNode();
+    const refreshedBoard = liveBoard();
+    if (refreshedBoard) {
+      const dagEl = document.getElementById("kanban-dag-view");
+      if (dagEl) refreshKanbanDagView(dagEl, refreshedBoard, getKanbanDagContext(refreshedBoard, refreshedNode));
+    }
+  };
+  return {
+    node,
+    projectId: writeProjectId || state.project?.id,
+    tagFilters: state.kanbanDisabledTagFilters || [],
+    cardMatchesFilter: cardMatchesKanbanTagFilter,
+    cardTagsHtml: (card) => cardTagsRowHtml(card.tags, { dag: true }),
+    onOpenReport: (card) => void openCardReport(card, liveBoard()),
+    onStatus: (msg, isError = false) => setStatus(msg, isError),
+    onRefresh: refreshDag,
+    onSuggestDag: async () => {
+      if (!writeProjectId) throw new Error("Не удалось определить проект");
+      return KoiApi.suggestBoardDag(writeProjectId, boardId, { apply: false });
+    },
+    onApplySuggestions: async (selected) => {
+      if (!selected?.length || !writeProjectId) return;
+      const byTo = new Map();
+      for (const item of selected) {
+        const toId = item.to_card_id;
+        if (!byTo.has(toId)) byTo.set(toId, []);
+        byTo.get(toId).push(item.from_card_id);
+      }
+      for (const [toId, fromIds] of byTo.entries()) {
+        const b = liveBoard();
+        const card = getBoardCard(b, toId);
+        if (!card) continue;
+        const deps = [...new Set([...(card.depends_on || []), ...fromIds])];
+        await persistCard(b, toId, { depends_on: deps }, { rerenderKanban: false });
+      }
+      await refreshDag();
+    },
+    onAddEdge: async (toCardId, fromCardId) => {
+      const b = liveBoard();
+      const writeProjectId = boardWriteProjectId(b);
+      if (!writeProjectId) {
+        setStatus("Не удалось определить проект для сохранения связи", true);
+        throw new Error("No write project id");
+      }
+      const card = getBoardCard(b, toCardId);
+      if (!card) {
+        setStatus("Целевая карточка не найдена", true);
+        throw new Error("Target card not found");
+      }
+      if ((card.depends_on || []).includes(fromCardId)) return;
+      const deps = [...new Set([...(card.depends_on || []), fromCardId])];
+      const updated = await persistCard(b, toCardId, { depends_on: deps }, { rerenderKanban: false });
+      if (!updated) {
+        setStatus("Ошибка сохранения связи в project.md", true);
+        throw new Error("Persist failed");
+      }
+      const dagEl = document.getElementById("kanban-dag-view");
+      if (dagEl && state.kanbanViewMode === "dag") {
+        refreshKanbanDagView(dagEl, liveBoard(), getKanbanDagContext(liveBoard(), liveNode()));
+      }
+    },
+    onRemoveEdge: async (toCardId, fromCardId) => {
+      const b = liveBoard();
+      const writeProjectId = boardWriteProjectId(b);
+      if (!writeProjectId) {
+        setStatus("Не удалось определить проект для удаления связи", true);
+        throw new Error("No write project id");
+      }
+      const card = getBoardCard(b, toCardId);
+      if (!card) {
+        setStatus("Целевая карточка не найдена", true);
+        throw new Error("Target card not found");
+      }
+      const deps = (card.depends_on || []).filter((d) => d !== fromCardId);
+      const updated = await persistCard(b, toCardId, { depends_on: deps }, { rerenderKanban: false });
+      if (!updated) {
+        setStatus("Не удалось удалить связь в project.md", true);
+        throw new Error("Persist failed");
+      }
+      const dagEl = document.getElementById("kanban-dag-view");
+      if (dagEl && state.kanbanViewMode === "dag") {
+        refreshKanbanDagView(dagEl, liveBoard(), getKanbanDagContext(liveBoard(), liveNode()));
+      }
+    },
+    onLinkCardToQuestion: async (cardId, rqId) => {
+      if (!node?.id) return;
+      const questions = (node.research_questions || []).map((q) =>
+        q.id === rqId ? { ...q, card_id: cardId } : q
+      );
+      await patchNodeFields(node.id, { research_questions: questions });
+      await refreshDag();
+    },
+    onUnlinkQuestion: async (rqId) => {
+      if (!node?.id) return;
+      const questions = (node.research_questions || []).map((q) =>
+        q.id === rqId ? { ...q, card_id: null } : q
+      );
+      await patchNodeFields(node.id, { research_questions: questions });
+      await refreshDag();
+    },
+    onClearAllLinks: async () => {
+      const b = liveBoard();
+      for (const card of b.cards || []) {
+        if (!(card.depends_on || []).length) continue;
+        await persistCard(b, card.id, { depends_on: [] }, { rerenderKanban: false });
+      }
+      await refreshDag();
+    },
+  };
+}
+
+function renderKanbanDagBoard(board, node) {
+  const dagEl = document.getElementById("kanban-dag-view");
+  if (!dagEl || !board) return;
+  refreshKanbanDagView(dagEl, board, getKanbanDagContext(board, node));
+  requestAnimationFrame(() => fitKanbanDagView());
+}
+
+function renderActiveKanbanView(board, node) {
+  renderKanbanTagFilter(state.project, board);
+  if (state.kanbanViewMode === "dag") {
+    renderKanbanDagBoard(board, node);
+    return;
+  }
+  renderKanbanBoard(board);
+}
+
+function initKanbanViewTabs() {
+  const boardTab = document.getElementById("kanban-tab-board");
+  const dagTab = document.getElementById("kanban-tab-dag");
+  boardTab?.addEventListener("click", () => {
+    setKanbanViewMode("board");
+    const node = state.project?.nodes?.find((n) => n.id === state.kanbanNodeId);
+    const board = node?.board_id ? state.project?.boards?.[node.board_id] : null;
+    if (board && node) renderActiveKanbanView(board, node);
+  });
+  dagTab?.addEventListener("click", () => {
+    setKanbanViewMode("dag");
+    const node = state.project?.nodes?.find((n) => n.id === state.kanbanNodeId);
+    const board = node?.board_id ? state.project?.boards?.[node.board_id] : null;
+    if (board && node) renderActiveKanbanView(board, node);
+  });
 }
 
 function getBoardCard(board, cardId) {
@@ -3417,14 +3648,23 @@ async function persistCard(board, cardId, fields, opts = {}) {
   const { rerenderKanban = false, refreshMapStats = false } = opts;
   setStatus("Сохранение…");
   try {
-    await KoiApi.patchCard(boardWriteProjectId(board), board.id, cardId, fields);
+    const card = getBoardCard(board, cardId);
+    const payload = { ...fields };
+    if (card) {
+      if (payload.title === undefined) payload.title = card.title;
+      if (payload.description === undefined) payload.description = card.description ?? "";
+      if (payload.column_id === undefined) payload.column_id = card.column_id;
+      if (payload.tags === undefined) payload.tags = card.tags || [];
+      if (payload.depends_on === undefined) payload.depends_on = card.depends_on || [];
+    }
+    await KoiApi.patchCard(boardWriteProjectId(board), board.id, cardId, payload);
     state.project = await reloadProjectView();
     syncLabProject(state.project);
     setStatus("Сохранено в project.md");
     if (rerenderKanban) {
       const node = state.project.nodes.find((n) => n.id === state.kanbanNodeId);
       if (node?.board_id) {
-        renderKanbanBoard(state.project.boards[node.board_id]);
+        renderActiveKanbanView(state.project.boards[node.board_id], node);
       }
     }
     const activityTouched = "description" in fields || "column_id" in fields;
@@ -3700,32 +3940,40 @@ function setCardTagPopoverError(pop, message) {
   input?.focus();
 }
 
-function projectCardTagVocabulary(project) {
-  const seen = new Map();
-  const add = (tag) => {
+function collectCardTagVocabulary(add, tags) {
+  (tags || []).forEach((tag) => {
     const norm = normalizeCardTagName(tag);
     if (!norm) return;
     const key = norm.toLowerCase();
-    if (!seen.has(key)) seen.set(key, norm);
-  };
-  (project?.card_tags || []).forEach(add);
-  Object.values(project?.boards || {}).forEach((board) => {
-    (board.cards || []).forEach((card) => {
-      (card.tags || []).forEach(add);
-    });
+    if (!add.seen.has(key)) add.seen.set(key, norm);
   });
+}
+
+function boardCardTagVocabulary(board) {
+  const seen = new Map();
+  const add = { seen };
+  (board?.cards || []).forEach((card) => collectCardTagVocabulary(add, card.tags));
   return [...seen.values()].sort((a, b) => a.localeCompare(b, "ru"));
 }
 
-const KANBAN_TAG_FILTER_KEY = "koi-kanban-tag-filter";
-
-function kanbanTagFilterStorageKey(projectId) {
-  return `${KANBAN_TAG_FILTER_KEY}:${projectId || ""}`;
+/** Tags on this board plus project-level suggestions (not other boards). */
+function boardCardTagSuggestions(board, project) {
+  const seen = new Map();
+  const add = { seen };
+  (board?.cards || []).forEach((card) => collectCardTagVocabulary(add, card.tags));
+  (project?.card_tags || []).forEach((tag) => collectCardTagVocabulary(add, [tag]));
+  return [...seen.values()].sort((a, b) => a.localeCompare(b, "ru"));
 }
 
-function loadKanbanTagFilters(projectId) {
+const KANBAN_TAG_FILTER_KEY = "koi-kanban-tag-filter-disabled";
+
+function kanbanTagFilterStorageKey(projectId, boardId) {
+  return `${KANBAN_TAG_FILTER_KEY}:${projectId || ""}:${boardId || ""}`;
+}
+
+function loadKanbanDisabledTagFilters(projectId, boardId) {
   try {
-    const raw = localStorage.getItem(kanbanTagFilterStorageKey(projectId));
+    const raw = localStorage.getItem(kanbanTagFilterStorageKey(projectId, boardId));
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed.map((t) => String(t).toLowerCase()) : [];
   } catch {
@@ -3733,38 +3981,40 @@ function loadKanbanTagFilters(projectId) {
   }
 }
 
-function saveKanbanTagFilters(projectId, filters) {
+function saveKanbanDisabledTagFilters(projectId, boardId, disabled) {
   try {
     localStorage.setItem(
-      kanbanTagFilterStorageKey(projectId),
-      JSON.stringify(filters.map((t) => String(t).toLowerCase()))
+      kanbanTagFilterStorageKey(projectId, boardId),
+      JSON.stringify(disabled.map((t) => String(t).toLowerCase()))
     );
   } catch {
     /* ignore quota */
   }
 }
 
-function cardMatchesKanbanTagFilter(card, activeFilters) {
-  if (!activeFilters?.length) return true;
+function reconcileKanbanDisabledTagFilters(board) {
+  const vocab = boardCardTagVocabulary(board);
+  const allowed = new Set(vocab.map((t) => t.toLowerCase()));
+  const disabled = (state.kanbanDisabledTagFilters || []).filter((t) => allowed.has(t));
+  if (disabled.length !== (state.kanbanDisabledTagFilters || []).length) {
+    state.kanbanDisabledTagFilters = disabled;
+    if (state.project?.id && board?.id) {
+      saveKanbanDisabledTagFilters(state.project.id, board.id, disabled);
+    }
+  }
+  return disabled;
+}
+
+function cardMatchesKanbanTagFilter(card, disabledFilters) {
+  if (!disabledFilters?.length) return true;
   const cardTags = (card.tags || []).map((t) => String(t).toLowerCase());
-  return activeFilters.some((f) => cardTags.includes(f));
+  return !disabledFilters.some((f) => cardTags.includes(f));
 }
 
-/** When tag filters are active, tag the new card so it stays visible in the filtered view. */
-function kanbanTagsForNewCard(project) {
-  const active = state.kanbanActiveTagFilters || [];
-  if (!active.length) return [];
-  const vocab = projectCardTagVocabulary(project);
-  const byLower = new Map(vocab.map((t) => [t.toLowerCase(), t]));
-  return active
-    .map((f) => byLower.get(String(f).toLowerCase()))
-    .filter(Boolean);
-}
-
-function kanbanTagFilterChipHtml(tag, isActive) {
-  const activeClass = isActive ? " is-active" : "";
-  const pressed = isActive ? "true" : "false";
-  return `<button type="button" class="kanban-tag-filter-chip card-tag--hue${activeClass}" style="${cardTagHueStyle(tag)}" data-tag="${escapeHtml(tag)}" aria-pressed="${pressed}" title="${escapeHtml(tag)} — ${isActive ? "убрать из фильтра" : "показать карточки с тегом"}">
+function kanbanTagFilterChipHtml(tag, isEnabled) {
+  const activeClass = isEnabled ? " is-active" : "";
+  const pressed = isEnabled ? "true" : "false";
+  return `<button type="button" class="kanban-tag-filter-chip card-tag--hue${activeClass}" style="${cardTagHueStyle(tag)}" data-tag="${escapeHtml(tag)}" aria-pressed="${pressed}" title="${escapeHtml(tag)} — ${isEnabled ? "скрыть карточки с тегом" : "показать карточки с тегом"}">
     <span class="kanban-tag-filter-dot" aria-hidden="true"></span>
     <span class="kanban-tag-filter-label">${escapeHtml(tag)}</span>
   </button>`;
@@ -3774,27 +4024,29 @@ function renderKanbanTagFilter(project, board) {
   const el = document.getElementById("kanban-tag-filter");
   if (!el) return;
 
-  const tags = projectCardTagVocabulary(project);
+  const tags = boardCardTagVocabulary(board);
   if (!tags.length) {
     el.classList.add("hidden");
     el.innerHTML = "";
     return;
   }
 
-  const active = state.kanbanActiveTagFilters || [];
-  const chips = tags.map((t) => kanbanTagFilterChipHtml(t, active.includes(t.toLowerCase()))).join("");
+  const disabled = reconcileKanbanDisabledTagFilters(board);
+  const chips = tags
+    .map((t) => kanbanTagFilterChipHtml(t, !disabled.includes(t.toLowerCase())))
+    .join("");
   const clearBtn =
-    active.length > 0
-      ? `<button type="button" class="kanban-tag-filter-clear" title="Показать все карточки">Сбросить</button>`
+    disabled.length > 0
+      ? `<button type="button" class="kanban-tag-filter-clear" title="Включить все теги">Сбросить</button>`
       : "";
 
   el.classList.remove("hidden");
   el.innerHTML = `
-    <div class="kanban-tag-filter-head">
+    <div class="kanban-tag-filter-row">
       <span class="kanban-tag-filter-title">Теги</span>
+      <div class="kanban-tag-filter-chips" role="group" aria-label="Фильтр по тегам">${chips}</div>
       ${clearBtn}
-    </div>
-    <div class="kanban-tag-filter-chips" role="group" aria-label="Фильтр по тегам">${chips}</div>`;
+    </div>`;
 
   bindKanbanTagFilter(project, board);
 }
@@ -3808,21 +4060,31 @@ function bindKanbanTagFilter(project, board) {
       const tag = btn.dataset.tag;
       if (!tag) return;
       const key = tag.toLowerCase();
-      const active = [...(state.kanbanActiveTagFilters || [])];
-      const idx = active.indexOf(key);
-      if (idx >= 0) active.splice(idx, 1);
-      else active.push(key);
-      state.kanbanActiveTagFilters = active;
-      if (project?.id) saveKanbanTagFilters(project.id, active);
-      renderKanbanBoard(board);
+      const disabled = [...(state.kanbanDisabledTagFilters || [])];
+      const idx = disabled.indexOf(key);
+      if (idx >= 0) disabled.splice(idx, 1);
+      else disabled.push(key);
+      state.kanbanDisabledTagFilters = disabled;
+      if (project?.id && board?.id) saveKanbanDisabledTagFilters(project.id, board.id, disabled);
+      rerenderKanbanAfterTagFilter(board);
     });
   });
 
   el.querySelector(".kanban-tag-filter-clear")?.addEventListener("click", () => {
-    state.kanbanActiveTagFilters = [];
-    if (project?.id) saveKanbanTagFilters(project.id, []);
-    renderKanbanBoard(board);
+    state.kanbanDisabledTagFilters = [];
+    if (project?.id && board?.id) saveKanbanDisabledTagFilters(project.id, board.id, []);
+    rerenderKanbanAfterTagFilter(board);
   });
+}
+
+function rerenderKanbanAfterTagFilter(board) {
+  const node = state.project?.nodes?.find((n) => n.id === state.kanbanNodeId);
+  renderKanbanTagFilter(state.project, board);
+  if (state.kanbanViewMode === "dag") {
+    renderKanbanDagBoard(board, node);
+    return;
+  }
+  renderKanbanBoard(board);
 }
 
 function cardTagsEqual(a, b) {
@@ -3832,8 +4094,29 @@ function cardTagsEqual(a, b) {
   return aa.length === bb.length && aa.every((v, i) => v === bb[i]);
 }
 
-function cardTagsRowHtml(tags, { kanban = false } = {}) {
+function cardTagsRowHtml(tags, { kanban = false, dag = false } = {}) {
   const list = tags || [];
+  if (dag) {
+    const maxVisible = 3;
+    const visible = list.slice(0, maxVisible);
+    const hidden = list.slice(maxVisible);
+    const chips = visible
+      .map(
+        (t) =>
+          `<span class="card-tag-kanban card-tag-kanban--readonly card-tag--hue" style="${cardTagHueStyle(t)}" title="${escapeHtml(t)}">
+            <span class="card-tag-kanban-dot" aria-hidden="true"></span>
+            <span class="card-tag-kanban-label">${escapeHtml(t)}</span>
+          </span>`
+      )
+      .join("");
+    const overflowHtml =
+      hidden.length > 0
+        ? `<span class="card-tag-kanban-overflow" title="${escapeHtml(hidden.join(", "))}">+${hidden.length}</span>`
+        : "";
+    return list.length
+      ? `<div class="card-tags card-tags--kanban card-tags--dag-readonly">${chips}${overflowHtml}</div>`
+      : "";
+  }
   if (kanban) {
     const maxVisible = 2;
     const visible = list.slice(0, maxVisible);
@@ -4059,7 +4342,7 @@ async function commitCardTagPopover(shouldSave) {
 function openCardTagPopover(anchorEl, { card, board, rerenderKanban = false, onUpdated = null }) {
   if (!anchorEl || !card || !board) return;
   closeCardTagPopover();
-  const vocabulary = projectCardTagVocabulary(state.project);
+  const vocabulary = boardCardTagSuggestions(board, state.project);
   const selectedTags = [...(card.tags || [])];
   cardTagPopoverState = {
     board,
@@ -4352,16 +4635,23 @@ function kanbanBoardHtml(board, variant = "modal", { tagFilters = [] } = {}) {
       const cards = board.cards.filter(
         (c) => c.column_id === col.id && cardMatchesKanbanTagFilter(c, tagFilters)
       );
+      const totalInCol = board.cards.filter((c) => c.column_id === col.id).length;
+      const hiddenByFilter = filtering ? totalInCol - cards.length : 0;
+      const countHtml =
+        hiddenByFilter > 0
+          ? `<span class="col-count-inline">${cards.length}<span class="col-count-total">/${totalInCol}</span></span>`
+          : `<span class="col-count-inline">${cards.length}</span>`;
       const cardsHtml = cards.map((c) => kanbanCardHtml(c, col, variant)).join("");
-      const emptyHtml = filtering
-        ? '<span class="col-empty col-empty--filtered">Нет карточек с выбранными тегами</span>'
-        : '<span class="col-empty">Перетащите сюда</span>';
+      const emptyHtml =
+        filtering && totalInCol > 0
+          ? '<span class="col-empty col-empty--filtered">Все карточки скрыты фильтром</span>'
+          : '<span class="col-empty">Перетащите сюда</span>';
       return `
         <div class="kanban-col" data-col="${col.id}">
           <div class="kanban-col-head">
             <h3>
               <span class="col-title">${escapeHtml(col.title)}</span>
-              <span class="col-count-inline">${cards.length}</span>
+              ${countHtml}
             </h3>
             <button type="button" class="col-add-btn" title="Добавить карточку" aria-label="Добавить карточку в ${escapeHtml(col.title)}">+</button>
           </div>
@@ -4401,12 +4691,11 @@ function renderKanbanBoardInto(boardEl, board, { variant = "modal", node = null,
 function renderKanbanBoard(board) {
   const project = state.project;
   const node = project?.nodes?.find((n) => n.id === state.kanbanNodeId) || null;
-  renderKanbanTagFilter(project, board);
   const boardEl = document.getElementById("kanban-board");
   if (!boardEl) return;
   renderKanbanBoardInto(boardEl, board, {
     variant: "modal",
-    tagFilters: state.kanbanActiveTagFilters || [],
+    tagFilters: state.kanbanDisabledTagFilters || [],
     node,
     project,
   });
@@ -4448,7 +4737,7 @@ async function addCardToColumn(board, columnId, context = {}) {
       title: "Новый эксперимент",
       column_id: columnId,
       description: "",
-      tags: kanbanTagsForNewCard(project),
+      tags: [],
     });
     state.project = await reloadProjectView();
     syncLabProject(state.project);
@@ -8467,6 +8756,7 @@ function initKnowledge() {
 
 async function init() {
   initImageLightbox();
+  initCursorUsageWidget();
   initKnowledge();
   initPaper();
   initTheme();
@@ -8475,6 +8765,8 @@ async function init() {
   initProjectDiscoveryPoll();
   initSettings();
   initAgentChat();
+  initKanbanViewTabs();
+  initKanbanModalChrome();
   bindCardLiveModal(cardLiveUi);
   document.querySelectorAll("[data-close]").forEach((el) => {
     el.addEventListener("click", () => {

@@ -180,6 +180,11 @@ export const KoiApi = {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
+  suggestBoardDag: (projectId, boardId, body = {}) =>
+    api(`/projects/${projectId}/boards/${boardId}/dag/suggest`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   deleteCard: (projectId, boardId, cardId) =>
     api(`/projects/${projectId}/boards/${boardId}/cards/${cardId}`, {
       method: "DELETE",

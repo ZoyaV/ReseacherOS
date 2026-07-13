@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260710f" />
+  <link rel="stylesheet" href="styles.css?v=20260713p" />
   <script>
     (function () {
       var t = localStorage.getItem("koi-theme");
@@ -399,16 +399,37 @@
     <div class="modal-backdrop" data-close="kanban-modal"></div>
     <div class="modal-panel modal-panel--kanban">
       <button type="button" class="modal-close" data-close="kanban-modal" aria-label="Закрыть">×</button>
-      <p class="modal-type" id="kanban-modal-type"></p>
-      <div class="kanban-node-meta">
-        <h2 id="kanban-node-title-display" class="inline-edit-text inline-edit-title" title="Двойной клик — редактировать"></h2>
-        <input type="text" id="kanban-node-title-input" class="inline-edit-field hidden" />
-        <p id="kanban-node-desc-display" class="inline-edit-text inline-edit-desc" data-placeholder="Описание (двойной клик)"></p>
-        <textarea id="kanban-node-desc-input" class="inline-edit-field hidden" rows="3"></textarea>
+      <header class="kanban-modal-header">
+        <div class="kanban-modal-headline">
+          <div class="kanban-modal-headline__text">
+            <p class="modal-type kanban-modal-eyebrow" id="kanban-modal-type"></p>
+            <h2 id="kanban-node-title-display" class="inline-edit-text inline-edit-title kanban-modal-title" title="Двойной клик — редактировать"></h2>
+            <input type="text" id="kanban-node-title-input" class="inline-edit-field hidden" />
+          </div>
+          <button type="button" id="kanban-hint-toggle" class="kanban-hint-btn" aria-label="Показать подсказки" title="Подсказки по канбану">?</button>
+        </div>
+        <div class="kanban-node-meta kanban-node-meta--compact">
+          <p id="kanban-node-desc-display" class="inline-edit-text inline-edit-desc kanban-node-desc is-clamped" data-placeholder="Описание (двойной клик)"></p>
+          <textarea id="kanban-node-desc-input" class="inline-edit-field hidden" rows="3"></textarea>
+          <button type="button" id="kanban-desc-toggle" class="kanban-desc-toggle hidden" aria-expanded="false">развернуть</button>
+        </div>
+        <p class="modal-desc kanban-modal-hint hidden" id="kanban-modal-hint">⠿ — перетащить · + в колонке — новая карточка · двойной клик — правка · в Done под заголовком — краткий вывод · ↗ — отчёт</p>
+        <div class="kanban-modal-toolbar">
+          <div id="kanban-view-tabs" class="kanban-view-tabs" role="tablist" aria-label="Режим доски">
+            <button type="button" id="kanban-tab-board" class="kanban-view-tab is-active" role="tab" aria-selected="true" aria-controls="kanban-pane-board">Kanban</button>
+            <button type="button" id="kanban-tab-dag" class="kanban-view-tab" role="tab" aria-selected="false" aria-controls="kanban-pane-dag">DAG view</button>
+          </div>
+          <div id="kanban-tag-filter" class="kanban-tag-filter kanban-tag-filter--inline hidden" aria-label="Фильтр по тегам"></div>
+        </div>
+      </header>
+      <div class="kanban-modal-body">
+        <div id="kanban-pane-board" class="kanban-pane is-active" role="tabpanel">
+          <div id="kanban-board" class="kanban-board"></div>
+        </div>
+        <div id="kanban-pane-dag" class="kanban-pane" role="tabpanel" hidden>
+          <div id="kanban-dag-view" class="kanban-dag-view"></div>
+        </div>
       </div>
-      <p class="modal-desc">⠿ — перетащить · + в колонке — новая карточка · двойной клик — правка · в Done под заголовком — краткий вывод · ↗ — отчёт</p>
-      <div id="kanban-tag-filter" class="kanban-tag-filter hidden" aria-label="Фильтр по тегам"></div>
-      <div id="kanban-board" class="kanban-board"></div>
     </div>
   </div>
 
@@ -682,6 +703,6 @@
     </button>
   </div>
 
-  <script type="module" src="app.js?v=20260710h"></script>
+  <script type="module" src="app.js?v=20260713p"></script>
 </body>
 </html>

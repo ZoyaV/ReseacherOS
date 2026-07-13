@@ -11,6 +11,7 @@ from api.schemas import (
     CreateCardBody,
     CreateNodeBody,
     CreateProjectBody,
+    DagSuggestBody,
     UpdateCardBody,
     UpdateNodeBody,
 )
@@ -48,7 +49,18 @@ from koi.adapters.repository import (
     update_board,
     update_node,
 )
-from koi.services.card_live import live_snapshot, parse_live_hints, resolve_project_path
+from koi.services.card_live import (
+    live_monitor_cards,
+    live_snapshot,
+    merge_live_hints,
+    resolve_project_path,
+)
+from koi.services.dag_suggest import (
+    _normalize_dep_ids,
+    _would_create_cycle,
+    apply_dag_suggestions,
+    suggest_board_dag,
+)
 from koi.services.rq_discoveries import running_kanban_activity
 
 router = APIRouter(tags=["projects"])
@@ -93,6 +105,12 @@ def read_project(project_id: str) -> dict:
 def get_kanban_running_activity(project_id: str) -> dict:
     require_project(project_id, sync_reports=False)
     return {"ok": True, "items": running_kanban_activity(project_id)}
+
+
+@router.get("/projects/{project_id}/kanban/live-monitor")
+def get_kanban_live_monitor(project_id: str) -> dict:
+    project = require_project(project_id, sync_reports=False)
+    return {"ok": True, "items": live_monitor_cards(project_id, project)}
 
 
 @router.put("/projects/{project_id}")
@@ -220,13 +238,15 @@ def post_card(project_id: str, board_id: str, body: CreateCardBody) -> dict:
     board = next((b for b in project.boards if b.id == board_id), None)
     if board is None:
         raise HTTPException(404, "Board not found")
+    card_id = f"c-{uuid4().hex[:8]}"
     card = ExperimentCard(
-        id=f"c-{uuid4().hex[:8]}",
+        id=card_id,
         board_id=board_id,
         column_id=body.column_id,
         title=body.title,
         description=body.description,
         tags=normalize_card_tags(body.tags),
+        depends_on=_normalize_dep_ids(body.depends_on, {c.id for c in board.cards}, card_id),
     )
     register_project_card_tags(project, card.tags)
     board.cards.append(card)
@@ -249,6 +269,7 @@ def patch_card(
         raise HTTPException(404, "Card not found")
     old_title = card.title
     old_column = card.column_id
+    deps_changed = False
     if body.title is not None:
         card.title = body.title
     if body.description is not None:
@@ -258,6 +279,13 @@ def patch_card(
     if body.tags is not None:
         card.tags = normalize_card_tags(body.tags)
         register_project_card_tags(project, card.tags)
+    if body.depends_on is not None:
+        valid_ids = {c.id for c in board.cards}
+        new_deps = _normalize_dep_ids(body.depends_on, valid_ids, card_id)
+        if _would_create_cycle(board.cards, card_id, new_deps):
+            raise HTTPException(400, "depends_on would create a cycle")
+        card.depends_on = new_deps
+        deps_changed = True
     update_board(project, board)
     if body.column_id is not None and body.column_id != old_column:
         if body.column_id != "done":
@@ -266,11 +294,35 @@ def patch_card(
                 "kanban_updated",
                 f"карточка {card.title}: {old_column} → {body.column_id}",
             )
+    elif deps_changed:
+        enqueue_sync(project_id, "kanban_updated", f"связи DAG карточки {card.title}")
     elif body.title is not None or body.description is not None or body.tags is not None:
         enqueue_sync(project_id, "kanban_updated", f"правка карточки {card.title}")
     if body.title is not None and body.title != old_title:
         rename_report_for_card(project, board_id, card_id, card.title)
     return project_to_client(project)
+
+
+@router.post("/projects/{project_id}/boards/{board_id}/dag/suggest")
+def post_board_dag_suggest(
+    project_id: str, board_id: str, body: DagSuggestBody
+) -> dict:
+    project = require_project(project_id)
+    board = next((b for b in project.boards if b.id == board_id), None)
+    if board is None:
+        raise HTTPException(404, "Board not found")
+    suggestions = suggest_board_dag(project, board)
+    if body.apply:
+        updated = apply_dag_suggestions(board, suggestions)
+        if updated:
+            update_board(project, board)
+            enqueue_sync(project_id, "kanban_updated", "применены предложения DAG")
+        return {
+            "suggestions": suggestions,
+            "applied": updated,
+            "project": project_to_client(project),
+        }
+    return {"suggestions": suggestions}
 
 
 @router.delete("/projects/{project_id}/boards/{board_id}/cards/{card_id}")
@@ -280,6 +332,9 @@ def delete_card(project_id: str, board_id: str, card_id: str) -> dict:
     if board is None:
         raise HTTPException(404, "Board not found")
     board.cards = [c for c in board.cards if c.id != card_id]
+    for other in board.cards:
+        if card_id in (other.depends_on or []):
+            other.depends_on = [d for d in other.depends_on if d != card_id]
     update_board(project, board)
     delete_report(project_id, card_id)
     return project_to_client(project)
@@ -352,13 +407,7 @@ def get_card_live(
 ) -> dict:
     project = parse_project(project_id)
     _, card = find_card(project, board_id, card_id)
-    hints = parse_live_hints(card.description)
-    try:
-        report = read_report(project, board_id, card_id, card.title)
-        report_hints = parse_live_hints(report.get("content", ""))
-        hints = {**hints, **report_hints}
-    except (OSError, KeyError, ValueError):
-        pass
+    hints = merge_live_hints(project, board_id, card_id, card.title, card.description)
     snapshot = live_snapshot(
         project_id,
         hints=hints,
