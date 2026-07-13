@@ -31,7 +31,6 @@ from koi.core.models import (
     ALLOWED_CHILDREN,
     DEFAULT_KANBAN_COLUMNS,
     KANBAN_OWNER_TYPES,
-    MAX_METHOD_RESEARCH_QUESTIONS,
     KanbanBoard,
     MethodResearchQuestion,
     Node,
@@ -349,10 +348,6 @@ def _validate_research_questions(
 ) -> list[MethodResearchQuestion]:
     if node.node_type != NodeType.METHOD:
         raise ValueError("Research questions are only allowed on method nodes")
-    if len(questions) > MAX_METHOD_RESEARCH_QUESTIONS:
-        raise ValueError(
-            f"At most {MAX_METHOD_RESEARCH_QUESTIONS} research questions per method"
-        )
     board = next((b for b in project.boards if b.owner_node_id == node.id), None)
     valid_card_ids = {c.id for c in board.cards} if board else set()
     cleaned: list[MethodResearchQuestion] = []
@@ -374,10 +369,6 @@ def _validate_research_questions(
                 importance=importance,
                 card_id=card_id,
             )
-        )
-    if len(cleaned) > MAX_METHOD_RESEARCH_QUESTIONS:
-        raise ValueError(
-            f"At most {MAX_METHOD_RESEARCH_QUESTIONS} research questions per method"
         )
     return cleaned
 

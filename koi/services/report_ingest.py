@@ -22,7 +22,6 @@ from typing import Optional
 
 from koi.adapters.card_reports import ensure_card_report, load_index, reports_dir
 from koi.core.models import (
-    MAX_METHOD_RESEARCH_QUESTIONS,
     MethodResearchQuestion,
     Node,
     NodeType,
@@ -127,11 +126,6 @@ def parse_run_report(text: str) -> ReportClaim:
         data = [data]
     if not isinstance(data, list) or not all(isinstance(x, dict) for x in data):
         raise ReportIngestError("§5.2: ожидается JSON-массив объектов-инсайтов")
-    if len(data) > MAX_METHOD_RESEARCH_QUESTIONS:
-        raise ReportIngestError(
-            f"§5.2: инсайтов {len(data)} — больше лимита "
-            f"{MAX_METHOD_RESEARCH_QUESTIONS} на метод; сократите заявку"
-        )
     claim.insights = data
 
     # method/card из инсайтов — запасной источник привязки
@@ -244,16 +238,10 @@ def ingest_report(
     # 2. Инсайты: заменяем прежние инсайты ЭТОЙ карточки, чужие не трогаем
     new_qs = _build_questions(claim)
     kept = [q for q in method.research_questions if q.card_id != card.id]
-    dropped: list[str] = []
-    overflow = len(kept) + len(new_qs) - MAX_METHOD_RESEARCH_QUESTIONS
-    if overflow > 0:
-        kept.sort(key=lambda q: q.importance, reverse=True)
-        dropped = [q.id for q in kept[len(kept) - overflow :]]
-        kept = kept[: len(kept) - overflow]
     summary["insights"] = {
         "added": [q.id for q in new_qs],
         "kept": [q.id for q in kept],
-        "dropped": dropped,
+        "dropped": [],
     }
     if not dry_run:
         method.research_questions = kept + new_qs

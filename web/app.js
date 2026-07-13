@@ -132,9 +132,16 @@ const HYPOTHESIS_METRICS = {
   round: "4px",
 };
 
-const MAX_RESEARCH_QUESTIONS = 3;
 const RQ_BADGE_HOLD_MS = 2500;
 const RQ_BADGE_FADE_MS = 5_000;
+const RQ_IMPORTANCE_FILTER_KEY = "koi-rq-importance-min";
+const RQ_IMPORTANCE_FILTER_OPTIONS = [
+  { min: 1, label: "Все", title: "Показать все выводы" },
+  { min: 2, label: "≥2", title: "Важность 2 и выше" },
+  { min: 3, label: "≥3", title: "Важность 3 и выше" },
+  { min: 4, label: "≥4", title: "Важность 4 и выше" },
+  { min: 5, label: "★5", title: "Только ключевые выводы" },
+];
 
 const RESEARCH_CERTAINTY_LABELS = {
   definite: "С чётким ответом",
@@ -2976,6 +2983,57 @@ function formatImportance(importance) {
   return "★".repeat(n) + "☆".repeat(5 - n);
 }
 
+function normalizeResearchImportance(importance) {
+  return Math.max(1, Math.min(5, Number(importance) || 3));
+}
+
+function rqImportanceMin() {
+  try {
+    const raw = localStorage.getItem(
+      `${RQ_IMPORTANCE_FILTER_KEY}:${state.project?.id || ""}`
+    );
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) && n >= 1 && n <= 5 ? n : 1;
+  } catch {
+    return 1;
+  }
+}
+
+function setRqImportanceMin(min) {
+  const clamped = Math.max(1, Math.min(5, Number(min) || 1));
+  try {
+    localStorage.setItem(
+      `${RQ_IMPORTANCE_FILTER_KEY}:${state.project?.id || ""}`,
+      String(clamped)
+    );
+  } catch {
+    /* ignore */
+  }
+  return clamped;
+}
+
+function filterResearchQuestionsByImportance(questions, minImportance) {
+  const min = normalizeResearchImportance(minImportance);
+  return (questions || []).filter(
+    (q) => normalizeResearchImportance(q.importance) >= min
+  );
+}
+
+function sortResearchQuestionsByImportance(questions) {
+  return [...(questions || [])].sort(
+    (a, b) =>
+      normalizeResearchImportance(b.importance) -
+        normalizeResearchImportance(a.importance) ||
+      String(a.question || "").localeCompare(String(b.question || ""), "ru")
+  );
+}
+
+function importanceBadgeHtml(importance) {
+  const n = normalizeResearchImportance(importance);
+  const stars = formatImportance(n);
+  return `<span class="method-question-importance" title="Важность ${n} из 5" aria-label="Важность ${n} из 5"><span class="method-question-importance-stars" aria-hidden="true">${stars}</span><span class="method-question-importance-num">${n}</span></span>`;
+}
+
 function researchQuestionCardLabel(q, node) {
   if (q.card_title) return q.card_title;
   if (!q.card_id) return null;
@@ -2997,12 +3055,13 @@ function researchQuestionCardSourceHtml(q, node) {
 
 function renderMethodQuestionItem(q, node) {
   const narrative = researchQuestionNarrative(q);
-  const importance = formatImportance(q.importance);
   return `
-    <article class="method-question-item">
+    <article class="method-question-item" data-importance="${normalizeResearchImportance(q.importance)}">
       ${researchQuestionCardSourceHtml(q, node)}
-      <p class="method-question-q">${escapeHtml(q.question)}</p>
-      <p class="method-question-meta">Важность: ${importance}</p>
+      <div class="method-question-head">
+        <p class="method-question-q">${escapeHtml(q.question)}</p>
+        ${importanceBadgeHtml(q.importance)}
+      </div>
       <p class="method-question-narrative">${escapeHtml(narrative || "Ответ пока не сформулирован.")}</p>
     </article>`;
 }
@@ -3020,14 +3079,72 @@ function bindMethodQuestionsCardLinks(node) {
   });
 }
 
-function renderMethodQuestionsBody(node) {
-  const body = document.getElementById("method-questions-body");
-  const questions = node.research_questions || [];
-  if (!questions.length) {
-    body.innerHTML =
-      '<p class="method-questions-empty">Пока нет выводов по экспериментам этого метода.</p>';
+function renderMethodQuestionsToolbar(node, { totalCount, filteredCount, minImportance }) {
+  const toolbar = document.getElementById("method-questions-toolbar");
+  const chipsEl = toolbar?.querySelector(".method-questions-filter-chips");
+  const countEl = document.getElementById("method-questions-filter-count");
+  if (!toolbar || !chipsEl) return;
+
+  if (!totalCount) {
+    toolbar.classList.add("hidden");
     return;
   }
+
+  toolbar.classList.remove("hidden");
+  chipsEl.innerHTML = RQ_IMPORTANCE_FILTER_OPTIONS.map((opt) => {
+    const active = opt.min === minImportance;
+    return `<button type="button" class="method-questions-filter-chip${active ? " is-active" : ""}" data-min="${opt.min}" aria-pressed="${active ? "true" : "false"}" title="${escapeHtml(opt.title)}">${escapeHtml(opt.label)}</button>`;
+  }).join("");
+
+  if (countEl) {
+    countEl.textContent =
+      filteredCount === totalCount
+        ? `${totalCount}`
+        : `${filteredCount} / ${totalCount}`;
+    countEl.title =
+      filteredCount === totalCount
+        ? `${totalCount} выводов`
+        : `Показано ${filteredCount} из ${totalCount}`;
+  }
+
+  chipsEl.querySelectorAll(".method-questions-filter-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const min = setRqImportanceMin(Number(btn.dataset.min) || 1);
+      renderMethodQuestionsBody(node, { minImportance: min });
+    });
+  });
+}
+
+function renderMethodQuestionsBody(node, { minImportance } = {}) {
+  const body = document.getElementById("method-questions-body");
+  const allQuestions = node.research_questions || [];
+  const min = minImportance ?? rqImportanceMin();
+  const questions = sortResearchQuestionsByImportance(
+    filterResearchQuestionsByImportance(allQuestions, min)
+  );
+
+  renderMethodQuestionsToolbar(node, {
+    totalCount: allQuestions.length,
+    filteredCount: questions.length,
+    minImportance: min,
+  });
+
+  if (!allQuestions.length) {
+    body.innerHTML =
+      '<p class="method-questions-empty">Пока нет выводов по экспериментам этого метода.</p>';
+    document.getElementById("method-questions-toolbar")?.classList.add("hidden");
+    return;
+  }
+
+  if (!questions.length) {
+    body.innerHTML = `<p class="method-questions-empty method-questions-empty--filter">Нет выводов с важностью ≥ ${min}. <button type="button" class="method-questions-filter-reset" data-reset-min="1">Показать все</button></p>`;
+    body.querySelector(".method-questions-filter-reset")?.addEventListener("click", () => {
+      setRqImportanceMin(1);
+      renderMethodQuestionsBody(node, { minImportance: 1 });
+    });
+    return;
+  }
+
   const definite = questions.filter((q) => q.certainty === "definite");
   const tentative = questions.filter((q) => q.certainty !== "definite");
   const parts = [];
@@ -3054,6 +3171,7 @@ function renderMethodQuestionsBody(node) {
 function resetMethodQuestionsEditMode() {
   document.getElementById("method-questions-body")?.classList.remove("hidden");
   document.getElementById("method-questions-edit")?.classList.add("hidden");
+  document.getElementById("method-questions-toolbar")?.classList.remove("hidden");
   document.getElementById("btn-save-rq")?.classList.add("hidden");
   document
     .querySelector("#method-questions-modal .modal-panel--questions")
@@ -3064,10 +3182,7 @@ function resetMethodQuestionsEditMode() {
 
 function updateAddResearchQuestionButton() {
   const addBtn = document.getElementById("btn-add-rq-row");
-  const count = document.querySelectorAll(
-    "#method-questions-edit .method-rq-edit-row"
-  ).length;
-  if (addBtn) addBtn.disabled = count >= MAX_RESEARCH_QUESTIONS;
+  if (addBtn) addBtn.disabled = false;
 }
 
 function buildResearchQuestionCardOptions(node, selectedId) {
@@ -3328,7 +3443,7 @@ function renderMethodQuestionsEdit(node) {
   const edit = document.getElementById("method-questions-edit");
   if (!edit) return;
   edit.innerHTML = `
-    <p class="method-questions-edit-hint">До ${MAX_RESEARCH_QUESTIONS} вопросов · ▶ развернуть детали · двойной клик — редактировать поле</p>
+    <p class="method-questions-edit-hint">▶ развернуть детали · двойной клик — редактировать поле</p>
     <div id="method-rq-edit-list" class="method-rq-edit-list"></div>
     <button type="button" id="btn-add-rq-row" class="btn">+ Вопрос</button>`;
   const list = edit.querySelector("#method-rq-edit-list");
@@ -3336,7 +3451,6 @@ function renderMethodQuestionsEdit(node) {
     list.appendChild(createResearchQuestionEditRow(q, node));
   }
   edit.querySelector("#btn-add-rq-row").addEventListener("click", () => {
-    if (list.querySelectorAll(".method-rq-edit-row").length >= MAX_RESEARCH_QUESTIONS) return;
     list.appendChild(
       createResearchQuestionEditRow(
         {
@@ -3388,6 +3502,7 @@ function toggleMethodQuestionsEdit() {
   renderMethodQuestionsEdit(node);
   body.classList.add("hidden");
   edit.classList.remove("hidden");
+  document.getElementById("method-questions-toolbar")?.classList.add("hidden");
   saveBtn.classList.remove("hidden");
   document
     .querySelector("#method-questions-modal .modal-panel--questions")
@@ -3400,10 +3515,6 @@ async function saveMethodQuestions() {
   const active = document.activeElement;
   if (active?.closest("#method-questions-edit")) active.blur();
   const questions = collectResearchQuestionsFromEdit();
-  if (questions.length > MAX_RESEARCH_QUESTIONS) {
-    setStatus(`Не больше ${MAX_RESEARCH_QUESTIONS} вопросов на метод`, true);
-    return;
-  }
   const updated = await patchNodeFields(state.questionsNodeId, {
     research_questions: questions,
   });

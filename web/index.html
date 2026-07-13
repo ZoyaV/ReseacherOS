@@ -441,6 +441,13 @@
       <p class="modal-type">Выводы по экспериментам</p>
       <h2 id="method-questions-title" class="inline-edit-title"></h2>
       <p class="method-questions-lead">Краткий пересказ результатов в форме исследовательских вопросов</p>
+      <div id="method-questions-toolbar" class="method-questions-toolbar hidden" role="region" aria-label="Фильтр выводов">
+        <div class="method-questions-filter">
+          <span class="method-questions-filter-label" id="method-questions-filter-label">Минимальная важность</span>
+          <div class="method-questions-filter-chips" role="group" aria-labelledby="method-questions-filter-label"></div>
+          <span id="method-questions-filter-count" class="method-questions-filter-count" aria-live="polite"></span>
+        </div>
+      </div>
       <div id="method-questions-body" class="method-questions-body"></div>
       <div id="method-questions-edit" class="method-questions-edit hidden" aria-label="Редактирование вопросов"></div>
       <div class="method-questions-footer">

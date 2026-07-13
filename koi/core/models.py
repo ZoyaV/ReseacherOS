@@ -46,9 +46,6 @@ class ResearchQuestionCertainty(str, Enum):
     TENTATIVE = "tentative"
 
 
-MAX_METHOD_RESEARCH_QUESTIONS = 3
-
-
 class MethodResearchQuestion(BaseModel):
     id: str = Field(default_factory=lambda: f"rq-{uuid4().hex[:8]}")
     question: str
