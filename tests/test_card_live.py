@@ -106,6 +106,16 @@ def test_is_live_active_running_with_stale_metrics():
     assert not is_live_active(snapshot, column_id="done")
 
 
+def test_is_live_active_running_with_configured_paths_only():
+    snapshot = {
+        "live_note": "waiting for first sync",
+        "live_log": {"configured": True, "exists": False},
+        "metrics_dir": {"configured": True, "exists": False, "images": []},
+    }
+    assert is_live_active(snapshot, column_id="running")
+    assert not is_live_active(snapshot, column_id="done")
+
+
 def test_is_live_active_note_only():
     snapshot = {
         "live_note": "writing section 2",

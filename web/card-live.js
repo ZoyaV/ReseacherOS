@@ -62,10 +62,17 @@ function cardLooksActive(entry, data) {
   return false;
 }
 
+function cardHasLiveData(data) {
+  if (!data) return false;
+  if (data.has_live_hints) return true;
+  if (data.live_log?.configured || data.metrics_dir?.configured) return true;
+  return Boolean(String(data.live_note || "").trim());
+}
+
 function shouldKeepInMonitor(key, entry, data) {
   if (key === pinnedKey) return true;
   if (!data || data.column_id !== "running") return false;
-  if (!data.has_live_hints) return false;
+  if (cardHasLiveData(data)) return true;
   if (data.metrics_dir?.images?.length) return true;
   if (data.live_log?.exists) return true;
   return cardLooksActive(entry, data);
@@ -340,6 +347,10 @@ async function syncRunningTabs(focusCtx, seedCards = []) {
   const projectIds = new Set([focusCtx.projectId]);
   for (const ctx of seedCards) {
     if (ctx?.projectId) projectIds.add(ctx.projectId);
+  }
+
+  for (const ctx of seedCards) {
+    if (ctx?.projectId && projectIds.has(ctx.projectId)) upsertMonitoredCard(ctx);
   }
 
   for (const projectId of projectIds) {

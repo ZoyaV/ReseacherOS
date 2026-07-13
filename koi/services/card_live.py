@@ -84,11 +84,9 @@ def is_live_active(
         if ts is not None and ts >= cutoff:
             return True
 
-    # Running cards with wired live paths stay in monitor (slow jobs may exceed 30m between syncs).
+    # Running cards with live hints stay visible between sync ticks (watch may be 20m).
     if column_id == "running":
-        if metrics_cfg and metrics.get("exists") and (metrics.get("images") or []):
-            return True
-        if log_cfg and live_log.get("exists"):
+        if log_cfg or metrics_cfg or live_note:
             return True
 
     if live_note and not log_cfg and not metrics_cfg:
@@ -298,14 +296,6 @@ def live_monitor_cards(project_id: str, project: Project) -> list[dict[str, Any]
                 continue
             hints = merge_live_hints(project, board.id, card.id, card.title, card.description)
             if not has_live_hints(hints):
-                continue
-            snapshot = live_snapshot(
-                project_id,
-                hints=hints,
-                description=card.description,
-                column_id=card.column_id,
-            )
-            if not snapshot.get("active"):
                 continue
             items.append(
                 {

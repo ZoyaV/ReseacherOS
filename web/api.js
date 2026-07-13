@@ -137,6 +137,7 @@ export const KoiApi = {
   getLaboratory: () => api("/laboratory"),
   getProject: (id) => api(`/projects/${id}`),
   getKanbanRunningActivity: (id) => api(`/projects/${id}/kanban/running-activity`),
+  getKanbanLiveMonitor: (id) => api(`/projects/${id}/kanban/live-monitor`),
   getCardLive: (projectId, boardId, cardId, tailLines = 100) =>
     api(
       `/projects/${projectId}/boards/${boardId}/cards/${cardId}/live?tail_lines=${tailLines}`
