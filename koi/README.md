@@ -4,7 +4,7 @@
 koi/
   core/       Pure domain — models, markdown I/O, project migrations
   adapters/   Workspace paths, filesystem stores, git sync, agent backends
-  projects/   Project capability — commands, read models, reports, live artifacts
+  projects/   Project capability — commands, views, reports, live, kanban DAG
   application/ Cross-feature use-cases and temporary project compatibility shims
   services/   Use-cases — knowledge, literature, review, paper, programs, agent chat
     review/     Paper review agent (arxiv, analysis, pipeline)

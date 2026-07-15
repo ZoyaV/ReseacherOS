@@ -3,7 +3,13 @@
 from __future__ import annotations
 
 from koi.core.models import ExperimentCard, KanbanBoard, Node, NodeType, Project
-from koi.services.dag_suggest import _normalize_dep_ids, _would_create_cycle, suggest_board_dag
+from koi.projects.kanban.dependencies import (
+    _normalize_dep_ids,
+    _would_create_cycle,
+    apply_dag_suggestions,
+    normalize_dependency_ids,
+    suggest_board_dag,
+)
 
 
 def _sample_board() -> tuple[Project, KanbanBoard]:
@@ -55,7 +61,7 @@ def test_normalize_rejects_cycles() -> None:
     card = board.cards[0]
     card.depends_on = []
     board.cards[1].depends_on = ["c-done"]
-    from koi.services.dag_suggest import _normalize_dep_ids, _would_create_cycle
+    from koi.projects.kanban.dependencies import _normalize_dep_ids, _would_create_cycle
 
     candidate = _normalize_dep_ids(["c-open"], {c.id for c in board.cards}, "c-done")
     assert _would_create_cycle(board.cards, "c-done", candidate)
@@ -67,3 +73,32 @@ def test_normalize_allows_clearing_deps() -> None:
     cleared = _normalize_dep_ids([], {c.id for c in board.cards}, "c-open")
     assert cleared == []
     assert not _would_create_cycle(board.cards, "c-open", cleared)
+
+
+def test_normalize_dependencies_preserves_order_and_removes_invalid_ids() -> None:
+    normalized = normalize_dependency_ids(
+        ["c-open", "missing", "c-open", "c-done"],
+        {"c-done", "c-open"},
+        "c-done",
+    )
+
+    assert normalized == ["c-open"]
+
+
+def test_apply_dag_suggestions_updates_each_card_once() -> None:
+    _, board = _sample_board()
+    suggestions = [
+        {
+            "from_card_id": "c-done",
+            "to_card_id": "c-open",
+            "confidence": 0.9,
+        },
+        {
+            "from_card_id": "c-done",
+            "to_card_id": "c-open",
+            "confidence": 0.8,
+        },
+    ]
+
+    assert apply_dag_suggestions(board, suggestions) == 1
+    assert board.cards[1].depends_on == ["c-done"]

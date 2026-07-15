@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from koi.services.dag_layout import (
+from koi.projects.kanban.layout import (
     load_dag_layout,
     load_dag_layouts_from_root,
     normalize_cards,
@@ -35,8 +35,8 @@ class DagLayoutServiceTests(unittest.TestCase):
         self.tmp.cleanup()
 
     def test_save_load_and_filter_unknown_cards(self) -> None:
-        with patch("koi.services.dag_layout.dag_layout_path") as path_mock, patch(
-            "koi.services.dag_layout.dag_layouts_dir",
+        with patch("koi.projects.kanban.layout.dag_layout_path") as path_mock, patch(
+            "koi.projects.kanban.layout.dag_layouts_dir",
             return_value=self.koi_root / "dag-layouts",
         ):
             path_mock.side_effect = lambda _pid, board_id: self.koi_root / "dag-layouts" / f"{board_id}.json"
@@ -81,6 +81,10 @@ class DagLayoutServiceTests(unittest.TestCase):
     def test_normalize_cards_rejects_out_of_bounds(self) -> None:
         cleaned = normalize_cards({"c-a": {"x": 9000, "y": 10}})
         self.assertEqual(cleaned, {})
+
+    def test_load_rejects_unsafe_board_id(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Invalid board id"):
+            load_dag_layout("demo", "../outside")
 
 
 class DagLayoutApiTests(unittest.TestCase):

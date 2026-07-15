@@ -27,7 +27,7 @@ from hub.app.auth import (
 from hub.app.config import HubConfig
 from hub.app.github_client import GitHubClient
 from hub.app.koi_loader import project_snapshot, read_koi_meta
-from koi.services.dag_layout import load_dag_layouts_from_root
+from koi.projects.kanban.layout import load_dag_layouts_from_root
 from hub.app.access import can_view_project_with_store, is_project_listed
 from hub.app.link_utils import parse_hub_project_url, project_share_url, project_view_href
 from hub.app.koi_readonly import router as koi_readonly_router

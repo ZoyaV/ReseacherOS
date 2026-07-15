@@ -21,13 +21,14 @@ from koi.core.models import (
     ResearchQuestionCertainty,
     Verdict,
 )
-from koi.services.dag_suggest import (
+from koi.projects.kanban.dependencies import (
     apply_dag_suggestions,
     normalize_dependency_ids,
     suggest_board_dag,
     would_create_cycle,
 )
-from koi.services import dag_layout, programs as program_service
+from koi.projects.kanban import layout as dag_layout
+from koi.services import programs as program_service
 
 
 class EntityNotFoundError(LookupError):
