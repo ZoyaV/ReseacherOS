@@ -18,7 +18,7 @@ Read `references/architecture-guardrails.md` before planning or changing archite
 
 ## Establish the baseline
 
-1. Read `agent/AGENTS.md`, `agent/onboarding/repo-map.md`, and `docs/agent/domain-model.md`.
+1. Read `AGENTS.md`, `docs/README.md`, and `docs/domain-model.md`.
 2. Check `git status --short --branch`. Preserve unrelated user changes.
 3. Inventory the affected files, imports, callers, routes, scripts, tests, and data formats with `rg` and `rg --files`.
 4. Run the narrow relevant tests and the full backend suite. Record the result before edits.

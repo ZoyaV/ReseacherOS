@@ -9,9 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_DIRS = (
     ".cursor",
-    "agent",
+    "agents",
     "api",
-    "examples",
     "hub",
     "koi",
     "scripts",

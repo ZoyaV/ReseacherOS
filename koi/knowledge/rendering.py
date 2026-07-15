@@ -91,7 +91,8 @@ def render_project_index(
     lines += ["## Документы", ""]
     if not documents:
         lines += [
-            "_Документов пока нет — положите .md в `knowledge/` (см. конвенцию в agent/process.md)._",
+            "_Документов пока нет — положите .md в `knowledge/` "
+            "(см. конвенцию в docs/research-workflow.md)._",
             "",
         ]
     for document in documents:

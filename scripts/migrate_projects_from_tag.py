@@ -16,22 +16,6 @@ TAG = "hackaton_version"
 
 MIGRATIONS: list[dict] = [
     {
-        "source": "projects/isaac-rl-bench",
-        "target_dir": "isaac_harness",
-        "frontmatter_patch": {
-            "programs": [
-                {"id": "isaac-harness", "title": "IsaacLab harness"},
-            ],
-            "code_root": "../../ReseachOS/examples/isaac_harness",
-        },
-        "body_replace": [
-            (
-                "из базы знаний kb/",
-                "из базы знаний платформы (examples/isaac_harness/)",
-            ),
-        ],
-    },
-    {
         "source": "projects/isaaclab-dexsuite-reorient",
         "target_dir": "isaac_problem",
         "frontmatter_patch": {

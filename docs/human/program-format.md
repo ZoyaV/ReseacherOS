@@ -68,4 +68,4 @@ programs:
 
 ## KB
 
-`python agent/bin/build_kb.py` добавляет в `agent/KNOWLEDGE.md` секцию «По программам» с агрегированной таблицей.
+Агрегированные показатели программ доступны через laboratory API и интерфейс ResearchOS.

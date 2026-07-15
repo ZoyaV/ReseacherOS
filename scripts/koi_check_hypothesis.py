@@ -12,7 +12,7 @@
 1. По карточке канбана находится цепочка узлов: метод → доказательство/
    ремедиация → гипотеза (cause) → проблема.
 2. Локальный агент (Claude Code CLI или Cursor SDK — koi/adapters/agent_backends.py)
-   получает контекст + шаблон `agent/templates/experiment-report.md` и пишет
+   получает контекст + шаблон `agents/skills/koi-report-review/experiment-report.md` и пишет
    рабочий отчёт `<отчёт-карточки>.run.md` рядом с публичным отчётом.
 3. `koi/projects/report_ingest/` разбирает «Заявку в БЗ» (§5): вердикт ставится на
    cause-узел, инсайты (§5.2, json) попадают в research.json, карточка едет
@@ -116,7 +116,7 @@ def build_prompt(project: Project, board, card, chain: dict, run_path: Path) -> 
 4. НИЧЕГО кроме файла отчёта не меняй: project.md, research.json, KNOWLEDGE.md
    обновит пайплайн автоматически после твоего отчёта.
 
-## Шаблон отчёта (agent/templates/experiment-report.md)
+## Шаблон отчёта (agents/skills/koi-report-review/experiment-report.md)
 
 {template}
 """

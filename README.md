@@ -12,13 +12,13 @@ Problem → causes (nature hypotheses) → hypotheses (how to prove / fix)
   → report → verdict + insights → knowledge base
 ```
 
-All research data lives in Markdown files — no database required. The engine is this repository (`koi/`, `api/`, `web/`, `standards/`, `agent/`). Projects are sibling directories marked by `koi-structure/project.md`; experiment code lives in `projectcode/` (or a custom `code_root`).
+All research data lives in Markdown files — no database required. The engine is this repository (`koi/`, `api/`, `web/`, `agents/`). Projects are sibling directories marked by `koi-structure/project.md`; experiment code lives in `projectcode/` (or a custom `code_root`).
 
 | Docs | |
 |------|---|
 | Getting started walkthrough | [docs/human/getting-started.md](docs/human/getting-started.md) |
 | Project format | [docs/human/project-format.md](docs/human/project-format.md) |
-| Agent instructions | [agent/AGENTS.md](agent/AGENTS.md) |
+| Agent instructions | [AGENTS.md](AGENTS.md) |
 
 ## News
 
@@ -26,7 +26,7 @@ All research data lives in Markdown files — no database required. The engine i
 |------|----------------|
 | 2026-07-15 | **DAG layout JSON** — card positions in DAG view persist to `koi-structure/dag-layouts/<board_id>.json` (API `GET/PUT /projects/{id}/boards/{board_id}/dag-layout`); browser `localStorage` is migrated on first open. |
 | 2026-07-13 | **Method board DAG view** — optional `depends_on` prerequisite edges between experiment cards; Kanban/DAG tabs in the method modal; interactive editor (link, delete, auto-layout, tag filter, Q/A pills, fit-to-view); card status styling (backlog, running pulse, done checkmark); persisted as `deps:` in `project.md`; API `POST /projects/{id}/boards/{board_id}/dag/suggest`. |
-| 2026-07-03 | **Composite view** — projects with the same `composite_id` merge into one hypothesis tree at read time; virtual program entry in the sidebar; writes route to the owning repo via `node.project_id`. API: `GET /composites`, `GET /composites/{id}`. ADR: [docs/agent/adr-002-composite-view.md](docs/agent/adr-002-composite-view.md). |
+| 2026-07-03 | **Composite view** — projects with the same `composite_id` merge into one hypothesis tree at read time; virtual program entry in the sidebar; writes route to the owning repo via `node.project_id`. API: `GET /composites`, `GET /composites/{id}`. ADR: [docs/adr-002-composite-view.md](docs/adr-002-composite-view.md). |
 | 2026-07-02 | Kanban **Successful** column (`successful`) — 4th column after Done for confirmed experiments; `done` stays the agent/report terminal state; auto-migration of `project.md` on load. |
 | 2026-07-01 | Open-source release on GitHub (`main` = engine, `test_project` = demo sample). |
 | 2026-07-01 | Orphan-branch sync — `koi-structure/` can live on a dedicated git branch (`koi/research` or custom) while your code branch stays clean. CLI: `scripts/koi_project_sync.py init-sync-branch`. |
@@ -245,11 +245,11 @@ Where research lives: tree + kanban in UI or `koi-structure/project.md`; reports
 | Knowledge base | Auto-built from reports; curator skill for deep synthesis |
 | Related work | Literature search and review generation |
 | Paper export | NeurIPS LaTeX → PDF from the full project graph |
-| Agent skills | `.cursor/skills/koi-*` — card execution, sync, review, chat, paper |
+| Agent skills | `agents/skills/koi-*` — card execution, sync, review, chat, paper |
 
 ## Links
 
 | | |
 |---|---|
-| Documentation | [docs/human/](docs/human/) · [docs/agent/](docs/agent/) |
+| Documentation | [docs/](docs/) |
 | Issues | [github.com/ZoyaV/ReseacherOS/issues](https://github.com/ZoyaV/ReseacherOS/issues) |

@@ -141,12 +141,12 @@ projects/<project-id>/reports/
 
 ### Содержание отчёта
 
-Полные правила оформления — в каталоге **[standards/](../../standards/)**:
+Полные правила оформления входят в skill **[koi-report-review](../../agents/skills/koi-report-review/)**:
 
 | Файл | Тема |
 |------|------|
-| [templates/report-skeleton.md](../../standards/templates/report-skeleton.md) | Шаблон §1–§N и HOW-TODO под каждым разделом |
-| [no-ai-report-rules.md](../../standards/no-ai-report-rules.md) | Делать / не делать; оформление без «AI-markdown» |
+| [report-skeleton.md](../../agents/skills/koi-report-review/report-skeleton.md) | Шаблон §1–§N и HOW-TODO под каждым разделом |
+| [report-rules.md](../../agents/skills/koi-report-review/report-rules.md) | Делать / не делать; оформление без «AI-markdown» |
 
 Кратко: шапка → **зачем** (§1) → **метрика** (§2) → **постановка и сбор** (§3) → по прогону в §4+: **результаты** и **выводы** (без дубля постановки из §3).
 

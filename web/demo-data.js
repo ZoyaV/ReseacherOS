@@ -1,4 +1,4 @@
-/** Demo project — mirrors examples/demo_workspace/demo_aggregation.py */
+/** Built-in demo project used by the standalone web preview. */
 const DEMO = {
   id: "demo-aggregation",
   title: "Нестабильная экспрессия рекомбинантного белка",

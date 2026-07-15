@@ -9,7 +9,7 @@
 
 Связанные каталоги вне `docs/`:
 
-- [standards/](../../standards/) — шаблон и правила публичных отчётов
-- [agent/templates/](../../agent/templates/) — рабочий отчёт `.run.md`, пред-регистрация гипотезы
+- [koi-report-review](../../agents/skills/koi-report-review/) — шаблоны и правила отчётов
+- [koi-execute-card](../../agents/skills/koi-execute-card/) — выполнение и пред-регистрация гипотезы
 
-Агентам: [agent/AGENTS.md](../../agent/AGENTS.md).
+Агентам: [AGENTS.md](../../AGENTS.md).

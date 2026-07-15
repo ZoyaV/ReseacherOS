@@ -48,7 +48,7 @@ from koi.paper.catalog import (
 
 _ws = get_workspace()
 STY_NAME = "neurips_2025.sty"
-STY_SOURCE = _ws.standards / "latex" / STY_NAME
+STY_SOURCE = Path(__file__).with_name("templates") / STY_NAME
 PAPER_DIRNAME = "paper"
 STATUS_NAME = "status.json"
 TEX_NAME = "main.tex"

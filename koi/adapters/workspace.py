@@ -22,25 +22,14 @@ class Workspace:
     legacy_data_root: Path | None
 
     @property
-    def standards(self) -> Path:
-        return self.engine_root / "standards"
-
-    @property
-    def styles(self) -> Path:
-        """Alias for :attr:`standards` (legacy name)."""
-        return self.standards
-
-    @property
-    def agent_root(self) -> Path:
-        return self.engine_root / "agent"
-
-    @property
-    def kb_templates(self) -> Path:
-        return self.agent_root / "templates"
-
-    @property
     def experiment_report_template(self) -> Path:
-        return self.kb_templates / "experiment-report.md"
+        return (
+            self.engine_root
+            / "agents"
+            / "skills"
+            / "koi-report-review"
+            / "experiment-report.md"
+        )
 
     @property
     def env_file(self) -> Path:
