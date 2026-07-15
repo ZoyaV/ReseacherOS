@@ -232,7 +232,7 @@ def programs_for_project(project_id: str) -> list[str]:
 
 
 def enrich_projects(projects: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    from koi.services.composite import read_composite_id
+    from koi.projects.composites import read_composite_id
 
     out: list[dict[str, Any]] = []
     for p in projects:
@@ -246,7 +246,7 @@ def enrich_projects(projects: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def grouped_projects() -> dict[str, Any]:
     """Projects grouped by program for UI; unassigned projects go to ``ungrouped``."""
-    from koi.services.composite import list_composites_summary
+    from koi.projects.composites import list_composites_summary
 
     all_projects = {p["id"]: p for p in enrich_projects(list_projects())}
     composites = list_composites_summary()

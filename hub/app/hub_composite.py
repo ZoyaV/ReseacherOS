@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 from hub.app.client_project import project_from_client
 from hub.app.store import HubProject, HubStore
-from koi.services.composite import build_composite, composite_to_client
+from koi.projects.composites import build_composite, composite_to_client
 
 AUTO_COMPOSITE_PREFIX = "auto-problem:"
 

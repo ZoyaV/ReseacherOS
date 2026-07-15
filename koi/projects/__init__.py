@@ -1,1 +1,1 @@
-"""Project commands, views, reports, live artifacts, discoveries, and sync."""
+"""Project commands, views, composites, reports, live, discoveries, and sync."""

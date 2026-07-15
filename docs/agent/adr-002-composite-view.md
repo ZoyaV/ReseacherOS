@@ -52,6 +52,6 @@ Each member repo includes shared nodes plus its own remediation/method subtrees.
 
 ## References
 
-- `koi/services/composite.py`
+- `koi/projects/composites.py`
 - `api/routers/composites.py`
 - `ReseachOS/web/app.js` — composite sidebar + write routing

@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
-from koi.services.composite import composite_to_client, list_composites_summary, load_composite
+from koi.projects.composites import (
+    composite_to_client,
+    list_composites_summary,
+    load_composite,
+)
 
 router = APIRouter(tags=["composites"])
 

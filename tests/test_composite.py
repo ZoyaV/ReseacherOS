@@ -9,7 +9,13 @@ import pytest
 
 from koi.adapters import project_mount as pm
 from koi.adapters.workspace import reset_workspace_cache
-from koi.services.composite import load_composite, members_for_composite
+from koi.core.models import Node, NodeType, Project
+from koi.projects.composites import (
+    build_composite,
+    composite_to_client,
+    load_composite,
+    members_for_composite,
+)
 
 
 def _write_project(
@@ -132,3 +138,48 @@ def test_load_composite_single_member_returns_none(composite_layout: None, tmp_p
     (tmp_path / "repo_b" / "koi-structure" / "project.md").unlink()
     pm.rescan_projects()
     assert load_composite("test-composite") is None
+
+
+def test_composite_serialization_exposes_conflicts_and_source_project() -> None:
+    first = Project(
+        id="repo-a",
+        title="A",
+        nodes=[
+            Node(
+                id="problem-shared",
+                project_id="repo-a",
+                parent_id=None,
+                node_type=NodeType.PROBLEM,
+                title="Shared problem",
+            )
+        ],
+    )
+    second = Project(
+        id="repo-b",
+        title="B",
+        nodes=[
+            Node(
+                id="problem-shared",
+                project_id="repo-b",
+                parent_id=None,
+                node_type=NodeType.PROBLEM,
+                title="Different title",
+            )
+        ],
+    )
+
+    composite = build_composite(
+        "shared",
+        [(first.id, first), (second.id, second)],
+    )
+    assert composite is not None
+
+    payload = composite_to_client(composite)
+
+    assert payload["is_composite"] is True
+    assert payload["members"] == [
+        {"project_id": "repo-a", "title": "A"},
+        {"project_id": "repo-b", "title": "B"},
+    ]
+    assert payload["conflicts"][0]["field"] == "title"
+    assert payload["nodes"][0]["source_project_id"] == "repo-a"
