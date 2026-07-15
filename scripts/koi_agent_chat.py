@@ -16,7 +16,7 @@ from koi.adapters.workspace import get_workspace
 
 _ws = get_workspace()
 
-from koi.services.agent_chat_format import ANSWER_FORMAT_INSTRUCTIONS  # noqa: E402
+from koi.agent_chat.formatting import ANSWER_FORMAT_INSTRUCTIONS  # noqa: E402
 from koi.adapters.agent_chat_queue import find_item, list_pending, mark_processing, submit_answer  # noqa: E402
 from koi.adapters.card_reports import read_report  # noqa: E402
 from koi.core.models import NodeType  # noqa: E402

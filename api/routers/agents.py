@@ -17,15 +17,16 @@ from koi.adapters.agent_chat_queue import (
     list_pending,
     submit_answer,
 )
-from koi.services.agent_chat_runner import process_item
-from koi.services.agent_chat_auto import try_auto_answer
+from koi.agent_chat.auto import try_auto_answer
+from koi.agent_chat.runner import process_item
+from koi.agent_chat.settings import settings_snapshot
 from koi.adapters.settings_store import is_cursor_inbox_agent_mode
-from koi.services.agent_chat_inbox import (
+from koi.agent_chat.inbox import (
     inbox_task_message,
     notify_chat_inbox_wake,
     set_inbox_configured,
 )
-from koi.services.agent_chat_worker_ctl import (
+from koi.agent_chat.worker import (
     cursor_sdk_available,
     ensure_agent_worker,
     stop_agent_worker,
@@ -39,7 +40,6 @@ from koi.adapters.settings_store import (
     is_api_agent_mode,
     set_agent_chat_mode,
     set_cursor_api_key,
-    settings_snapshot,
 )
 
 router = APIRouter(tags=["agents"])

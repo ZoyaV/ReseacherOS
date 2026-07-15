@@ -141,22 +141,3 @@ def _write_env_var(key: str, value: str | None) -> None:
 def set_cursor_api_key(value: str | None) -> None:
     """Write or remove CURSOR_API_KEY in KOI/.env and update os.environ."""
     _write_env_var(ENV_KEY, (value or "").strip() or None)
-
-
-def settings_snapshot() -> dict:
-    from koi.services.agent_chat_inbox import inbox_settings
-
-    mode = get_agent_chat_mode()
-    snap = {
-        "agent_chat_mode": mode,
-        "agent_chat_mode_labels": {
-            AGENT_CHAT_MODE_API: "Фоновый агент (Cursor API)",
-            AGENT_CHAT_MODE_CURSOR_IDE: "Агент в Cursor (hooks)",
-            AGENT_CHAT_MODE_CURSOR_INBOX: "Inbox-чат (рекомендуется)",
-        },
-        "cursor_api_key_configured": has_cursor_api_key(),
-        "cursor_api_key_masked": mask_cursor_api_key(),
-        "cursor_api_key_url": CURSOR_API_KEY_URL,
-    }
-    snap.update(inbox_settings())
-    return snap
