@@ -4,7 +4,7 @@ from tempfile import TemporaryDirectory
 
 from koi.adapters.workspace import get_workspace
 
-from koi.services.review_agent import (
+from koi.review import (
     PaperAnswerArtifact,
     PaperAnswerCluster,
     PaperSummary,

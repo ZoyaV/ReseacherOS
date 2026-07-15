@@ -1,22 +1,18 @@
-"""Paper review agent — layered implementation."""
+"""Compatibility facade for the canonical :mod:`koi.review` package."""
+import sys
 
-from koi.services.review import (
-    analysis,
-    arxiv,
-    artifacts,
-    models,
-    papers,
-    pipeline,
-    storage,
-    util,
-)
+import koi.review as _module
 
-_SUBMODULES = (analysis, arxiv, artifacts, models, papers, pipeline, storage, util)
+for _name in (
+    "analysis",
+    "arxiv",
+    "artifacts",
+    "models",
+    "papers",
+    "pipeline",
+    "storage",
+    "util",
+):
+    sys.modules[f"{__name__}.{_name}"] = getattr(_module, _name)
 
-for _mod in _SUBMODULES:
-    for _name in dir(_mod):
-        if _name.startswith("__"):
-            continue
-        globals()[_name] = getattr(_mod, _name)
-
-del _mod, _name, _SUBMODULES
+sys.modules[__name__] = _module

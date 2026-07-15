@@ -5,12 +5,12 @@ from dataclasses import asdict
 from pathlib import Path
 
 from koi.adapters.paths import agent_bundles_dir, paper_answers_dir, paper_reviews_dir
-from koi.services.review.models import (
+from koi.review.models import (
     PAPER_QA_BUNDLE_KIND,
     PAPER_REVIEW_BUNDLE_KIND,
     UNIVERSAL_AGENT_SPEC,
 )
-from koi.services.review.util import _normalize_text, _read_json
+from koi.review.util import _normalize_text, _read_json
 
 def _paper_reviews_root(project_id: str) -> Path:
     return paper_reviews_dir(project_id)
@@ -236,4 +236,3 @@ def _write_universal_agent_bundle(
         _build_surface_wrapper("Codex", "manifest.json"),
         encoding="utf-8",
     )
-

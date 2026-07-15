@@ -6,8 +6,8 @@ from html import unescape
 from html.parser import HTMLParser
 from pathlib import Path
 
-from koi.services.review.models import MAX_HTML_CHARS, MAX_TEXT_CHARS
-from koi.services.review.util import _normalize_text
+from koi.review.models import MAX_HTML_CHARS, MAX_TEXT_CHARS
+from koi.review.util import _normalize_text
 
 class _ArxivHTMLTextExtractor(HTMLParser):
     def __init__(self) -> None:

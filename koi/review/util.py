@@ -1,3 +1,5 @@
+"""Shared utility functions for paper-review workflows."""
+
 from __future__ import annotations
 
 import json
@@ -20,4 +22,3 @@ def _normalize_text(text: str) -> str:
 def _default_progress(message: str) -> None:
     timestamp = datetime.now().strftime("%H:%M:%S")
     print(f"[review_agent {timestamp}] {message}")
-

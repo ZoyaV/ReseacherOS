@@ -19,4 +19,4 @@ def test_service_import_remains_compatible() -> None:
 
 def test_literature_api_and_review_pipeline_import() -> None:
     assert import_module("api.routers.library").router.prefix == ""
-    assert callable(import_module("koi.services.review.pipeline").run_review_agent)
+    assert callable(import_module("koi.review.pipeline").run_review_agent)

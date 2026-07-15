@@ -9,8 +9,8 @@ from typing import Callable
 from koi.adapters.agent_backends import any_agent_available
 from koi.literature.naming import safe_filename as _safe_filename
 from koi.literature.naming import slugify as _slugify
-from koi.services.review.artifacts import _load_existing_paper_answer_artifacts
-from koi.services.review.analysis import (
+from koi.review.artifacts import _load_existing_paper_answer_artifacts
+from koi.review.analysis import (
     _cluster_paper_answers_heuristic,
     _generate_paper_answer_clusters_with_llm,
     _generate_paper_summary_with_llm,
@@ -24,7 +24,7 @@ from koi.services.review.analysis import (
     classify_papers_to_clusters,
     propose_clusters,
 )
-from koi.services.review.arxiv import (
+from koi.review.arxiv import (
     extract_arxiv_html_text,
     extract_arxiv_id,
     extract_pdf_text,
@@ -32,7 +32,7 @@ from koi.services.review.arxiv import (
     fetch_arxiv_pdf,
     infer_year_from_arxiv_id,
 )
-from koi.services.review.models import (
+from koi.review.models import (
     PAPER_REVIEW_BUNDLE_KIND,
     PaperAnswerArtifact,
     PaperAnswerCluster,
@@ -41,12 +41,12 @@ from koi.services.review.models import (
     ProposedCluster,
     ReviewPaper,
 )
-from koi.services.review.papers import (
+from koi.review.papers import (
     build_review_papers_from_query,
     build_review_papers_from_results,
     load_review_papers_from_project,
 )
-from koi.services.review.storage import (
+from koi.review.storage import (
     _load_paper_answers_index,
     _load_top_level_index,
     _paper_answers_root,
@@ -55,7 +55,7 @@ from koi.services.review.storage import (
     _save_top_level_index,
     _write_universal_agent_bundle,
 )
-from koi.services.review.util import _default_progress
+from koi.review.util import _default_progress
 
 def run_review_agent(
     project_id: str,

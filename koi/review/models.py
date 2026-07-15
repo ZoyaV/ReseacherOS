@@ -1,3 +1,5 @@
+"""Data contracts for paper-review analysis."""
+
 from __future__ import annotations
 
 import re
@@ -299,4 +301,3 @@ UNIVERSAL_AGENT_SPEC = UniversalAgentSpec(
 PAPER_REVIEW_BUNDLE_KIND = "paper_review"
 PAPER_QA_BUNDLE_KIND = "paper_question_answer"
 MAX_HTML_CHARS = 120000
-

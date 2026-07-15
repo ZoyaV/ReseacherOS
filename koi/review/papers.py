@@ -4,7 +4,7 @@ from pathlib import Path
 
 from koi.adapters.paths import paper_answers_dir, paper_reviews_dir, reports_dir
 from koi.literature import search_library
-from koi.services.review.models import (
+from koi.review.models import (
     ABSTRACT_BLOCK_RE,
     ARXIV_RE,
     MATCHED_TERMS_RE,
@@ -13,7 +13,7 @@ from koi.services.review.models import (
     SCORE_RE,
     ReviewPaper,
 )
-from koi.services.review.util import _normalize_text, _read_json
+from koi.review.util import _normalize_text, _read_json
 
 def parse_review_report_markdown(text: str, source_report: str) -> ReviewPaper | None:
     title_match = REPORT_TITLE_RE.search(text)

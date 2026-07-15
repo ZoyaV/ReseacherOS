@@ -13,7 +13,7 @@ from koi.adapters.settings_store import load_env_file
 from koi.adapters.workspace import get_workspace
 from koi.literature.naming import safe_filename as _safe_filename
 from koi.literature.naming import slugify as _slugify
-from koi.services.review.arxiv import (
+from koi.review.arxiv import (
     extract_arxiv_html_text,
     extract_arxiv_id,
     extract_pdf_text,
@@ -21,7 +21,7 @@ from koi.services.review.arxiv import (
     fetch_arxiv_pdf,
     infer_year_from_arxiv_id,
 )
-from koi.services.review.models import (
+from koi.review.models import (
     ANSWER_STRATEGIES,
     ANSWER_STRATEGY_BY_KEY,
     AnswerStrategy,
@@ -33,13 +33,13 @@ from koi.services.review.models import (
     ReviewPaper,
     UNIVERSAL_AGENT_SPEC,
 )
-from koi.services.review.papers import (
+from koi.review.papers import (
     build_review_papers_from_query,
     build_review_papers_from_results,
     load_review_papers_from_project,
     parse_review_report_markdown,
 )
-from koi.services.review.util import (
+from koi.review.util import (
     _default_progress,
     _normalize_text,
     _read_json,
@@ -991,7 +991,7 @@ def prepare_related_work_material(
     problem: str,
     cluster_keys: list[str],
 ) -> dict[str, object]:
-    from koi.services.review.artifacts import _paper_answer_artifact_from_dict
+    from koi.review.artifacts import _paper_answer_artifact_from_dict
 
     normalized_problem = str(problem or "").strip()
     if not normalized_problem:

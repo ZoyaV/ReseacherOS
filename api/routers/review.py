@@ -19,7 +19,7 @@ from koi.services.related_work import (
     list_related_work_for_project,
     submit_related_work_request,
 )
-from koi.services.review import (
+from koi.review import (
     load_latest_paper_answer_run,
     run_paper_question_agent,
     run_review_agent,

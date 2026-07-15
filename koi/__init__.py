@@ -1,8 +1,4 @@
-"""KOI package exports.
-
-This module stays lightweight so subcommands such as ``python -m koi.review_agent``
-can run without importing the full API/model stack up front.
-"""
+"""Lightweight KOI package exports without eager application imports."""
 
 from __future__ import annotations
 

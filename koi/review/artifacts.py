@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from koi.services.review.analysis import _normalize_llm_evidence
-from koi.services.review.models import PaperAnswerArtifact
-from koi.services.review.util import _normalize_text, _read_json
+from koi.review.analysis import _normalize_llm_evidence
+from koi.review.models import PaperAnswerArtifact
+from koi.review.util import _normalize_text, _read_json
 
 
 def _paper_answer_artifact_from_dict(data: dict[str, object]) -> PaperAnswerArtifact | None:
