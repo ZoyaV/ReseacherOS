@@ -1,17 +1,34 @@
 """Paper review agent — layered implementation."""
 
 from koi.review import (
-    analysis,
     arxiv,
     artifacts,
+    clustering,
     models,
+    parsing,
     papers,
     pipeline,
+    related_work,
+    rendering,
     storage,
+    summaries,
     util,
 )
 
-_SUBMODULES = (analysis, arxiv, artifacts, models, papers, pipeline, storage, util)
+_SUBMODULES = (
+    arxiv,
+    artifacts,
+    clustering,
+    models,
+    parsing,
+    papers,
+    pipeline,
+    related_work,
+    rendering,
+    storage,
+    summaries,
+    util,
+)
 
 for _mod in _SUBMODULES:
     for _name in dir(_mod):

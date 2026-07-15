@@ -21,6 +21,8 @@ koi/
 
 Bundled code must import from canonical paths (`koi.core.models`,
 `koi.projects.commands`, …); `tests/test_architecture.py` enforces this rule.
+Within `review`, parsing, summaries, clustering, rendering, and related-work
+generation are separate modules; `review.analysis` is compatibility-only.
 Stabilized root shims for `core`, `adapters`, `agent_chat`, `knowledge`, `paper`,
 `review`, `projects` (including report ingest), and `laboratory` have been removed.
 Bundled code must import capabilities through their canonical packages.

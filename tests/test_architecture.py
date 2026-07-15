@@ -39,6 +39,7 @@ LEGACY_MODULES = {
     "koi.repository",
     "koi.report_ingest",
     "koi.review_agent",
+    "koi.review.analysis",
     "koi.research_store",
     "koi.rq_discoveries",
     "koi.rq_discoveries_feed",

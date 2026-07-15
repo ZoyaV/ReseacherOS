@@ -20,7 +20,7 @@ from koi.services.related_work_inbox import (
     inbox_task_message as literature_inbox_task_message,
     notify_literature_inbox_wake,
 )
-from koi.review.analysis import (
+from koi.review.related_work import (
     _strip_code_fences,
     prepare_related_work_material,
 )

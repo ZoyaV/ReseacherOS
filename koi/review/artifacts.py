@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from koi.review.analysis import _normalize_llm_evidence
+from koi.review.parsing import _normalize_llm_evidence
 from koi.review.models import PaperAnswerArtifact
 from koi.review.util import _normalize_text, _read_json
 
