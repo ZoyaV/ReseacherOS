@@ -8,13 +8,13 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from koi.services.paper_catalog import (
+from koi.paper.catalog import (
     deadline_hours_left,
     list_project_papers,
     read_paper_progress,
     update_paper_progress,
 )
-from koi.services.paper_page_counts import _split_pages, analyze_paper_pages
+from koi.paper.page_counts import _split_pages, analyze_paper_pages
 
 
 class PaperPageCountTests(unittest.TestCase):
@@ -52,10 +52,10 @@ class PaperPageCountTests(unittest.TestCase):
             pdf.write_bytes(b"%PDF-1.4\n")
 
             with patch(
-                "koi.services.paper_page_counts.count_pdf_pages",
+                "koi.paper.page_counts.count_pdf_pages",
                 return_value=10,
             ), patch(
-                "koi.services.paper_page_counts._synctex_page",
+                "koi.paper.page_counts._synctex_page",
                 side_effect=[8, 10],
             ):
                 counts = analyze_paper_pages(slot)
@@ -112,7 +112,7 @@ class PaperProgressMetaTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            with patch("koi.services.paper_catalog.paper_dir", return_value=paper_root):
+            with patch("koi.paper.catalog.paper_dir", return_value=paper_root):
                 papers = list_project_papers("demo")
 
             self.assertEqual(len(papers), 1)

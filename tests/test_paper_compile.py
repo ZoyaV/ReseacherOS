@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from koi.services.paper_generator import TEX_NAME, _slot_prefers_pdflatex
+from koi.paper.generator import TEX_NAME, _slot_prefers_pdflatex
 
 
 class PaperCompileRecipeTests(unittest.TestCase):

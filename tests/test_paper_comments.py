@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from koi.services.paper_comments import (
+from koi.paper.comments import (
     add_reply,
     compute_content_hash,
     create_comment,

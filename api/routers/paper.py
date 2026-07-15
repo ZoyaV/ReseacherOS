@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from api.deps import parse_project
-from koi.services.paper_catalog import (
+from koi.paper.catalog import (
     DEFAULT_PAPER_SLUG,
     get_paper_slot_dir,
     list_project_papers,
@@ -16,17 +16,17 @@ from koi.services.paper_catalog import (
     find_pdf,
     update_paper_progress,
 )
-from koi.services.paper_page_counts import analyze_paper_pages
+from koi.paper.page_counts import analyze_paper_pages
 from koi.adapters.settings_store import is_cursor_inbox_agent_mode
-from koi.services.paper_generator import (
+from koi.paper.generator import (
     PDF_NAME,
     TEX_NAME,
     compile_paper_slot,
     generate_paper,
     paper_status,
 )
-from koi.services.paper_runner import submit_paper_request
-from koi.services.paper_comments import (
+from koi.paper.runner import submit_paper_request
+from koi.paper.comments import (
     add_reply,
     create_comment,
     delete_comment,

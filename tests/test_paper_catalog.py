@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from koi.services.paper_catalog import (
+from koi.paper.catalog import (
     DEFAULT_PAPER_SLUG,
     list_project_papers,
     normalize_paper_slug,
@@ -35,7 +35,7 @@ class PaperCatalogTests(unittest.TestCase):
             )
 
             with patch(
-                "koi.services.paper_catalog.paper_dir",
+                "koi.paper.catalog.paper_dir",
                 return_value=paper_root,
             ):
                 papers = list_project_papers("demo")
@@ -58,7 +58,7 @@ class PaperCatalogTests(unittest.TestCase):
             (slot / "main.tex").write_text("% slot", encoding="utf-8")
 
             with patch(
-                "koi.services.paper_catalog.paper_dir",
+                "koi.paper.catalog.paper_dir",
                 return_value=paper_root,
             ):
                 papers = list_project_papers("talking-heads")
@@ -75,7 +75,7 @@ class PaperCatalogTests(unittest.TestCase):
                 json.dumps({"state": "running", "started_at": "2026-01-01T00:00:00+00:00"}),
                 encoding="utf-8",
             )
-            with patch("koi.services.paper_catalog.paper_dir", return_value=paper_root):
+            with patch("koi.paper.catalog.paper_dir", return_value=paper_root):
                 papers = list_project_papers("demo")
             self.assertEqual(papers, [])
 
@@ -83,7 +83,7 @@ class PaperCatalogTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             paper_root = Path(tmp) / "paper"
             with patch(
-                "koi.services.paper_catalog.paper_dir",
+                "koi.paper.catalog.paper_dir",
                 return_value=paper_root,
             ):
                 slot = prepare_paper_slot_dir("demo", "experiment-a")

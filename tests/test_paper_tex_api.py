@@ -10,7 +10,7 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from api.main import app
-from koi.services.paper_generator import TEX_NAME
+from koi.paper.generator import TEX_NAME
 
 
 class PaperTexApiTests(unittest.TestCase):

@@ -144,7 +144,7 @@ def set_inbox_configured(configured: bool = True, *, inbox_kind: str = "chat") -
         set_literature_inbox_configured(configured)
         return
     if inbox_kind == "paper":
-        from koi.services.paper_inbox import set_paper_inbox_configured
+        from koi.paper.inbox import set_paper_inbox_configured
 
         set_paper_inbox_configured(configured)
         return
@@ -231,7 +231,7 @@ def pending_snapshot() -> dict:
 
 
 def pending_counts() -> dict[str, int]:
-    from koi.services.paper_inbox import pending_count as paper_pending_count
+    from koi.paper.inbox import pending_count as paper_pending_count
     from koi.services.related_work_inbox import pending_count as rw_pending_count
 
     return {
@@ -401,7 +401,7 @@ def run_watch() -> None:
 
 
 def inbox_settings() -> dict:
-    from koi.services.paper_inbox import paper_inbox_settings
+    from koi.paper.inbox import paper_inbox_settings
     from koi.services.related_work_inbox import literature_inbox_settings
 
     py = _python_bin()
