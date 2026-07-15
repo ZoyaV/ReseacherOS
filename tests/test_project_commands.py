@@ -296,6 +296,51 @@ def test_suggest_board_dependencies_applies_persists_and_enqueues_sync(
     ]
 
 
+def test_load_and_save_board_layout_delegate_with_valid_card_ids(
+    project: Project,
+    command_context: dict[str, list],
+    monkeypatch,
+) -> None:
+    loaded_layout = {
+        "version": 1,
+        "board_id": "board-method",
+        "updated_at": None,
+        "cards": {},
+    }
+    saved_layout = {
+        **loaded_layout,
+        "updated_at": "2026-07-15T00:00:00+00:00",
+        "cards": {"card-a": {"x": 12.0, "y": 34.0}},
+    }
+    load_calls = []
+    save_calls = []
+    monkeypatch.setattr(
+        project_commands.dag_layout,
+        "load_dag_layout",
+        lambda *args: load_calls.append(args) or loaded_layout,
+    )
+    monkeypatch.setattr(
+        project_commands.dag_layout,
+        "save_dag_layout",
+        lambda *args, **kwargs: save_calls.append((args, kwargs)) or saved_layout,
+    )
+
+    assert project_commands.load_board_layout("demo", "board-method") == loaded_layout
+    assert project_commands.save_board_layout(
+        "demo",
+        "board-method",
+        {"card-a": {"x": 12, "y": 34}},
+    ) == saved_layout
+
+    assert load_calls == [("demo", "board-method")]
+    assert save_calls == [
+        (
+            ("demo", "board-method", {"card-a": {"x": 12, "y": 34}}),
+            {"valid_card_ids": {"card-a", "card-b"}},
+        )
+    ]
+
+
 def test_update_card_renames_report_and_enqueues_edit(
     project: Project,
     command_context: dict[str, list],

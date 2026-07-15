@@ -8,7 +8,6 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from koi.core.models import ExperimentCard, KanbanBoard, Project
 from koi.services.dag_layout import (
     load_dag_layout,
     load_dag_layouts_from_root,
@@ -88,24 +87,10 @@ class DagLayoutApiTests(unittest.TestCase):
     @unittest.skipUnless(HAS_FASTAPI, "fastapi not installed")
     def test_get_and_put_board_layout(self) -> None:
         client = TestClient(app)
-        board = KanbanBoard(
-            id="board-m1",
-            owner_node_id="m1",
-            cards=[
-                ExperimentCard(
-                    id="c-a",
-                    board_id="board-m1",
-                    column_id="backlog",
-                    title="A",
-                )
-            ],
-        )
-        project = Project(id="demo", title="Demo", boards=[board])
-
-        with patch("api.routers.projects.parse_project", return_value=project), patch(
-            "api.routers.projects.require_project", return_value=project
-        ), patch("koi.services.dag_layout.save_dag_layout") as save_mock, patch(
-            "koi.services.dag_layout.load_dag_layout",
+        with patch(
+            "api.routers.projects.project_commands.save_board_layout"
+        ) as save_mock, patch(
+            "api.routers.projects.project_commands.load_board_layout",
             return_value={
                 "version": 1,
                 "board_id": "board-m1",
@@ -132,5 +117,4 @@ class DagLayoutApiTests(unittest.TestCase):
                 "demo",
                 "board-m1",
                 {"c-a": {"x": 12, "y": 34}},
-                valid_card_ids={"c-a"},
             )

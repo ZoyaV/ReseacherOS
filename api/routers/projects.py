@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
-from api.deps import enqueue_sync, find_card, get_project as require_project, parse_project
+from api.deps import find_card, get_project as require_project, parse_project
 from api.schemas import (
     CardReportBody,
     CreateCardBody,
@@ -14,18 +14,9 @@ from api.schemas import (
     UpdateCardBody,
     UpdateNodeBody,
 )
-from koi.application import project_commands
+from koi.application import project_commands, report_commands
 from koi.application.project_views import project_to_client
-from koi.adapters.card_reports import (
-    read_report,
-    read_report_indexed,
-    report_path_info,
-    resolve_report_asset_path,
-    save_report_asset,
-    write_report,
-)
 from koi.adapters.repository import list_projects
-from koi.services import dag_layout
 from koi.services.card_live import (
     live_monitor_cards,
     live_snapshot,
@@ -216,28 +207,20 @@ def post_board_dag_suggest(
 
 @router.get("/projects/{project_id}/boards/{board_id}/dag-layout")
 def get_board_dag_layout(project_id: str, board_id: str) -> dict:
-    project = parse_project(project_id)
-    board = next((b for b in project.boards if b.id == board_id), None)
-    if board is None:
-        raise HTTPException(404, "Board not found")
-    return dag_layout.load_dag_layout(project_id, board_id)
+    try:
+        return project_commands.load_board_layout(project_id, board_id)
+    except project_commands.EntityNotFoundError as error:
+        raise HTTPException(404, str(error)) from error
 
 
 @router.put("/projects/{project_id}/boards/{board_id}/dag-layout")
 def put_board_dag_layout(
     project_id: str, board_id: str, body: DagLayoutBody
 ) -> dict:
-    project = require_project(project_id)
-    board = next((b for b in project.boards if b.id == board_id), None)
-    if board is None:
-        raise HTTPException(404, "Board not found")
-    valid_ids = {c.id for c in board.cards}
-    return dag_layout.save_dag_layout(
-        project_id,
-        board_id,
-        body.cards,
-        valid_card_ids=valid_ids,
-    )
+    try:
+        return project_commands.save_board_layout(project_id, board_id, body.cards)
+    except project_commands.EntityNotFoundError as error:
+        raise HTTPException(404, str(error)) from error
 
 
 @router.delete("/projects/{project_id}/boards/{board_id}/cards/{card_id}")
@@ -253,35 +236,33 @@ def delete_card(project_id: str, board_id: str, card_id: str) -> dict:
 
 @router.get("/projects/{project_id}/boards/{board_id}/cards/{card_id}/report")
 def get_card_report(project_id: str, board_id: str, card_id: str) -> dict:
-    project = parse_project(project_id)
-    board = next((b for b in project.boards if b.id == board_id), None)
-    if board is None:
-        raise HTTPException(404, "Board not found")
-    card = next((c for c in board.cards if c.id == card_id), None)
-    if card is not None:
-        return read_report(project, board_id, card_id, card.title)
-    indexed = read_report_indexed(project_id, card_id)
-    if indexed is not None:
-        return indexed
-    raise HTTPException(404, "Card not found")
+    try:
+        return report_commands.read_card_report(project_id, board_id, card_id)
+    except report_commands.EntityNotFoundError as error:
+        raise HTTPException(404, str(error)) from error
 
 
 @router.get("/projects/{project_id}/boards/{board_id}/cards/{card_id}/report-path")
 def get_card_report_path(project_id: str, board_id: str, card_id: str) -> dict:
-    project = parse_project(project_id)
-    _, card = find_card(project, board_id, card_id)
-    return report_path_info(project, board_id, card_id, card.title)
+    try:
+        return report_commands.card_report_path(project_id, board_id, card_id)
+    except report_commands.EntityNotFoundError as error:
+        raise HTTPException(404, str(error)) from error
 
 
 @router.put("/projects/{project_id}/boards/{board_id}/cards/{card_id}/report")
 def put_card_report(
     project_id: str, board_id: str, card_id: str, body: CardReportBody
 ) -> dict:
-    project = parse_project(project_id)
-    _, card = find_card(project, board_id, card_id)
-    result = write_report(project, board_id, card_id, card.title, body.content)
-    enqueue_sync(project_id, "report_saved", f"отчёт карточки {card.title}")
-    return result
+    try:
+        return report_commands.write_card_report(
+            project_id,
+            board_id,
+            card_id,
+            body.content,
+        )
+    except report_commands.EntityNotFoundError as error:
+        raise HTTPException(404, str(error)) from error
 
 
 @router.post("/projects/{project_id}/boards/{board_id}/cards/{card_id}/report/assets")
@@ -291,22 +272,25 @@ async def post_report_asset(
     card_id: str,
     file: UploadFile = File(...),
 ) -> dict:
-    project = parse_project(project_id)
-    _, card = find_card(project, board_id, card_id)
+    try:
+        report_commands.ensure_report_card(project_id, board_id, card_id)
+    except report_commands.EntityNotFoundError as error:
+        raise HTTPException(404, str(error)) from error
     data = await file.read()
     if not data:
         raise HTTPException(400, "Empty file")
     try:
-        return save_report_asset(
-            project,
+        return report_commands.store_report_asset(
+            project_id,
             board_id,
             card_id,
-            card.title,
             data,
             file.content_type or "application/octet-stream",
         )
-    except ValueError as e:
-        raise HTTPException(400, str(e)) from e
+    except report_commands.EntityNotFoundError as error:
+        raise HTTPException(404, str(error)) from error
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from error
 
 
 @router.get("/projects/{project_id}/boards/{board_id}/cards/{card_id}/live")
@@ -354,14 +338,17 @@ def get_report_asset(
     card_id: str,
     asset_name: str,
 ) -> FileResponse:
-    project = parse_project(project_id)
-    _, card = find_card(project, board_id, card_id)
     try:
-        path = resolve_report_asset_path(
-            project, board_id, card_id, card.title, asset_name
+        path = report_commands.report_asset_path(
+            project_id,
+            board_id,
+            card_id,
+            asset_name,
         )
-    except ValueError as e:
-        raise HTTPException(400, str(e)) from e
-    except FileNotFoundError as e:
-        raise HTTPException(404, "Asset not found") from e
+    except report_commands.EntityNotFoundError as error:
+        raise HTTPException(404, str(error)) from error
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from error
+    except FileNotFoundError as error:
+        raise HTTPException(404, "Asset not found") from error
     return FileResponse(path)

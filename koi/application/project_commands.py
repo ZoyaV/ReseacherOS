@@ -27,7 +27,7 @@ from koi.services.dag_suggest import (
     suggest_board_dag,
     would_create_cycle,
 )
-from koi.services import programs as program_service
+from koi.services import dag_layout, programs as program_service
 
 
 class EntityNotFoundError(LookupError):
@@ -145,6 +145,27 @@ def suggest_board_dependencies(
         project=project,
         suggestions=suggestions,
         applied=updated,
+    )
+
+
+def load_board_layout(project_id: str, board_id: str) -> dict:
+    project = _require_project(project_id)
+    _require_board(project, board_id)
+    return dag_layout.load_dag_layout(project_id, board_id)
+
+
+def save_board_layout(
+    project_id: str,
+    board_id: str,
+    cards: dict,
+) -> dict:
+    project = _require_project(project_id)
+    board = _require_board(project, board_id)
+    return dag_layout.save_dag_layout(
+        project_id,
+        board_id,
+        cards,
+        valid_card_ids={card.id for card in board.cards},
     )
 
 
