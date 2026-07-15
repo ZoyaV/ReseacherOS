@@ -454,8 +454,8 @@ PYTHONPATH=. python scripts/koi_check_hypothesis.py <project_id> <card_id> --no-
 PYTHONPATH=. python scripts/koi_check_hypothesis.py <project_id> <card_id> --ingest-only --dry-run
 PYTHONPATH=. python scripts/koi_check_hypothesis.py <project_id> <card_id> --ingest-only
 
-# самопроверка всего пайплайна (19 тестов, ничего не портит)
-PYTHONPATH=. python scripts/test_kb_pipeline.py
+# самопроверка knowledge и report ingest
+PYTHONPATH=. .venv/bin/pytest -q tests/test_knowledge.py tests/test_report_ingest.py
 
 # какие агент-бэкенды доступны
 curl -s http://127.0.0.1:8011/agent/backends

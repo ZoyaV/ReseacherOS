@@ -54,10 +54,6 @@ def _read_meta(text: str) -> tuple[dict, str]:
     return _split_frontmatter(text)
 
 
-def seed_templates() -> None:
-    """No-op: demo projects are seeded via ``scripts/koi_seed_demo.py`` if needed."""
-
-
 def list_projects() -> list[dict]:
     items = []
     preferred = {"ai-agents-embodied": 0, "demo-aggregation": 1}
