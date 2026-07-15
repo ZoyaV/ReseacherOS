@@ -113,6 +113,12 @@ class DagLayoutApiTests(unittest.TestCase):
                 "cards": {},
             },
         ) as load_mock:
+            save_mock.return_value = {
+                "version": 1,
+                "board_id": "board-m1",
+                "updated_at": "2026-07-15T00:00:00+00:00",
+                "cards": {"c-a": {"x": 12.0, "y": 34.0}},
+            }
             get_resp = client.get("/projects/demo/boards/board-m1/dag-layout")
             self.assertEqual(get_resp.status_code, 200)
             load_mock.assert_called_once_with("demo", "board-m1")

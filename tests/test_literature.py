@@ -66,7 +66,7 @@ class LiteratureBootstrapTests(unittest.TestCase):
     def test_library_discover_endpoint_runs_explicit_refresh(self) -> None:
         client = TestClient(app)
         with patch(
-            "api.main.discover_library_with_agent",
+            "api.routers.library.discover_library_with_agent",
             return_value={
                 "ok": True,
                 "query": "scene graph dynamics",
@@ -92,7 +92,10 @@ class LiteratureBootstrapTests(unittest.TestCase):
 
     def test_library_search_endpoint_requires_existing_library(self) -> None:
         client = TestClient(app)
-        with patch("api.main.resolve_library_csv", side_effect=FileNotFoundError("missing")):
+        with patch(
+            "api.routers.library.resolve_library_csv",
+            side_effect=FileNotFoundError("missing"),
+        ):
             response = client.post(
                 "/library/search",
                 json={"query": "scene graph dynamics", "limit": 3},
@@ -168,7 +171,7 @@ class LiteratureBootstrapTests(unittest.TestCase):
 
     def test_related_works_endpoint_returns_generated_markdown(self) -> None:
         client = TestClient(app)
-        with patch(
+        with patch("api.routers.review.parse_project"), patch(
             "api.routers.review.submit_related_work_request",
             return_value={
                 "project_id": "ai-agents-embodied",

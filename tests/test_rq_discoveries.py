@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 
 from koi.rq_discoveries import (
     _answer_signature,
@@ -72,12 +73,91 @@ def test_patch_moves_card_to_running() -> None:
     assert _patch_moves_card_to_column(patch, "card-1", "done") is False
 
 
-def test_author_for_card_done_from_git_history() -> None:
+def test_author_for_card_done_from_git_history(tmp_path, monkeypatch) -> None:
+    project_md = tmp_path / "koi-structure" / "project.md"
+    project_md.parent.mkdir()
+
+    def write_project(column: str) -> None:
+        cells = {name: "" for name in ("backlog", "running", "done", "successful")}
+        cells[column] = "Bench <!-- id:zs-bench -->"
+        row = "| " + " | ".join(cells.values()) + " |"
+        project_md.write_text(
+            """---
+id: demo
+title: Demo
+---
+
+# problem: p-demo
+
+Problem
+
+## cause: c-demo
+
+Cause
+
+### remediation: r-demo
+
+Remediation
+
+#### method: m-demo
+
+Method
+
+<!-- koi:kanban board-m-demo -->
+| backlog | running | done | successful |
+| --- | --- | --- | --- |
+"""
+            + row
+            + "\n",
+            encoding="utf-8",
+        )
+
+    def git(*args: str) -> str:
+        result = subprocess.run(
+            ["git", *args],
+            cwd=tmp_path,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return result.stdout.strip()
+
+    git("init", "-q")
+    write_project("backlog")
+    git("add", "koi-structure/project.md")
+    git(
+        "-c",
+        "user.name=alice",
+        "-c",
+        "user.email=alice@example.test",
+        "commit",
+        "-qm",
+        "Add card",
+    )
+    old_ref = git("rev-parse", "HEAD")
+
+    write_project("done")
+    git("add", "koi-structure/project.md")
+    git(
+        "-c",
+        "user.name=zoya",
+        "-c",
+        "user.email=zoya@example.test",
+        "commit",
+        "-qm",
+        "Complete card",
+    )
+    new_ref = git("rev-parse", "HEAD")
+
+    monkeypatch.setattr(
+        "koi.services.rq_discoveries._project_md_git_candidates",
+        lambda _project_id: [(tmp_path, "koi-structure/project.md")],
+    )
     author = _author_for_card_done(
-        "ai-agents-embodied",
+        "demo",
         "zs-bench",
-        "e1680b6^",
-        "e1680b6",
+        old_ref,
+        new_ref,
     )
     assert author == "zoya"
 

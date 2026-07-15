@@ -62,7 +62,7 @@ from koi.services.dag_suggest import (
     apply_dag_suggestions,
     suggest_board_dag,
 )
-from koi.services.dag_layout import load_dag_layout, save_dag_layout
+from koi.services import dag_layout
 from koi.services.rq_discoveries import running_kanban_activity
 
 router = APIRouter(tags=["projects"])
@@ -333,7 +333,7 @@ def get_board_dag_layout(project_id: str, board_id: str) -> dict:
     board = next((b for b in project.boards if b.id == board_id), None)
     if board is None:
         raise HTTPException(404, "Board not found")
-    return load_dag_layout(project_id, board_id)
+    return dag_layout.load_dag_layout(project_id, board_id)
 
 
 @router.put("/projects/{project_id}/boards/{board_id}/dag-layout")
@@ -345,7 +345,7 @@ def put_board_dag_layout(
     if board is None:
         raise HTTPException(404, "Board not found")
     valid_ids = {c.id for c in board.cards}
-    return save_dag_layout(
+    return dag_layout.save_dag_layout(
         project_id,
         board_id,
         body.cards,

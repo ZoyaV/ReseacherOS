@@ -369,7 +369,7 @@ def _write_library_csv(papers: list[AgentDiscoveredPaper], destination: Path) ->
 
 def _display_path(path: Path) -> str:
     try:
-        return _ws.relative_to_workspace(path)
+        return get_workspace().relative_to_engine(path)
     except ValueError:
         return str(path)
 
@@ -387,7 +387,7 @@ def discover_library_with_agent(
         raise ValueError("Limit must be positive")
 
     prompt = _library_bootstrap_prompt(text, min(limit, 50))
-    response, backend = run_agent(prompt, cwd=_ws.agent_cwd(), timeout=180)
+    response, backend = run_agent(prompt, cwd=get_workspace().agent_cwd(), timeout=180)
     if not response:
         raise RuntimeError(
             "No agent backend is available for library bootstrap. Configure a working agent backend first."
@@ -751,7 +751,7 @@ def translate_to_english(text: str) -> tuple[str, str]:
         "Return only the translated English text.\n\n"
         f"{normalized}"
     )
-    translated, backend = run_agent(prompt, cwd=_ws.agent_cwd(), timeout=120)
+    translated, backend = run_agent(prompt, cwd=get_workspace().agent_cwd(), timeout=120)
     if translated:
         return translated.strip().strip('"'), backend or "agent"
 
