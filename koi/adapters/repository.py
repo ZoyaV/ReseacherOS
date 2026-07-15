@@ -167,7 +167,9 @@ def save_project(project: Project) -> Path:
     sync_done_research_on_save(before, project)
     save_research(project)
     try:
-        from koi.services.knowledge import write_project_knowledge
+        # Transitional derived-artifact hook. Project persistence orchestration
+        # will move out of this adapter in a dedicated refactor.
+        from koi.knowledge import write_project_knowledge
 
         write_project_knowledge(project)
     except Exception:  # noqa: BLE001 — KB is a derived artifact, not source of truth

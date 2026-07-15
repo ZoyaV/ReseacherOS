@@ -3,7 +3,7 @@
 
 Архитектура (per-project, встроена в ядро):
   • у КАЖДОГО проекта своя база знаний `projects/<id>/KNOWLEDGE.md` —
-    канонический рендер из `koi/knowledge.py` (дерево + вердикты + инсайты).
+    канонический рендер из `koi/knowledge/` (дерево + вердикты + инсайты).
     Она же пишется автоматически при любом `save_project()`.
   • `agent/KNOWLEDGE.md` — тонкий ГЛОБАЛЬНЫЙ индекс: одна строка на проект со сводкой
     и ссылкой на его базу знаний. Содержимое проектов тут НЕ дублируется.
@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from koi.services.knowledge import VERDICT_MARK, write_project_knowledge  # noqa: E402
+from koi.knowledge import VERDICT_MARK, write_project_knowledge  # noqa: E402
 from koi.core.models import NodeType, Verdict  # noqa: E402
 from koi.laboratory.programs import list_programs, program_summary  # noqa: E402
 from koi.adapters.repository import list_projects, load_project  # noqa: E402
@@ -90,7 +90,7 @@ def build_global_index() -> tuple[str, int, int]:
         "# KNOWLEDGE.md — глобальный индекс баз знаний",
         "",
         "Сгенерировано `agent/bin/build_kb.py`. У каждого проекта своя база знаний",
-        "`projects/<id>/KNOWLEDGE.md` (канонический рендер `koi/knowledge.py`); здесь —",
+        "`projects/<id>/KNOWLEDGE.md` (канонический рендер `koi/knowledge/`); здесь —",
         "только сводка и ссылки. Руками не править — перегенерировать командой выше.",
         "",
         f"Проектов: {len(rows)} · инсайтов всего: {total_insights}",

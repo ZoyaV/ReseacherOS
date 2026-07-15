@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, PlainTextResponse
 
 from api.deps import get_project
-from koi.services.knowledge import (
+from koi.knowledge import (
     knowledge_log_path,
     knowledge_summary,
     render_project_knowledge,

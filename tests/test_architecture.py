@@ -53,6 +53,7 @@ LEGACY_MODULES = {
     "koi.services.agent_chat_inbox",
     "koi.services.agent_chat_runner",
     "koi.services.agent_chat_worker_ctl",
+    "koi.services.knowledge",
     "koi.services.rq_discoveries",
     "koi.services.composite",
     "koi.services.programs",

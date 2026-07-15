@@ -31,7 +31,7 @@ projects/<id>/
 ```
 
 Файлы с пометкой [генерируется] руками не правятся — их пересобирает модуль ядра
-`koi/knowledge.py`. Источник правды — `project.md` + `research.json` + `knowledge/*.md`.
+`koi/knowledge/`. Источник правды — `project.md` + `research.json` + `knowledge/*.md`.
 
 ## 2. Что происходит автоматически
 
