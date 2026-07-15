@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Callable
 
 from koi.adapters.agent_backends import any_agent_available
-from koi.services.literature import _safe_filename, _slugify
+from koi.literature.naming import safe_filename as _safe_filename
+from koi.literature.naming import slugify as _slugify
 from koi.services.review.artifacts import _load_existing_paper_answer_artifacts
 from koi.services.review.analysis import (
     _cluster_paper_answers_heuristic,

@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from koi.adapters.paths import paper_answers_dir, paper_reviews_dir, reports_dir
-from koi.services.literature import search_library
+from koi.literature import search_library
 from koi.services.review.models import (
     ABSTRACT_BLOCK_RE,
     ARXIV_RE,
@@ -109,4 +109,3 @@ def build_review_papers_from_results(
             )
         )
     return papers
-

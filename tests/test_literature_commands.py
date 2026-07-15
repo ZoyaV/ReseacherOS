@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from koi.application import literature_commands
+from koi.literature import review_sets as literature_commands
 from koi.core import project_ops
 from koi.core.models import Node, NodeType, Project
 

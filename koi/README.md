@@ -6,10 +6,11 @@ koi/
   adapters/   Workspace paths, filesystem stores, git sync, agent backends
   agent_chat/ Agent-chat capability — answers, inbox, formatting, workers
   knowledge/  Project knowledge — rendering, summaries, generated artifacts
+  literature/ Literature search, discovery, naming, and review workflows
   projects/   Project capability — commands, views, reports, ingest, live, kanban, sync
   laboratory/ Cross-project programs and portfolio views
   application/ Cross-feature use-cases and temporary compatibility shims
-  services/   Remaining use-cases — literature, review, paper
+  services/   Remaining use-cases — review and paper
     review/     Paper review agent (arxiv, analysis, pipeline)
   *.py        Temporary capability entry points still awaiting migration
 ```

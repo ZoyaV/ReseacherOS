@@ -7,9 +7,9 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from api.main import app
-from koi.application import literature_commands
+from koi.literature import review_sets as literature_commands
 from koi.core.models import Project
-from koi.services.literature import (
+from koi.literature import (
     LIBRARY_FIELDNAMES,
     discover_library_with_agent,
     reset_library_cache,
@@ -45,7 +45,7 @@ class LiteratureBootstrapTests(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             destination = Path(tmpdir) / "library.csv"
             with patch(
-                "koi.services.literature.run_agent",
+                "koi.literature.library.run_agent",
                 return_value=(response, "mock-agent"),
             ):
                 result = discover_library_with_agent(
@@ -63,7 +63,7 @@ class LiteratureBootstrapTests(unittest.TestCase):
             self.assertEqual(rows[0]["authors"], "Alice Example, Bob Example")
 
             with patch(
-                "koi.services.literature.LIBRARY_CSV_CANDIDATES",
+                "koi.literature.library.LIBRARY_CSV_CANDIDATES",
                 (destination,),
             ):
                 reset_library_cache()
@@ -123,9 +123,9 @@ class LiteratureBootstrapTests(unittest.TestCase):
             <author><name>Alice Example</name></author>
           </entry>
         </feed>"""
-        with patch("koi.services.literature.urllib.request.urlopen") as urlopen:
+        with patch("koi.literature.arxiv.urllib.request.urlopen") as urlopen:
             urlopen.return_value.__enter__.return_value.read.return_value = xml
-            from koi.services.literature import search_arxiv_internet
+            from koi.literature import search_arxiv_internet
 
             results = search_arxiv_internet("dynamic scene graphs", limit=5)
         self.assertEqual(len(results), 1)
@@ -133,7 +133,7 @@ class LiteratureBootstrapTests(unittest.TestCase):
         self.assertEqual(results[0]["arxiv_url"], "https://arxiv.org/abs/2401.12345")
 
     def test_translate_to_english_passthrough_for_latin_text(self) -> None:
-        from koi.services.literature import translate_to_english
+        from koi.literature import translate_to_english
 
         translated, backend = translate_to_english("scene graph planning")
         self.assertEqual(translated, "scene graph planning")
@@ -181,7 +181,7 @@ class LiteratureBootstrapTests(unittest.TestCase):
         project = Project(id="review-demo", title="Review Set")
         client = TestClient(app)
         with patch(
-            "api.routers.library.literature_commands.create_review_set",
+            "api.routers.library.review_sets.create_review_set",
             return_value=literature_commands.ReviewSetResult(
                 project=project,
                 query="embodied agents",
@@ -213,7 +213,7 @@ class LiteratureBootstrapTests(unittest.TestCase):
     def test_review_set_route_maps_application_validation_to_http_400(self) -> None:
         client = TestClient(app)
         with patch(
-            "api.routers.library.literature_commands.create_review_set",
+            "api.routers.library.review_sets.create_review_set",
             side_effect=ValueError("No ranked papers available for this query"),
         ):
             response = client.post(

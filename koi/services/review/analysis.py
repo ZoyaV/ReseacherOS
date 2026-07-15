@@ -11,7 +11,8 @@ from koi.adapters.agent_backends import any_agent_available, run_agent
 from koi.adapters.paths import agent_bundles_dir, paper_answers_dir, paper_reviews_dir
 from koi.adapters.settings_store import load_env_file
 from koi.adapters.workspace import get_workspace
-from koi.services.literature import _safe_filename, _slugify
+from koi.literature.naming import safe_filename as _safe_filename
+from koi.literature.naming import slugify as _slugify
 from koi.services.review.arxiv import (
     extract_arxiv_html_text,
     extract_arxiv_id,
@@ -1226,4 +1227,3 @@ def build_cluster_report(
         lines.append("")
 
     return "\n".join(lines).strip() + "\n"
-

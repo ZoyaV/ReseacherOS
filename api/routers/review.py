@@ -11,7 +11,7 @@ from api.schemas import (
     RelatedWorksBody,
     ReviewAgentBody,
 )
-from koi.services.literature import create_project_paper_review, search_library
+from koi.literature import create_project_paper_review, search_library
 from koi.services.related_work import (
     answer_related_work_item,
     claim_related_work_item,

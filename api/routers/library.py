@@ -7,9 +7,9 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from api.deps import workspace_relative
 from api.schemas import LibraryDiscoverBody, LiteratureSearchBody, ReviewSetBody, TranslateToEnglishBody
-from koi.application import literature_commands
+from koi.literature import review_sets
 from koi.projects.views import project_to_client
-from koi.services.literature import (
+from koi.literature import (
     LIBRARY_REQUIRED_FIELDS,
     LIBRARY_UPLOAD_PATH,
     bootstrap_library_from_arxiv,
@@ -177,8 +177,8 @@ async def post_library_upload(file: UploadFile = File(...)) -> dict[str, object]
 @router.post("/library/review-set")
 def post_library_review_set(body: ReviewSetBody) -> dict[str, object]:
     try:
-        result = literature_commands.create_review_set(
-            literature_commands.CreateReviewSetCommand(
+        result = review_sets.create_review_set(
+            review_sets.CreateReviewSetCommand(
                 query=body.query,
                 limit=body.limit,
                 papers=body.papers,
