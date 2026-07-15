@@ -5,6 +5,7 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+.figma-storyboard/
 .DS_Store
 hub/.data/
 hub/.env
