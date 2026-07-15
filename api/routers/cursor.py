@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from koi.services.cursor_app import cursor_is_active
-from koi.services.cursor_usage import fetch_cursor_usage
+from koi.cursor import cursor_is_active, fetch_cursor_usage
 
 router = APIRouter(tags=["cursor"])
 

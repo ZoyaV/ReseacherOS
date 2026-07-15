@@ -4,7 +4,7 @@ import json
 import unittest
 from unittest.mock import patch
 
-from koi.services.cursor_usage import (
+from koi.cursor.usage import (
     CursorUsageSnapshot,
     build_workos_session_cookie,
     fetch_cursor_usage,
@@ -45,7 +45,7 @@ class CursorUsageHelpersTest(unittest.TestCase):
 
 class CursorUsageFetchTest(unittest.TestCase):
     def test_fetch_without_token(self) -> None:
-        with patch("koi.services.cursor_usage.read_cursor_access_token", return_value=None):
+        with patch("koi.cursor.usage.read_cursor_access_token", return_value=None):
             snap = fetch_cursor_usage()
         self.assertEqual(snap.status, "no_auth")
 
@@ -70,8 +70,8 @@ class CursorUsageFetchTest(unittest.TestCase):
                 return summary
             return None
 
-        with patch("koi.services.cursor_usage.read_cursor_access_token", return_value=token):
-            with patch("koi.services.cursor_usage._http_json", side_effect=fake_http):
+        with patch("koi.cursor.usage.read_cursor_access_token", return_value=token):
+            with patch("koi.cursor.usage._http_json", side_effect=fake_http):
                 snap = fetch_cursor_usage()
         self.assertEqual(snap.status, "ok")
         self.assertEqual(snap.unit, "usd")
@@ -93,8 +93,8 @@ class CursorUsageFetchTest(unittest.TestCase):
                 return legacy
             return None
 
-        with patch("koi.services.cursor_usage.read_cursor_access_token", return_value=token):
-            with patch("koi.services.cursor_usage._http_json", side_effect=fake_http):
+        with patch("koi.cursor.usage.read_cursor_access_token", return_value=token):
+            with patch("koi.cursor.usage._http_json", side_effect=fake_http):
                 snap = fetch_cursor_usage()
         self.assertEqual(snap.status, "ok")
         self.assertEqual(snap.unit, "requests")

@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from koi.adapters.related_work_queue import list_pending  # noqa: E402
-from koi.services.related_work import (  # noqa: E402
+from koi.related_work.service import (  # noqa: E402
     answer_related_work_item,
     build_related_work_context,
     claim_related_work_item,

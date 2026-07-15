@@ -107,7 +107,7 @@ def notify_inbox_wake(
     if agent_chat_id:
         notify_chat_inbox_wake(agent_chat_id=agent_chat_id)
     if related_work_id:
-        from koi.services.related_work_inbox import notify_literature_inbox_wake
+        from koi.related_work.inbox import notify_literature_inbox_wake
 
         notify_literature_inbox_wake(related_work_id=related_work_id)
 
@@ -139,7 +139,7 @@ def set_chat_inbox_configured(configured: bool = True) -> None:
 
 def set_inbox_configured(configured: bool = True, *, inbox_kind: str = "chat") -> None:
     if inbox_kind == "literature":
-        from koi.services.related_work_inbox import set_literature_inbox_configured
+        from koi.related_work.inbox import set_literature_inbox_configured
 
         set_literature_inbox_configured(configured)
         return
@@ -232,7 +232,7 @@ def pending_snapshot() -> dict:
 
 def pending_counts() -> dict[str, int]:
     from koi.paper.inbox import pending_count as paper_pending_count
-    from koi.services.related_work_inbox import pending_count as rw_pending_count
+    from koi.related_work.inbox import pending_count as rw_pending_count
 
     return {
         "agent_chat": pending_count(),
@@ -248,7 +248,7 @@ def inbox_task_message(
     setup: bool = False,
 ) -> str:
     if related_work_id:
-        from koi.services.related_work_inbox import inbox_task_message as rw_message
+        from koi.related_work.inbox import inbox_task_message as rw_message
 
         return rw_message(related_work_id=related_work_id, setup=setup)
     if setup:
@@ -402,7 +402,7 @@ def run_watch() -> None:
 
 def inbox_settings() -> dict:
     from koi.paper.inbox import paper_inbox_settings
-    from koi.services.related_work_inbox import literature_inbox_settings
+    from koi.related_work.inbox import literature_inbox_settings
 
     py = _python_bin()
     chat = {

@@ -53,6 +53,8 @@ LEGACY_MODULES = {
     "koi.services.dag_layout",
     "koi.services.dag_suggest",
     "koi.services.card_live",
+    "koi.services.cursor_app",
+    "koi.services.cursor_usage",
     "koi.services.agent_chat_auto",
     "koi.services.agent_chat_format",
     "koi.services.agent_chat_inbox",
@@ -67,6 +69,8 @@ LEGACY_MODULES = {
     "koi.services.paper_page_counts",
     "koi.services.paper_runner",
     "koi.services.report_ingest",
+    "koi.services.related_work",
+    "koi.services.related_work_inbox",
     "koi.services.review",
     "koi.services.review_agent",
     "koi.services.rq_discoveries",
@@ -117,6 +121,36 @@ def test_internal_code_uses_canonical_koi_imports() -> None:
 
     assert not violations, (
         "Use canonical KOI package imports instead of compatibility modules:\n"
+        + "\n".join(violations)
+    )
+
+
+def test_foundation_layers_do_not_import_capabilities() -> None:
+    forbidden_for_core = ("koi.adapters", "koi.application", "koi.services")
+    forbidden_for_adapters = (
+        "koi.agent_chat",
+        "koi.application",
+        "koi.cursor",
+        # repository.save_project still refreshes the derived knowledge artifact.
+        # This known exception needs save orchestration before it can be removed.
+        "koi.laboratory",
+        "koi.literature",
+        "koi.paper",
+        "koi.projects",
+        "koi.related_work",
+        "koi.review",
+        "koi.services",
+    )
+    violations: list[str] = []
+
+    for layer, forbidden in (("core", forbidden_for_core), ("adapters", forbidden_for_adapters)):
+        for path in (ROOT / "koi" / layer).rglob("*.py"):
+            for lineno, module in _imported_modules(path):
+                if any(module == prefix or module.startswith(f"{prefix}.") for prefix in forbidden):
+                    violations.append(f"{path.relative_to(ROOT)}:{lineno}: {module}")
+
+    assert not violations, (
+        "Foundation layers must not depend on application capabilities:\n"
         + "\n".join(violations)
     )
 

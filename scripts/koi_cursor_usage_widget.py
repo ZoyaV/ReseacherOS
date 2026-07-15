@@ -18,8 +18,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from koi.services.cursor_app import cursor_is_active  # noqa: E402
-from koi.services.cursor_usage import (  # noqa: E402
+from koi.cursor.app import cursor_is_active  # noqa: E402
+from koi.cursor.usage import (  # noqa: E402
     CURSOR_DASHBOARD_URL,
     CursorUsageSnapshot,
     fetch_cursor_usage,

@@ -3,6 +3,7 @@
 ```
 koi/
   core/       Pure domain — models, markdown I/O, project migrations
+  cursor/     Cursor IDE activity and subscription usage integration
   adapters/   Workspace paths, filesystem stores, git sync, agent backends
   agent_chat/ Agent-chat capability — answers, inbox, formatting, workers
   knowledge/  Project knowledge — rendering, summaries, generated artifacts
@@ -10,9 +11,10 @@ koi/
   paper/      Paper artifacts, generation, comments, inbox, and compilation
   review/     Paper review agent — arXiv access, analysis, artifacts, and pipeline
   projects/   Project capability — commands, views, reports, ingest, live, kanban, sync
+  related_work/ Related Work generation, queue orchestration, and inbox watcher
   laboratory/ Cross-project programs and portfolio views
   application/ Cross-feature use-cases and temporary compatibility shims
-  services/   Transitional compatibility facades and remaining cross-feature use-cases
+  services/   Transitional compatibility facades only
 ```
 
 **Dependency rule:** `core` has no imports from `adapters`, `projects`, or `services`.

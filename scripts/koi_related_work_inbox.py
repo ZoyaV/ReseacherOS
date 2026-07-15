@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from koi.services.related_work_inbox import (  # noqa: E402
+from koi.related_work.inbox import (  # noqa: E402
     bootstrap_prompt,
     format_pending_report,
     literature_inbox_settings,
