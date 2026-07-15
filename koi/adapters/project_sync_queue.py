@@ -167,28 +167,6 @@ def set_rq_discovery_state(
     return state
 
 
-def ensure_last_rq_head_initialized() -> str | None:
-    """On first run, pin HEAD/sigs so historical answers are not announced."""
-    from koi.services.rq_discoveries import current_heads, _filesystem_signature_snapshot
-
-    state = load_state()
-    if state.get("last_rq_heads") and state.get("rq_sigs_initialized"):
-        return get_last_rq_head()
-    heads = current_heads()
-    if heads:
-        state["last_rq_heads"] = heads
-        from koi.adapters.workspace import get_workspace
-
-        engine = str(get_workspace().git_root().resolve())
-        if engine in heads:
-            state["last_rq_head"] = heads[engine]
-    if not state.get("rq_sigs_initialized"):
-        state["last_rq_sigs"] = _filesystem_signature_snapshot()
-        state["rq_sigs_initialized"] = True
-    save_state(state)
-    return get_last_rq_head()
-
-
 def should_periodic_pull() -> bool:
     state = load_state()
     last = state.get("last_pull_check_at")

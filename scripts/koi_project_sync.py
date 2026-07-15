@@ -15,9 +15,9 @@ if str(ROOT) not in sys.path:
 from koi.adapters.project_sync import (  # noqa: E402
     git_summary,
     init_sync_branches,
-    pull_projects,
     push_projects,
 )
+from koi.projects.sync import pull_projects  # noqa: E402
 from koi.adapters.project_sync_queue import (  # noqa: E402
     clear_push_queue,
     dequeue_push,

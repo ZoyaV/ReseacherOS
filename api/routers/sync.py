@@ -4,15 +4,15 @@ from typing import Optional
 
 from fastapi import APIRouter, Query
 
-from koi.adapters.project_sync import git_summary, pull_projects, push_projects
+from koi.adapters.project_sync import git_summary, push_projects
 from koi.adapters.project_sync_queue import (
-    ensure_last_rq_head_initialized,
     get_last_rq_heads,
     get_last_rq_sigs,
     rq_sigs_initialized,
     set_rq_discovery_state,
 )
 from koi.adapters.project_discovery_watch import discovery_status
+from koi.projects.sync import ensure_discovery_state_initialized, pull_projects
 from koi.services.rq_discoveries import pending_rq_discoveries
 from koi.adapters.rq_discoveries_feed import append_discoveries, list_feed
 
@@ -42,7 +42,7 @@ def post_sync_push(project_id: Optional[str] = Query(None)) -> dict:
 
 @router.get("/sync/rq-discoveries")
 def get_sync_rq_discoveries() -> dict:
-    ensure_last_rq_head_initialized()
+    ensure_discovery_state_initialized()
     last_heads = get_last_rq_heads()
     items, heads, sigs, _initialized = pending_rq_discoveries(
         last_heads,

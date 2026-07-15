@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from koi.adapters import project_mount as pm
+from koi.adapters import project_sync
 from koi.adapters.project_sync import (
     ensure_sync_branch,
     init_sync_branches,
@@ -162,3 +163,27 @@ def test_pull_preserves_org_frontmatter(sync_layout: Path):
     assert pulled["ok"] is True
     assert pulled["action"] == "pulled"
     assert "composite_id: test-composite" in project_md.read_text(encoding="utf-8")
+
+
+def test_pull_mount_delegates_ref_changes_to_callback(
+    sync_layout: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mount = sync_mounts()[0]
+    assert ensure_sync_branch(mount, push=True)["ok"] is True
+    refs = iter(("before-ref", "after-ref"))
+    monkeypatch.setattr(
+        project_sync,
+        "_remote_sync_ref",
+        lambda _repo, _branch: next(refs),
+    )
+    calls: list[tuple[str, str, Path]] = []
+
+    def discover(old_ref: str, new_ref: str, repo_root: Path) -> list[dict]:
+        calls.append((old_ref, new_ref, repo_root))
+        return [{"key": "demo:rq-1:sig"}]
+
+    pulled = pull_mount(mount, discover_ref_changes=discover)
+
+    assert calls == [("before-ref", "after-ref", mount.repo_root)]
+    assert pulled["rq_discoveries"] == [{"key": "demo:rq-1:sig"}]

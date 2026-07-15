@@ -19,6 +19,24 @@ LEGACY_MODULES = {
 }
 
 
+def _imported_modules(path: Path) -> list[tuple[int, str]]:
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    imported_modules: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported = [alias.name for alias in node.names]
+        elif isinstance(node, ast.ImportFrom):
+            imported = [node.module] if node.module else []
+            if node.module:
+                imported.extend(f"{node.module}.{alias.name}" for alias in node.names)
+        else:
+            continue
+        imported_modules.extend(
+            (node.lineno, module) for module in imported if module
+        )
+    return imported_modules
+
+
 def test_internal_code_uses_canonical_koi_imports() -> None:
     legacy_names = {
         path.stem
@@ -33,28 +51,37 @@ def test_internal_code_uses_canonical_koi_imports() -> None:
         for path in (ROOT / directory).rglob("*.py"):
             if "__pycache__" in path.parts:
                 continue
-            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Import):
-                    imported = [alias.name for alias in node.names]
-                elif isinstance(node, ast.ImportFrom):
-                    imported = [node.module] if node.module else []
-                    if node.module:
-                        imported.extend(
-                            f"{node.module}.{alias.name}" for alias in node.names
-                        )
-                else:
-                    continue
-
-                for module in imported:
-                    if module and any(
-                        module == legacy or module.startswith(f"{legacy}.")
-                        for legacy in legacy_modules
-                    ):
-                        relative = path.relative_to(ROOT)
-                        violations.append(f"{relative}:{node.lineno}: {module}")
+            for lineno, module in _imported_modules(path):
+                if any(
+                    module == legacy or module.startswith(f"{legacy}.")
+                    for legacy in legacy_modules
+                ):
+                    relative = path.relative_to(ROOT)
+                    violations.append(f"{relative}:{lineno}: {module}")
 
     assert not violations, (
         "Use canonical KOI package imports instead of compatibility modules:\n"
+        + "\n".join(violations)
+    )
+
+
+def test_sync_adapters_do_not_import_project_discovery_workflows() -> None:
+    adapter_paths = (
+        ROOT / "koi/adapters/project_sync.py",
+        ROOT / "koi/adapters/project_sync_queue.py",
+    )
+    forbidden = ("koi.projects", "koi.services.rq_discoveries")
+    violations: list[str] = []
+
+    for path in adapter_paths:
+        for lineno, module in _imported_modules(path):
+            if any(
+                module == prefix or module.startswith(f"{prefix}.")
+                for prefix in forbidden
+            ):
+                violations.append(f"{path.relative_to(ROOT)}:{lineno}: {module}")
+
+    assert not violations, (
+        "Sync adapters must receive discovery behavior from project orchestration:\n"
         + "\n".join(violations)
     )

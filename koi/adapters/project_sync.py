@@ -7,6 +7,7 @@ import subprocess
 import tarfile
 import io
 from pathlib import Path
+from typing import Callable
 
 from koi.adapters.project_mount import (
     BOOTSTRAP_WORKTREE_DIR,
@@ -24,6 +25,7 @@ from koi.adapters.project_sync_queue import (
 )
 
 KOI_STRUCTURE_PREFIX = "koi-structure/"
+RefChangeDiscovery = Callable[[str, str, Path], list[dict]]
 
 
 def _run_git(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -333,7 +335,12 @@ def _copy_koi_tree(mount: ProjectMount, target_root: Path) -> None:
     shutil.copytree(mount.koi_root, dst)
 
 
-def pull_mount(mount: ProjectMount, *, dry_run: bool = False) -> dict:
+def pull_mount(
+    mount: ProjectMount,
+    *,
+    dry_run: bool = False,
+    discover_ref_changes: RefChangeDiscovery | None = None,
+) -> dict:
     repo = mount.repo_root
     branch = mount.git_sync_branch or DEFAULT_SYNC_BRANCH
     koi_rel = _koi_rel(mount)
@@ -420,13 +427,8 @@ def pull_mount(mount: ProjectMount, *, dry_run: bool = False) -> dict:
 
     ref_after = _remote_sync_ref(repo, branch) or ref_before
     discoveries: list[dict] = []
-    if ref_before != ref_after:
-        from koi.adapters.rq_discoveries_feed import append_discoveries
-        from koi.services.rq_discoveries import detect_rq_discoveries
-
-        discoveries = detect_rq_discoveries(ref_before, ref_after, repo_root=repo)
-        if discoveries:
-            append_discoveries(discoveries)
+    if ref_before != ref_after and discover_ref_changes is not None:
+        discoveries = discover_ref_changes(ref_before, ref_after, repo)
 
     return {
         "ok": True,
@@ -589,7 +591,12 @@ def _aggregate_results(results: list[dict], *, action_key: str = "action") -> di
     }
 
 
-def pull_projects(*, dry_run: bool = False, project_id: str | None = None) -> dict:
+def pull_projects(
+    *,
+    dry_run: bool = False,
+    project_id: str | None = None,
+    discover_ref_changes: RefChangeDiscovery | None = None,
+) -> dict:
     mounts = sync_mounts()
     if project_id:
         mounts = [m for m in mounts if m.project_id == project_id]
@@ -602,7 +609,14 @@ def pull_projects(*, dry_run: bool = False, project_id: str | None = None) -> di
         return {"ok": False, "error": "no git-sync projects discovered"}
 
     summary = git_summary(project_id=project_id)
-    results = [pull_mount(m, dry_run=dry_run) for m in mounts]
+    results = [
+        pull_mount(
+            mount,
+            dry_run=dry_run,
+            discover_ref_changes=discover_ref_changes,
+        )
+        for mount in mounts
+    ]
     agg = _aggregate_results(results)
     agg.update(summary)
     agg["projects"] = summary.get("projects", [])
