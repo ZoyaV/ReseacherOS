@@ -3,6 +3,8 @@
  * Tools: move, directed arrow linking, auto-layout, Q/A reveal.
  */
 
+import { KoiApi } from "./api.js?v=20260715a";
+
 const CARD_W = 184;
 const CARD_MIN_H = 40;
 const RQ_ZONE_H = 34;
@@ -62,7 +64,7 @@ function layoutKey(projectId, boardId) {
   return `${STORAGE_PREFIX}:${projectId || "p"}:${boardId || "b"}`;
 }
 
-function loadLayout(projectId, boardId) {
+function loadLayoutFromLocalStorage(projectId, boardId) {
   try {
     const raw = localStorage.getItem(layoutKey(projectId, boardId));
     return raw ? JSON.parse(raw) : { cards: {} };
@@ -71,9 +73,9 @@ function loadLayout(projectId, boardId) {
   }
 }
 
-function saveLayout(projectId, boardId, layout) {
+function clearLayoutFromLocalStorage(projectId, boardId) {
   try {
-    localStorage.setItem(layoutKey(projectId, boardId), JSON.stringify(layout));
+    localStorage.removeItem(layoutKey(projectId, boardId));
   } catch {
     /* ignore */
   }
@@ -227,15 +229,17 @@ class KanbanDagEditor {
     this.drag = null;
     this.camera = { x: 40, y: 40, scale: 1 };
     this.layoutAnim = null;
+    this._layoutSaveTimer = null;
+    this._layoutHydrated = false;
     this._linkMoveHandler = null;
     this._linkUpHandler = null;
 
-    const layout = loadLayout(this.projectId, board.id);
     const cardDefaults = defaultCardPositions(this.cards);
     this.positions = {
-      cards: mergePositions(layout.cards, cardDefaults),
+      cards: { ...cardDefaults },
     };
     this._mount();
+    void this._hydrateLayoutFromServer(cardDefaults);
   }
 
   destroy() {
@@ -243,6 +247,7 @@ class KanbanDagEditor {
     this._teardownLinkHandlers();
     this._cancelArrowDraft();
     if (this.layoutAnim) cancelAnimationFrame(this.layoutAnim);
+    if (this._layoutSaveTimer) clearTimeout(this._layoutSaveTimer);
     if (this._edgeRenderRaf) cancelAnimationFrame(this._edgeRenderRaf);
     if (this._fitRaf) cancelAnimationFrame(this._fitRaf);
     if (this._resizeFitTimer) clearTimeout(this._resizeFitTimer);
@@ -263,7 +268,76 @@ class KanbanDagEditor {
   }
 
   persistLayout() {
-    saveLayout(this.projectId, this.board.id, { cards: this.positions.cards });
+    if (this.ctx.readOnly || !this.projectId || !this.board?.id) return;
+    if (this._layoutSaveTimer) clearTimeout(this._layoutSaveTimer);
+    this._layoutSaveTimer = setTimeout(() => {
+      this._layoutSaveTimer = null;
+      void this._flushLayout();
+    }, 400);
+  }
+
+  async _flushLayout() {
+    if (this.ctx.readOnly || !this.projectId || !this.board?.id) return;
+    try {
+      await KoiApi.saveBoardDagLayout(this.projectId, this.board.id, {
+        cards: this.positions.cards,
+      });
+    } catch (err) {
+      this.ctx.onStatus?.(err?.message || "Не удалось сохранить раскладку DAG", true);
+      console.error("DAG layout save failed", err);
+    }
+  }
+
+  _applyPositionsToDom() {
+    for (const card of this.visibleCards()) {
+      const pos = this.positions.cards[card.id];
+      if (!pos) continue;
+      const el = this.nodesEl?.querySelector(`[data-bundle-id="${CSS.escape(card.id)}"]`);
+      if (el) {
+        el.style.left = `${pos.x}px`;
+        el.style.top = `${pos.y}px`;
+      }
+    }
+    this._resizeWorld();
+    this._scheduleEdgeRender();
+  }
+
+  async _hydrateLayoutFromServer(cardDefaults = defaultCardPositions(this.cards)) {
+    if (!this.projectId || !this.board?.id) {
+      this._layoutHydrated = true;
+      return;
+    }
+    try {
+      const remote = await KoiApi.getBoardDagLayout(this.projectId, this.board.id);
+      const remoteCards = remote?.cards || {};
+      if (Object.keys(remoteCards).length > 0) {
+        this.positions.cards = mergePositions(remoteCards, cardDefaults);
+        this._applyPositionsToDom();
+        this._layoutHydrated = true;
+        return;
+      }
+
+      const local = loadLayoutFromLocalStorage(this.projectId, this.board.id);
+      if (Object.keys(local.cards || {}).length > 0) {
+        this.positions.cards = mergePositions(local.cards, cardDefaults);
+        this._applyPositionsToDom();
+        if (!this.ctx.readOnly) {
+          await KoiApi.saveBoardDagLayout(this.projectId, this.board.id, {
+            cards: this.positions.cards,
+          });
+          clearLayoutFromLocalStorage(this.projectId, this.board.id);
+        }
+      }
+    } catch (err) {
+      const local = loadLayoutFromLocalStorage(this.projectId, this.board.id);
+      if (Object.keys(local.cards || {}).length > 0) {
+        this.positions.cards = mergePositions(local.cards, cardDefaults);
+        this._applyPositionsToDom();
+      }
+      console.error("DAG layout load failed", err);
+    } finally {
+      this._layoutHydrated = true;
+    }
   }
 
   measuredBundleHeight(cardId) {
@@ -1081,10 +1155,8 @@ class KanbanDagEditor {
     this.ctx = { ...this.ctx, ...ctx, node };
     this.cards = board?.cards || [];
     this.questions = node?.research_questions || [];
-    const layout = loadLayout(this.projectId, board.id);
     const cardDefaults = defaultCardPositions(this.cards);
-    this.positions.cards = mergePositions(layout.cards, mergePositions(this.positions.cards, cardDefaults));
-    this._resizeWorld();
+    void this._hydrateLayoutFromServer(cardDefaults);
     this._renderNodes();
     this._scheduleEdgeRender();
     this._syncToolCursors();

@@ -151,6 +151,12 @@ def load_composite(composite_id: str) -> CompositeProject | None:
         if project is None:
             continue
         member_projects.append((pid, project))
+    return build_composite(composite_id, member_projects)
+
+
+def build_composite(
+    composite_id: str, member_projects: list[tuple[str, Project]]
+) -> CompositeProject | None:
     if len(member_projects) < 2:
         return None
 

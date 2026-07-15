@@ -1,5 +1,8 @@
 /** API base URL: same port via /api proxy (koi_web_proxy.py), else direct :8010. */
 export function apiBase() {
+  if (typeof window !== "undefined" && window.__HUB__) {
+    return window.location.origin;
+  }
   if (typeof window === "undefined" || !window.location?.hostname) {
     return "http://127.0.0.1:8010";
   }
@@ -184,6 +187,13 @@ export const KoiApi = {
   suggestBoardDag: (projectId, boardId, body = {}) =>
     api(`/projects/${projectId}/boards/${boardId}/dag/suggest`, {
       method: "POST",
+      body: JSON.stringify(body),
+    }),
+  getBoardDagLayout: (projectId, boardId) =>
+    api(`/projects/${projectId}/boards/${boardId}/dag-layout`),
+  saveBoardDagLayout: (projectId, boardId, body) =>
+    api(`/projects/${projectId}/boards/${boardId}/dag-layout`, {
+      method: "PUT",
       body: JSON.stringify(body),
     }),
   deleteCard: (projectId, boardId, cardId) =>

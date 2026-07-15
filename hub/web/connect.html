@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Подключить проект · ResearchOS Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/core/styles.css?v=20260713q" />
+  <link rel="stylesheet" href="/static/hub-overrides.css?v=6" />
+  <script>
+    (function () {
+      var t = localStorage.getItem("koi-theme");
+      if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
+</head>
+<body class="hub-page" data-page="connect">
+  <header class="topbar">
+    <div class="topbar-row">
+      <div class="topbar-start">
+        <div class="brand">
+          <a href="/" class="logo-link"><span class="logo">ResearchOS</span></a>
+          <span class="tagline">Hub</span>
+        </div>
+        <div class="topbar-nav">
+          <a href="/?tab=mine" class="btn">← Мои проекты</a>
+        </div>
+      </div>
+      <div class="toolbar" id="auth-toolbar"></div>
+    </div>
+  </header>
+  <main>
+    <section class="hub-hero">
+      <p class="hub-hero__kicker">Подключение</p>
+      <h1>Новый проект в Hub</h1>
+      <p>
+        Репозиторий с веткой <code>koi/research</code> и каталогом <code>koi-structure/</code>.
+        Синхронизируется только структура исследования — без исходного кода.
+      </p>
+    </section>
+    <form id="connect-form" class="form hub-connect-form">
+      <label>
+        Репозиторий (owner/name)
+        <select id="repo" required></select>
+      </label>
+      <label>
+        Ветка
+        <input id="branch" value="koi/research" required />
+      </label>
+      <label>
+        Название (необязательно)
+        <input id="title" placeholder="Из project.md, если пусто" />
+      </label>
+      <label>
+        Видимость
+        <select id="visibility">
+          <option value="public">Публичный — вкладка «Все проекты»</option>
+          <option value="network">Сеть — только подписчикам</option>
+          <option value="unlisted">По ссылке — секретный URL</option>
+        </select>
+      </label>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Подключить и синхронизировать</button>
+      </div>
+      <div id="status" class="hub-status"></div>
+    </form>
+  </main>
+  <script src="/static/hub-shell.js?v=1"></script>
+  <script src="/static/hub.js?v=10"></script>
+</body>
+</html>

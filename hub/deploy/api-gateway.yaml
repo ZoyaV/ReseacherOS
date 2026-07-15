@@ -1,0 +1,24 @@
+openapi: 3.0.0
+info:
+  title: researchos-hub
+  version: 0.1.0
+paths:
+  /{proxy+}:
+    x-yc-apigateway-any-method:
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: __CONTAINER_ID__
+        service_account_id: __SERVICE_ACCOUNT_ID__
+        path: /{proxy}
+  /:
+    get:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: __CONTAINER_ID__
+        service_account_id: __SERVICE_ACCOUNT_ID__

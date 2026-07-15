@@ -65,6 +65,10 @@ class DagSuggestBody(BaseModel):
     apply: bool = False
 
 
+class DagLayoutBody(BaseModel):
+    cards: dict[str, dict[str, float]] = Field(default_factory=dict)
+
+
 class DagEdgeBody(BaseModel):
     from_card_id: str = Field(min_length=1)
     to_card_id: str = Field(min_length=1)

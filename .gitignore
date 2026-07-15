@@ -6,3 +6,6 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .DS_Store
+hub/.data/
+hub/.env
+hub/deploy/*.rendered

@@ -12,6 +12,7 @@ from api.schemas import (
     CreateNodeBody,
     CreateProjectBody,
     DagSuggestBody,
+    DagLayoutBody,
     UpdateCardBody,
     UpdateNodeBody,
 )
@@ -61,6 +62,7 @@ from koi.services.dag_suggest import (
     apply_dag_suggestions,
     suggest_board_dag,
 )
+from koi.services.dag_layout import load_dag_layout, save_dag_layout
 from koi.services.rq_discoveries import running_kanban_activity
 
 router = APIRouter(tags=["projects"])
@@ -323,6 +325,32 @@ def post_board_dag_suggest(
             "project": project_to_client(project),
         }
     return {"suggestions": suggestions}
+
+
+@router.get("/projects/{project_id}/boards/{board_id}/dag-layout")
+def get_board_dag_layout(project_id: str, board_id: str) -> dict:
+    project = parse_project(project_id)
+    board = next((b for b in project.boards if b.id == board_id), None)
+    if board is None:
+        raise HTTPException(404, "Board not found")
+    return load_dag_layout(project_id, board_id)
+
+
+@router.put("/projects/{project_id}/boards/{board_id}/dag-layout")
+def put_board_dag_layout(
+    project_id: str, board_id: str, body: DagLayoutBody
+) -> dict:
+    project = require_project(project_id)
+    board = next((b for b in project.boards if b.id == board_id), None)
+    if board is None:
+        raise HTTPException(404, "Board not found")
+    valid_ids = {c.id for c in board.cards}
+    return save_dag_layout(
+        project_id,
+        board_id,
+        body.cards,
+        valid_card_ids=valid_ids,
+    )
 
 
 @router.delete("/projects/{project_id}/boards/{board_id}/cards/{card_id}")

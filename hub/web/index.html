@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ResearchOS Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/core/styles.css?v=20260713q" />
+  <link rel="stylesheet" href="/static/hub-overrides.css?v=9" />
+  <script>
+    (function () {
+      var t = localStorage.getItem("koi-theme");
+      if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
+</head>
+<body class="hub-page hub-page--index" data-page="index">
+  <header class="topbar hub-topbar">
+    <div class="topbar-row">
+      <div class="topbar-start">
+        <div class="brand hub-brand">
+          <a href="/" class="hub-brand__link"><span class="hub-brand__name">ResearchOS</span><span class="hub-brand__hub">Hub</span></a>
+        </div>
+      </div>
+      <div class="toolbar hub-topbar__tools" id="auth-toolbar"></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hub-panel" id="hub-panel" aria-labelledby="hub-panel-title">
+      <div class="hub-panel__body">
+        <div class="hub-panel__copy">
+          <h1 class="hub-panel__title" id="hub-panel-title">Все проекты</h1>
+          <p class="hub-panel__desc" id="hub-panel-desc">Публичный каталог — деревья гипотез и канбан без кода.</p>
+        </div>
+        <div class="hub-panel__cta" id="hub-panel-cta">
+          <a href="/auth/github" class="btn btn-primary hub-enter-btn">Войти в мир исследований</a>
+        </div>
+      </div>
+      <nav class="hub-panel__tabs" role="tablist" aria-label="Разделы каталога">
+        <button type="button" class="hub-panel__tab is-active" role="tab" data-tab="all" aria-selected="true">Все</button>
+        <button type="button" class="hub-panel__tab" role="tab" data-tab="subscriptions" aria-selected="false">Подписки</button>
+        <button type="button" class="hub-panel__tab" role="tab" data-tab="mine" aria-selected="false">Мои</button>
+      </nav>
+    </section>
+
+    <div id="catalog" role="tabpanel"></div>
+    <p id="hub-status" class="hub-status" aria-live="polite"></p>
+  </main>
+
+  <div id="hub-link-modal" class="modal hidden" role="dialog" aria-labelledby="hub-link-modal-title">
+    <div class="modal-backdrop" data-close="hub-link-modal"></div>
+    <div class="modal-panel modal-panel--narrow">
+      <button type="button" class="modal-close" data-action="close-link-modal" aria-label="Закрыть">×</button>
+      <p class="modal-type">Подписки</p>
+      <h2 id="hub-link-modal-title">Добавить по ссылке</h2>
+      <p class="modal-desc">Вставьте ссылку на проект Hub — public, network или unlisted с <code>?token=</code>.</p>
+      <form id="hub-link-form" class="form">
+        <label>
+          Ссылка на проект
+          <input id="hub-link-input" type="url" required placeholder="https://…/p/slug или /p/slug?token=…" />
+        </label>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Добавить</button>
+          <button type="button" class="btn" data-action="close-link-modal">Отмена</button>
+        </div>
+        <p id="hub-link-status" class="hub-status"></p>
+      </form>
+    </div>
+  </div>
+  <script src="/static/hub-shell.js?v=1"></script>
+  <script src="/static/hub.js?v=14"></script>
+</body>
+</html>

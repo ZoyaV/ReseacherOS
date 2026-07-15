@@ -6,8 +6,8 @@ import {
   runningCardContextsFromProjects,
   setRunningSeedProvider,
 } from "./card-live.js";
-import { KoiApi } from "./api.js?v=20260713q";
-import { destroyKanbanDagView, fitKanbanDagView, refreshKanbanDagView } from "./kanban-dag.js?v=20260713p";
+import { KoiApi } from "./api.js?v=20260715a";
+import { destroyKanbanDagView, fitKanbanDagView, refreshKanbanDagView } from "./kanban-dag.js?v=20260715a";
 import {
   koiLoaderTypingHtml,
   refreshInlineLoaderHints,
@@ -38,6 +38,66 @@ import {
   mountAddNodeButton,
   mountNodeTypeHelp,
 } from "./node-tree-help.js";
+
+function isHubMode() {
+  return Boolean(window.__HUB__?.slug);
+}
+
+function applyHubReadonlyChrome() {
+  document.body.classList.add("hub-readonly");
+  for (const id of [
+    "btn-sync",
+    "btn-settings",
+    "btn-new-project",
+    "btn-agent-chat",
+    "btn-knowledge",
+    "btn-related-work",
+    "btn-paper",
+    "cursor-usage-widget",
+    "btn-rq-bell",
+    "card-live-modal",
+  ]) {
+    document.getElementById(id)?.classList.add("hidden");
+  }
+  document.querySelector(".workspace-dock")?.classList.add("hidden");
+  document.querySelector(".projects-sidebar__footer")?.classList.add("hidden");
+  document.querySelector(".agent-chat-panel")?.classList.add("hidden");
+  document.querySelector(".topbar-nav a[href='tour.html']")?.classList.add("hidden");
+  document.getElementById("method-activity-overlay")?.classList.add("hidden");
+  const toolbar = document.querySelector(".toolbar");
+  if (toolbar && !document.getElementById("hub-toolbar-links")) {
+    const wrap = document.createElement("div");
+    wrap.id = "hub-toolbar-links";
+    wrap.className = "hub-toolbar-links";
+    wrap.innerHTML =
+      '<a href="/" class="btn">Каталог</a>' +
+      '<a href="/connect" class="btn">Подключить</a>' +
+      '<a href="/onboarding" class="btn btn-tour">Onboarding</a>';
+    toolbar.prepend(wrap);
+  }
+  const tagline = document.getElementById("brand-tagline");
+  if (tagline && window.__HUB__?.meta?.owner_login) {
+    tagline.textContent =
+      "Hub · @" + window.__HUB__.meta.owner_login + " · только просмотр";
+  }
+}
+
+async function resolveHubProjectId() {
+  const slug = window.__HUB__.slug;
+  const token = new URLSearchParams(window.location.search).get("token");
+  const url =
+    "/api/projects/" +
+    encodeURIComponent(slug) +
+    (token ? "?token=" + encodeURIComponent(token) : "");
+  const res = await fetch(url, { credentials: "same-origin" });
+  if (!res.ok) {
+    const detail = res.status === 403 ? "Нет доступа к проекту" : "Проект не найден";
+    throw new Error(detail);
+  }
+  const snap = await res.json();
+  window.__HUB__.meta = snap.meta || {};
+  return snap.project?.id || null;
+}
 
 /** Бейдж вердикта на узле-гипотезе (cause): подтверждена / опровергнута. */
 const VERDICT_BADGES = {
@@ -649,6 +709,7 @@ async function preloadAllRunningAuthors() {
 }
 
 function syncLabActivityOverlay() {
+  if (isHubMode()) return;
   const viewport = document.getElementById("mindmap-viewport");
   if (!viewport || !labCamera || !state.lab?.projectsById) return;
   const items = collectRunningActivityItems();
@@ -718,6 +779,7 @@ function appendKanbanBelow(wrap, node, project = state.project) {
     openKanbanFromBelow(e);
   });
   wrap.appendChild(below);
+  if (isHubMode()) return;
   syncMethodActivity(below, node, board, context);
   bindMethodLiveInspect(below, node, board, project);
   if (project?.id && activityState.running.length) {
@@ -726,6 +788,7 @@ function appendKanbanBelow(wrap, node, project = state.project) {
 }
 
 function refreshKanbanActivityForProject(projectId, { nodeId = null } = {}) {
+  if (isHubMode()) return;
   const project =
     state.lab?.projectsById?.[projectId] ||
     (state.project?.id === projectId ? state.project : null);
@@ -1649,7 +1712,7 @@ async function loadLab() {
   syncRunningSeedProvider();
   rebuildLabWorldLayoutFull();
   ensureLabCamera();
-  void preloadAllRunningAuthors();
+  if (!isHubMode()) void preloadAllRunningAuthors();
 }
 
 function mountMapNode(pos, layer, project, node, nodeSizes) {
@@ -1926,7 +1989,7 @@ function renderLabMindmap(options = {}) {
     requestAnimationFrame(() => {
       syncLabActivityOverlay();
     });
-    void preloadAllRunningAuthors();
+    if (!isHubMode()) void preloadAllRunningAuthors();
   }
   updateViewChrome();
 }
@@ -3571,9 +3634,11 @@ function setKanbanViewMode(mode) {
   if (isBoard) destroyKanbanDagView();
   tagFilter?.classList.toggle("hidden", !tagFilter.childElementCount);
   if (hint) {
-    hint.textContent = isBoard
-      ? "⠿ — перетащить · + — новая карточка · двойной клик — правка · ↗ — отчёт"
-      : "DAG — → зажать на карточке, отпустить на цели · двойной клик на стрелке — удалить";
+    hint.textContent = isHubMode()
+      ? "Только просмотр · ↗ — отчёт · фильтр по тегам · DAG — связи между карточками"
+      : isBoard
+        ? "⠿ — перетащить · + — новая карточка · двойной клик — правка · ↗ — отчёт"
+        : "DAG — → зажать на карточке, отпустить на цели · двойной клик на стрелке — удалить";
   }
 }
 
@@ -3583,6 +3648,17 @@ function getKanbanDagContext(board, node) {
   const liveBoard = () => state.project?.boards?.[boardId] || board;
   const liveNode = () =>
     state.project?.nodes?.find((n) => n.id === node?.id) || node;
+  if (isHubMode()) {
+    return {
+      node,
+      projectId: state.project?.id,
+      tagFilters: state.kanbanDisabledTagFilters || [],
+      cardMatchesFilter: cardMatchesKanbanTagFilter,
+      cardTagsHtml: (card) => cardTagsRowHtml(card.tags, { dag: true }),
+      onOpenReport: (card) => void openCardReport(card, liveBoard()),
+      readOnly: true,
+    };
+  }
   const refreshDag = async () => {
     state.project = await reloadProjectView();
     syncLabProject(state.project);
@@ -3944,6 +4020,21 @@ async function copyCardReportPath(card, board) {
 }
 
 function bindKanbanCardEvents(boardEl, board, context = {}) {
+  if (isHubMode()) {
+    boardEl.querySelectorAll(".kanban-card").forEach((cardEl) => {
+      const cardId = cardEl.dataset.cardId;
+      cardEl.querySelector(".card-expand-report")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (context.project) state.project = context.project;
+        if (context.node) state.kanbanNodeId = context.node.id;
+        const c =
+          getBoardCard(state.project.boards[board.id] || board, cardId) ||
+          board.cards.find((item) => item.id === cardId);
+        void openCardReport(c, board);
+      });
+    });
+    return;
+  }
   boardEl.querySelectorAll(".kanban-card").forEach((cardEl) => {
     const cardId = cardEl.dataset.cardId;
     const card = board.cards.find((c) => c.id === cardId);
@@ -4103,8 +4194,8 @@ function saveKanbanDisabledTagFilters(projectId, boardId, disabled) {
   }
 }
 
-function reconcileKanbanDisabledTagFilters(board) {
-  const vocab = boardCardTagVocabulary(board);
+function reconcileKanbanDisabledTagFilters(board, project = state.project) {
+  const vocab = boardCardTagSuggestions(board, project);
   const allowed = new Set(vocab.map((t) => t.toLowerCase()));
   const disabled = (state.kanbanDisabledTagFilters || []).filter((t) => allowed.has(t));
   if (disabled.length !== (state.kanbanDisabledTagFilters || []).length) {
@@ -4135,7 +4226,7 @@ function renderKanbanTagFilter(project, board) {
   const el = document.getElementById("kanban-tag-filter");
   if (!el) return;
 
-  const tags = boardCardTagVocabulary(board);
+  const tags = boardCardTagSuggestions(board, project);
   if (!tags.length) {
     el.classList.add("hidden");
     el.innerHTML = "";
@@ -4687,7 +4778,7 @@ function kanbanCardHtml(c, col, variant = "modal") {
   const descTodoOnly = !displayDesc.trim() && cardHasSubtasks(c.description);
   const descConclusion = isKanbanConclusionColumn(col.id) ? " card-desc-conclusion" : "";
   const descPlaceholder = cardDescPlaceholder(col.id);
-  const map = variant === "map";
+  const map = variant === "map" || isHubMode();
   const deleteBtn = map
     ? ""
     : `<button type="button" class="card-delete" title="Удалить" aria-label="Удалить карточку">×</button>`;
@@ -4728,7 +4819,7 @@ function kanbanCardHtml(c, col, variant = "modal") {
           </div>
           ${todoProgress}
           <div class="kanban-card-footer">
-            ${cardTagsRowHtml(c.tags, { kanban: true })}
+            ${cardTagsRowHtml(c.tags, { dag: isHubMode(), kanban: !isHubMode() })}
             <div class="kanban-card-actions">
               ${copyBtn}
               <button type="button" class="card-expand-report card-action-btn" title="Открыть отчёт" aria-label="Открыть отчёт">
@@ -4794,7 +4885,7 @@ function renderKanbanBoardInto(boardEl, board, { variant = "modal", node = null,
         }
       : null;
   void hydrateKanbanCardTodoFromReports(boardEl, board, ctx.project, liveCtx);
-  if (liveCtx) {
+  if (liveCtx && !isHubMode()) {
     bindLiveInspectButtons(boardEl, liveCtx, cardLiveUi);
   }
 }
@@ -4813,6 +4904,7 @@ function renderKanbanBoard(board) {
 }
 
 function bindKanbanColumnActions(boardEl, board, context = {}) {
+  if (isHubMode()) return;
   boardEl.querySelectorAll(".col-add-btn").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -8866,19 +8958,26 @@ function initKnowledge() {
 }
 
 async function init() {
+  const hubMode = isHubMode();
   initImageLightbox();
-  initCursorUsageWidget();
-  initKnowledge();
-  initPaper();
+  if (!hubMode) initCursorUsageWidget();
+  if (!hubMode) {
+    initKnowledge();
+    initPaper();
+  }
   initTheme();
   initTaglineRotation();
-  initSync();
-  initProjectDiscoveryPoll();
-  initSettings();
-  initAgentChat();
+  if (!hubMode) {
+    initSync();
+    initProjectDiscoveryPoll();
+    initSettings();
+    initAgentChat();
+  } else {
+    applyHubReadonlyChrome();
+  }
   initKanbanViewTabs();
   initKanbanModalChrome();
-  bindCardLiveModal(cardLiveUi);
+  if (!hubMode) bindCardLiveModal(cardLiveUi);
   document.querySelectorAll("[data-close]").forEach((el) => {
     el.addEventListener("click", () => {
       if (el.dataset.close === "card-report-modal") {
@@ -8959,7 +9058,7 @@ async function init() {
     true
   );
 
-  setupInlineEdits();
+  if (!hubMode) setupInlineEdits();
   document.getElementById("add-child-form").addEventListener("submit", onAddChildSubmit);
   document.getElementById("btn-delete-node").addEventListener("click", onDeleteNode);
   document.getElementById("btn-add-method")?.addEventListener("click", (e) => {
@@ -8987,14 +9086,22 @@ async function init() {
   try {
     state.meta = await KoiApi.meta();
     await loadLab();
-    const requestedProjectId = new URLSearchParams(window.location.search).get("project");
+    let requestedProjectId = new URLSearchParams(window.location.search).get("project");
+    if (hubMode) {
+      requestedProjectId = await resolveHubProjectId();
+    }
     const preferred = resolvePreferredProjectId(
       requestedProjectId,
       state.lab.grouped,
       state.lab.projectsById
     );
     if (!preferred) {
-      setStatus("Нет обнаруженных проектов (ищем */koi-structure/)", true);
+      setStatus(
+        hubMode
+          ? "Не удалось загрузить снимок проекта"
+          : "Нет обнаруженных проектов (ищем */koi-structure/)",
+        true
+      );
       return;
     }
     state.project = state.lab.projectsById[preferred];
@@ -9024,7 +9131,9 @@ async function init() {
   } catch (err) {
     console.error("ResearchOS init failed:", err);
     setStatus(
-      `Не удалось загрузить: ${err.message}. Проверьте API на ${KoiApi.baseUrl?.() ?? "порту 8010"} (scripts/koi-serve.sh start).`,
+      hubMode
+        ? `Hub: ${err.message}`
+        : `Не удалось загрузить: ${err.message}. Проверьте API на ${KoiApi.baseUrl?.() ?? "порту 8010"} (scripts/koi-serve.sh start).`,
       true
     );
   }

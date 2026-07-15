@@ -4,6 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ResearchOS</title>
+  <script>
+    (function () {
+      var m = location.pathname.match(/^\/p\/([^/?#]+)/);
+      if (m) {
+        window.__HUB__ = { slug: decodeURIComponent(m[1]) };
+        var base = document.createElement("base");
+        base.href = "/core/";
+        document.head.insertBefore(base, document.head.firstChild);
+        document.documentElement.classList.add("hub-viewer");
+        var l = document.createElement("link");
+        l.rel = "stylesheet";
+        l.href = "/static/hub-overrides.css?v=2";
+        document.head.appendChild(l);
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
@@ -710,6 +726,6 @@
     </button>
   </div>
 
-  <script type="module" src="app.js?v=20260713p"></script>
+  <script type="module" src="app.js?v=20260713r"></script>
 </body>
 </html>
