@@ -10,3 +10,4 @@ __pycache__/
 hub/.data/
 hub/.env
 hub/deploy/*.rendered
+REFACTORING_PLAN.md
