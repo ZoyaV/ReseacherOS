@@ -107,6 +107,19 @@ API и агент добавляют записи при значимых изм
 
 ## Связанные скиллы
 
+- `koi-project-onboard` — после attach дерева сам вызывает `init-sync-branch` +
+  `push` на orphan-ветку репо человека (§6c); дальше обычный sync здесь
 - `koi-done-research` — после вывода проверь push
 - `koi-dev-server` — API пишет в `projects/`, очередь push пополняется автоматически
 - `loop` — фоновый pull каждые 30 мин
+
+## Sibling repos (`koi-structure/` + orphan branch)
+
+Для проектов с `git_repo: true` и `git_sync_branch` каноничный CLI:
+
+```bash
+python -m koi.projects.sync_cli init-sync-branch --project-id <id>
+python -m koi.projects.sync_cli push --project-id <id>
+python -m koi.projects.sync_cli pull --project-id <id>
+python -m koi.projects.sync_cli status
+```

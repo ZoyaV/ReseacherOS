@@ -17,7 +17,7 @@ ResearchOS рассчитан на выполнение исследовател
 
 ## Skills
 
-- `koi-project-onboard` — подключить code-репо: scan + lit + сократовский диалог (problem → cause/hyp → method) + **koi-prose-style** + скелет дерева;
+- `koi-project-onboard` — подключить code-репо: диалог + prose + скелет дерева; если git — orphan `init-sync-branch` + push `koi-structure/`;
 - `koi-grill-experiment` — спроектировать карточку эксперимента до прогона;
 - `koi-execute-card` — выполнить карточку эксперимента;
 - `koi-report-review` — подготовить и проверить отчёт;

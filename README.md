@@ -121,37 +121,23 @@ Use this when you already have a git repo with experiment code and want Research
 
 Layout: clone or place your repo as a sibling of `ReseachOS/`. Add `koi-structure/project.md` (minimal frontmatter below).
 
-Agent prompt — paste into Cursor / Claude Code; the agent should read skill `koi-project-sync` and run the CLI:
+Agent prompt — paste into Cursor / Claude Code; the agent should follow skill
+`koi-project-onboard` (Socratic tree + prose) and finish with orphan sync via
+`koi.projects.sync_cli` (same steps as skill §6c):
 
 ```
-Attach my existing experiment repo to ResearchOS with orphan-branch sync.
+Подключи <path-to-my-repo> к ResearchOS (attach + orphan-branch sync).
 
 Context:
 - Engine: ../ReseachOS/ (or absolute path to this ResearchOS clone)
 - My project repo: <path> (sibling of ReseachOS/)
 - Research data: <repo>/koi-structure/
-- Experiment code: <repo>/projectcode/ (or existing code paths)
+- Sync branch default: koi/research
 
-Steps:
-1. Ask me for: project title, folder/repo name, and preferred sync branch name
-   (default: koi/research).
-2. Create koi-structure/project.md with frontmatter:
-   id, title, format: koi/1, git_repo: true, git_sync_branch: <branch>
-   Plus koi-structure/research.json: {"version":1,"questions":[]}
-3. If the tree is empty, interview me briefly and draft a minimal problem → cause → method skeleton.
-4. From ReseachOS root, run:
-   python -m koi.projects.sync_cli init-sync-branch --project-id <id>
-   This creates the orphan branch on origin and seeds koi-structure/.
-5. On the CODE branch of my project repo:
-   - git rm -r --cached koi-structure  (if it was tracked)
-   - append to .gitignore:
-     koi-structure/
-     .koi-sync-worktree/
-     .koi-sync-bootstrap/
-   - commit: "chore: track koi-structure on orphan sync branch"
-6. Verify: python -m koi.projects.sync_cli status
-7. Restart serve: ./scripts/koi-serve.sh restart
-8. Do not change git config. Do not commit secrets (.env).
+Follow agents/skills/koi-project-onboard/SKILL.md end-to-end, including §6c:
+init-sync-branch + push koi-structure to the orphan branch; on the code branch
+gitignore koi-structure/ and related worktree dirs. Do not change git config.
+Do not commit secrets (.env).
 
 If init-sync-branch reports "exists", the remote branch is already there — see next section.
 ```
