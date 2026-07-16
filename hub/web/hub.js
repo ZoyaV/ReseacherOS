@@ -773,72 +773,10 @@ async function initConnectPage() {
   });
 }
 
-async function initOnboardingPage() {
-  await renderAuthToolbar();
-  try {
-    const me = await HubApi.get("/api/me");
-    const signin = document.getElementById("onboarding-signin");
-    if (me.authenticated && signin) {
-      signin.textContent = "Подключить проект";
-      signin.href = "/connect";
-    }
-  } catch (_err) {
-    /* ignore */
-  }
-
-  const list = document.getElementById("discover-users");
-  const status = document.getElementById("discover-status");
-  if (!list) return;
-  list.innerHTML = "";
-  try {
-    const data = await HubApi.get("/api/users/discoverable");
-    const users = data.users || [];
-    if (!users.length) {
-      if (status) status.textContent = "Пока никто не отметился как discoverable.";
-      return;
-    }
-    list.innerHTML = users
-      .map(function (u) {
-        return (
-          "<li>" +
-          '<span class="user-chip"><img src="' +
-          escapeHtml(u.avatar_url) +
-          '" alt="" width="24" height="24" /><span>@' +
-          escapeHtml(u.login) +
-          "</span></span>" +
-          '<button type="button" class="btn btn-primary hub-follow-btn" data-id="' +
-          u.github_id +
-          '">Подписаться</button>' +
-          "</li>"
-        );
-      })
-      .join("");
-    list.querySelectorAll(".hub-follow-btn").forEach(function (btn) {
-      btn.addEventListener("click", async function () {
-        btn.disabled = true;
-        try {
-          await HubApi.post("/api/follow", { github_id: Number(btn.dataset.id) });
-          btn.textContent = "Подписаны";
-          if (status) {
-            status.innerHTML =
-              'Подписка оформлена. Смотрите ленту во вкладке <a href="/?tab=subscriptions">Подписки</a>.';
-          }
-        } catch (err) {
-          btn.disabled = false;
-          if (status) status.textContent = err.message;
-        }
-      });
-    });
-  } catch (err) {
-    if (status) status.textContent = err.message;
-  }
-}
-
 function boot() {
   const page = document.body.getAttribute("data-page");
   if (page === "index") initIndexPage();
   else if (page === "connect") initConnectPage();
-  else if (page === "onboarding") initOnboardingPage();
 }
 
 if (document.readyState === "loading") {

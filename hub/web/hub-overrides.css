@@ -557,10 +557,80 @@
 
 .hub-toolbar-links {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 0.45rem;
-  margin-right: 0.35rem;
+  gap: 0.65rem;
+  margin-right: 0;
+}
+
+.hub-toolbar-sep {
+  width: 1px;
+  height: 1rem;
+  background: var(--border);
+  flex: 0 0 auto;
+}
+
+.hub-nav-link {
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  border: none;
+  background: none;
+  padding: 0.15rem 0;
+  cursor: pointer;
+  transition: color 0.18s ease;
+  white-space: nowrap;
+}
+
+.hub-nav-link:hover,
+.hub-nav-link:focus-visible {
+  color: var(--fg, inherit);
+  text-decoration: none;
+  outline: none;
+}
+
+.hub-nav-link--accent {
+  color: color-mix(in srgb, var(--purple) 70%, var(--fg, #111));
+}
+
+.hub-nav-link--accent:hover {
+  color: var(--purple, #7c5cff);
+}
+
+.hub-nav-link--muted {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.hub-viewer-account {
+  display: inline-flex;
+  align-items: center;
+}
+
+body.hub-readonly .toolbar {
+  gap: 0.5rem;
+}
+
+body.hub-readonly .hub-account__trigger {
+  font-size: 0.84rem;
+  padding: 0.15rem 0.5rem 0.15rem 0.2rem;
+  gap: 0.4rem;
+  background: transparent;
+  border-color: transparent;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+body.hub-readonly .hub-account__trigger:hover,
+body.hub-readonly .hub-account__trigger[aria-expanded="true"] {
+  background: var(--surface-muted-btn);
+  border-color: var(--border);
+}
+
+body.hub-readonly .hub-account__trigger img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
 }
 
 .user-chip {
@@ -578,87 +648,6 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-}
-
-.hub-onboarding {
-  max-width: 720px;
-  margin: 0 auto;
-}
-
-.hub-onboarding .tour-kicker,
-.hub-onboarding .tour-title,
-.hub-onboarding .tour-lead {
-  text-align: left;
-}
-
-.hub-onboarding .tour-section__inner {
-  padding: 2rem 0;
-}
-
-.hub-onboarding-steps {
-  display: grid;
-  gap: 0.75rem;
-  margin: 1.25rem 0 0;
-}
-
-.hub-onboarding-step {
-  display: flex;
-  gap: 0.85rem;
-  align-items: flex-start;
-  padding: 0.95rem 1rem;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--glass) 90%, transparent);
-}
-
-.hub-onboarding-step__num {
-  flex: 0 0 auto;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  font-size: 0.82rem;
-  font-weight: 600;
-  background: var(--grad-hero);
-  color: var(--btn-primary-text);
-}
-
-.hub-onboarding-step h3 {
-  margin: 0 0 0.25rem;
-  font-size: 1rem;
-}
-
-.hub-onboarding-step p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.92rem;
-  line-height: 1.45;
-}
-
-.hub-follow-list {
-  list-style: none;
-  margin: 1rem 0 0;
-  padding: 0;
-  display: grid;
-  gap: 0.55rem;
-}
-
-.hub-follow-list li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.65rem 0.75rem;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface-muted-btn);
-}
-
-.hub-follow-list .user-chip {
-  border: none;
-  background: transparent;
-  padding: 0;
 }
 
 .hub-status {
@@ -745,6 +734,36 @@
 }
 
 /* Read-only project viewer */
+body.hub-readonly .add-slot-wrap--readonly {
+  opacity: 0.42;
+  cursor: not-allowed;
+  filter: grayscale(0.85);
+}
+
+body.hub-readonly .add-slot-wrap--readonly .map-node.add-node {
+  cursor: not-allowed;
+  pointer-events: auto;
+  background: color-mix(in srgb, var(--muted, #888) 18%, var(--add-node-bg, #fff));
+  border-color: color-mix(in srgb, var(--muted, #888) 45%, transparent);
+  box-shadow: none;
+}
+
+body.hub-readonly .add-slot-wrap--readonly .map-node.add-node:hover,
+body.hub-readonly .add-slot-wrap--readonly .map-node.add-node:focus-visible {
+  transform: none;
+  box-shadow: none;
+  border-color: color-mix(in srgb, var(--muted, #888) 45%, transparent);
+}
+
+body.hub-readonly .add-slot-wrap--readonly .add-plus,
+body.hub-readonly .add-slot-wrap--readonly .add-node-dynamic-label {
+  color: var(--muted, #888);
+}
+
+body.hub-readonly .add-slot-wrap--readonly .add-preview-ghosts {
+  display: none;
+}
+
 body.hub-readonly .inline-edit-field,
 body.hub-readonly #btn-delete-node,
 body.hub-readonly #btn-add-method,
@@ -780,9 +799,7 @@ body.hub-readonly .agent-chat-trigger,
 body.hub-readonly #agent-chat-panel,
 body.hub-readonly #knowledge-modal,
 body.hub-readonly #paper-modal,
-body.hub-readonly #method-activity-overlay,
 body.hub-readonly .method-activity-inspect,
-body.hub-readonly .method-activity-badge,
 body.hub-readonly .col-add-btn,
 body.hub-readonly .card-drag-handle,
 body.hub-readonly .card-tag-add,
@@ -791,6 +808,15 @@ body.hub-readonly .card-live-inspect,
 body.hub-readonly #kanban-node-title-input,
 body.hub-readonly #kanban-node-desc-input {
   display: none !important;
+}
+
+body.hub-readonly .method-activity {
+  pointer-events: auto;
+  cursor: help;
+}
+
+body.hub-readonly .kanban-card--running-active {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--cyan, #38bdf8) 45%, transparent);
 }
 
 body.hub-readonly .kanban-card .card-title-display,
