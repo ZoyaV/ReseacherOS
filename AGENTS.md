@@ -30,7 +30,7 @@
 
 | Задача | Как |
 |--------|-----|
-| Подключить существующий code-репо к ResearchOS | скилл **koi-project-onboard** — диалог → `koi-structure/` → **koi-prose-style** на каждое сообщение; если git — `sync_cli init-sync-branch` + push на orphan-ветку (`koi/research`) |
+| Подключить существующий code-репо к ResearchOS | скилл **koi-project-onboard** — диалог (problem → program → cause/hyp → method) → prose → `koi-structure/`; если git — orphan `init-sync-branch` + push |
 | Спроектировать новый эксперимент (до прогона) | скилл **koi-grill-experiment** — интервью по одному вопросу с рекомендацией: постановка, реализация, таблицы/графики, критерии done; затем черновик §1–§3 и **koi-report-review** |
 | Выполнить карточку канбана | скилл **koi-execute-card** — **сначала** `backlog` → `running`, отмечай `- [x]` в §3 «Подзадачи» **сразу** по мере выполнения, в конце `running` → `done`; затем **koi-done-research** |
 | Проверить гипотезу (карточку канбана) | `python -m koi.projects.report_ingest.cli <project_id> <card_id>`. Если серверный бэкенд недоступен (обычный случай в клоне) — **выполни работу агента сам** (**koi-execute-card**): проведи эксперимент, заполни `agents/skills/koi-report-review/experiment-report.md` → `projects/<id>/reports/<узел>/<карточка>.run.md` (**koi-report-review**, критик 4), затем `… --ingest-only` (сначала `--dry-run`). Публичный отчёт по skeleton — **koi-report-review** на каждой фазе |
@@ -54,6 +54,8 @@
   знание — только `projects/<id>/knowledge/<свой-файл>.md`.
 - Правило решения (supported если…; refuted если…) фиксируется **до** прогона;
   вердикт — подстановка чисел в правило, не «по впечатлению».
+- Заголовки узлов дерева и карточек канбана — **≤ 8 слов**; подробности только в
+  описании узла / `desc` карточки (`koi-prose-style`).
 
 ## Онбординг и справка
 
