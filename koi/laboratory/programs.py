@@ -33,7 +33,7 @@ def _slugify(title: str) -> str:
     return s[:48] or "program"
 
 
-def _parse_program_entries(raw: Any) -> list[dict[str, str]]:
+def parse_program_entries(raw: Any) -> list[dict[str, str]]:
     if raw is None:
         return []
     if isinstance(raw, str):
@@ -55,6 +55,10 @@ def _parse_program_entries(raw: Any) -> list[dict[str, str]]:
             pid = str(item)
             out.append({"id": pid, "title": pid, "description": ""})
     return out
+
+
+# Back-compat for internal callers
+_parse_program_entries = parse_program_entries
 
 
 def _read_project_programs(project_id: str) -> list[dict[str, str]]:

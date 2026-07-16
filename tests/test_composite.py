@@ -183,3 +183,224 @@ def test_composite_serialization_exposes_conflicts_and_source_project() -> None:
     ]
     assert payload["conflicts"][0]["field"] == "title"
     assert payload["nodes"][0]["source_project_id"] == "repo-a"
+
+
+def test_merge_collapses_same_title_different_ids() -> None:
+    """Independently created shared ancestors (same titles, different ids) become one vertex."""
+    first = Project(
+        id="repo-a",
+        title="A",
+        nodes=[
+            Node(
+                id="p-a",
+                project_id="repo-a",
+                parent_id=None,
+                node_type=NodeType.PROBLEM,
+                title="Проблема обучения LLM",
+            ),
+            Node(
+                id="c-a",
+                project_id="repo-a",
+                parent_id="p-a",
+                node_type=NodeType.CAUSE,
+                title="Плохой уровень исследования сред",
+            ),
+            Node(
+                id="r-a",
+                project_id="repo-a",
+                parent_id="c-a",
+                node_type=NodeType.REMEDIATION,
+                title="Branch A",
+            ),
+        ],
+    )
+    second = Project(
+        id="repo-b",
+        title="B",
+        nodes=[
+            Node(
+                id="p-b",
+                project_id="repo-b",
+                parent_id=None,
+                node_type=NodeType.PROBLEM,
+                title="Проблема обучения LLM",  # same title, different id
+            ),
+            Node(
+                id="c-b",
+                project_id="repo-b",
+                parent_id="p-b",
+                node_type=NodeType.CAUSE,
+                title="  плохой уровень исследования сред  ",  # whitespace/case variant
+            ),
+            Node(
+                id="r-b",
+                project_id="repo-b",
+                parent_id="c-b",
+                node_type=NodeType.REMEDIATION,
+                title="Branch B",
+            ),
+        ],
+    )
+
+    composite = build_composite("drift", [(first.id, first), (second.id, second)])
+    assert composite is not None
+
+    nodes = {n.id: n for n in composite.project.nodes}
+    assert set(nodes) == {"p-a", "c-a", "r-a", "r-b"}
+    assert "p-b" not in nodes
+    assert "c-b" not in nodes
+    assert nodes["r-b"].parent_id == "c-a"
+    assert nodes["r-a"].parent_id == "c-a"
+    assert nodes["c-a"].parent_id == "p-a"
+
+
+def test_merge_remaps_board_owner_onto_canonical_method() -> None:
+    from koi.core.models import DEFAULT_KANBAN_COLUMNS, KanbanBoard
+
+    first = Project(
+        id="repo-a",
+        title="A",
+        nodes=[
+            Node(
+                id="p-a",
+                project_id="repo-a",
+                parent_id=None,
+                node_type=NodeType.PROBLEM,
+                title="P",
+            ),
+            Node(
+                id="c-a",
+                project_id="repo-a",
+                parent_id="p-a",
+                node_type=NodeType.CAUSE,
+                title="C",
+            ),
+            Node(
+                id="r-a",
+                project_id="repo-a",
+                parent_id="c-a",
+                node_type=NodeType.REMEDIATION,
+                title="R",
+            ),
+            Node(
+                id="m-a",
+                project_id="repo-a",
+                parent_id="r-a",
+                node_type=NodeType.METHOD,
+                title="Shared method",
+            ),
+        ],
+        boards=[
+            KanbanBoard(
+                id="board-a",
+                owner_node_id="m-a",
+                columns=list(DEFAULT_KANBAN_COLUMNS),
+            )
+        ],
+    )
+    second = Project(
+        id="repo-b",
+        title="B",
+        nodes=[
+            Node(
+                id="p-b",
+                project_id="repo-b",
+                parent_id=None,
+                node_type=NodeType.PROBLEM,
+                title="P",
+            ),
+            Node(
+                id="c-b",
+                project_id="repo-b",
+                parent_id="p-b",
+                node_type=NodeType.CAUSE,
+                title="C",
+            ),
+            Node(
+                id="r-b",
+                project_id="repo-b",
+                parent_id="c-b",
+                node_type=NodeType.REMEDIATION,
+                title="R",
+            ),
+            Node(
+                id="m-b",
+                project_id="repo-b",
+                parent_id="r-b",
+                node_type=NodeType.METHOD,
+                title="Shared method",
+            ),
+        ],
+        boards=[
+            KanbanBoard(
+                id="board-b",
+                owner_node_id="m-b",
+                columns=list(DEFAULT_KANBAN_COLUMNS),
+            )
+        ],
+    )
+
+    composite = build_composite("boards", [(first.id, first), (second.id, second)])
+    assert composite is not None
+    assert {n.id for n in composite.project.nodes} == {"p-a", "c-a", "r-a", "m-a"}
+    boards = {b.id: b for b in composite.project.boards}
+    assert boards["board-a"].owner_node_id == "m-a"
+    assert boards["board-b"].owner_node_id == "m-a"
+    payload = composite_to_client(composite)
+    assert payload["boards"]["board-b"]["source_project_id"] == "repo-b"
+
+
+def test_same_project_keeps_same_title_siblings() -> None:
+    project = Project(
+        id="repo-a",
+        title="A",
+        nodes=[
+            Node(
+                id="p1",
+                project_id="repo-a",
+                parent_id=None,
+                node_type=NodeType.PROBLEM,
+                title="P",
+            ),
+            Node(
+                id="c1",
+                project_id="repo-a",
+                parent_id="p1",
+                node_type=NodeType.CAUSE,
+                title="Same",
+            ),
+            Node(
+                id="c2",
+                project_id="repo-a",
+                parent_id="p1",
+                node_type=NodeType.CAUSE,
+                title="Same",
+            ),
+        ],
+    )
+    other = Project(
+        id="repo-b",
+        title="B",
+        nodes=[
+            Node(
+                id="p-b",
+                project_id="repo-b",
+                parent_id=None,
+                node_type=NodeType.PROBLEM,
+                title="P",
+            ),
+            Node(
+                id="c-b",
+                project_id="repo-b",
+                parent_id="p-b",
+                node_type=NodeType.CAUSE,
+                title="Other",
+            ),
+        ],
+    )
+    composite = build_composite("sibs", [(project.id, project), (other.id, other)])
+    assert composite is not None
+    cause_ids = [
+        n.id for n in composite.project.nodes if n.node_type == NodeType.CAUSE
+    ]
+    assert set(cause_ids) == {"c1", "c2", "c-b"}

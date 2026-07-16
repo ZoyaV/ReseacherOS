@@ -150,7 +150,14 @@ def discover_projects() -> list[ProjectMount]:
             koi_root = repo_root / KOI_STRUCTURE_DIR
             md_path = koi_root / PROJECT_MD
             if not md_path.is_file():
-                continue
+                # Orphan-branch sync keeps koi-structure only in the worktree.
+                wt_koi = repo_root / WORKTREE_DIR / KOI_STRUCTURE_DIR
+                wt_md = wt_koi / PROJECT_MD
+                if wt_md.is_file():
+                    koi_root = wt_koi
+                    md_path = wt_md
+                else:
+                    continue
             try:
                 text = md_path.read_text(encoding="utf-8")
             except OSError as exc:
@@ -167,11 +174,16 @@ def discover_projects() -> list[ProjectMount]:
                 )
                 continue
             git_repo = _parse_git_repo(meta)
+            using_worktree = WORKTREE_DIR in koi_root.parts
             mounts[project_id] = ProjectMount(
                 project_id=project_id,
                 repo_root=repo_root.resolve(),
                 koi_root=koi_root.resolve(),
-                code_root=_resolve_code_root(repo_root, koi_root, meta),
+                code_root=_resolve_code_root(
+                    repo_root,
+                    repo_root if using_worktree else koi_root,
+                    meta,
+                ),
                 programs=_parse_programs(meta.get("programs")),
                 git_repo=git_repo,
                 git_sync_branch=_parse_git_sync_branch(meta, git_repo=git_repo),

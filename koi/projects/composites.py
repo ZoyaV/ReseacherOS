@@ -1,7 +1,16 @@
-"""Merge hypothesis trees from multiple projects sharing a ``composite_id``."""
+"""Merge hypothesis trees from multiple projects sharing a ``composite_id``.
+
+Nodes are matched at read time by structural signature
+``(node_type, normalized title, canonical parent)``, not only by id.
+Shared ancestors created independently in different repos (same title, different
+ids) collapse into one vertex; ``parent_id`` / board ``owner_node_id`` are
+remapped onto the canonical ids.
+"""
 
 from __future__ import annotations
 
+import re
+import unicodedata
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -10,7 +19,7 @@ import yaml
 from koi.adapters.paths import project_md
 from koi.adapters.project_mount import list_mounts
 from koi.adapters.repository import load_project
-from koi.core.models import KanbanBoard, Node, Project
+from koi.core.models import ExperimentCard, KanbanBoard, Node, Project
 from koi.projects.views import project_to_client
 
 
@@ -68,61 +77,186 @@ class CompositeProject:
     members: list[dict[str, str]]
     project: Project
     conflicts: list[NodeConflict] = field(default_factory=list)
+    board_sources: dict[str, str] = field(default_factory=dict)
 
 
-def _node_signature(node: Node) -> tuple[str, str, str | None, str]:
-    return (
-        node.node_type.value,
-        node.title,
-        node.parent_id,
-        node.description.strip(),
+def normalize_node_title(value: str) -> str:
+    """Normalize titles for cross-repo node matching (NFKC, casefold, spaces)."""
+    text = unicodedata.normalize("NFKC", value or "").strip().casefold()
+    return re.sub(r"\s+", " ", text)
+
+
+def _node_match_key(
+    node_type: str, title: str, parent_canonical_id: str | None
+) -> tuple[str, str, str]:
+    return (node_type, normalize_node_title(title), parent_canonical_id or "")
+
+
+def _topo_nodes(nodes: list[Node]) -> list[Node]:
+    by_id = {n.id: n for n in nodes}
+    depth_cache: dict[str, int] = {}
+
+    def depth(node: Node) -> int:
+        if node.id in depth_cache:
+            return depth_cache[node.id]
+        if not node.parent_id or node.parent_id not in by_id:
+            depth_cache[node.id] = 0
+        else:
+            depth_cache[node.id] = depth(by_id[node.parent_id]) + 1
+        return depth_cache[node.id]
+
+    return sorted(nodes, key=lambda n: (depth(n), n.id))
+
+
+def _conflict(
+    existing: Node,
+    project_id: str,
+    field_name: str,
+    existing_value: str,
+    incoming_value: str,
+) -> NodeConflict:
+    return NodeConflict(
+        node_id=existing.id,
+        field=field_name,
+        projects={
+            existing.project_id: existing_value,
+            project_id: incoming_value,
+        },
     )
 
 
 def _merge_nodes(
     member_projects: list[tuple[str, Project]],
-) -> tuple[list[Node], list[NodeConflict]]:
-    merged: dict[str, Node] = {}
+) -> tuple[list[Node], list[NodeConflict], dict[tuple[str, str], str]]:
+    """Merge nodes by signature across projects; remap foreign ids onto canonical.
+
+    Match key: ``(node_type, normalized title, canonical parent id)``.
+    Same-id nodes still merge (and may emit conflicts). Same-title siblings
+    inside one project are kept distinct; only cross-project title matches collapse.
+    """
+    by_id: dict[str, Node] = {}
+    by_sig: dict[tuple[str, str, str], Node] = {}
+    id_remap: dict[tuple[str, str], str] = {}
     conflicts: list[NodeConflict] = []
 
     for project_id, project in member_projects:
-        for node in project.nodes:
-            existing = merged.get(node.id)
-            if existing is None:
-                merged[node.id] = node
-                continue
-            for field_name, getter in (
-                ("title", lambda n: n.title),
-                ("description", lambda n: n.description.strip()),
-                ("parent_id", lambda n: n.parent_id or ""),
-                ("node_type", lambda n: n.node_type.value),
-            ):
-                if getter(existing) != getter(node):
+        for node in _topo_nodes(project.nodes):
+            parent_canonical: str | None = None
+            if node.parent_id:
+                parent_canonical = id_remap.get(
+                    (project_id, node.parent_id), node.parent_id
+                )
+
+            sig = _node_match_key(node.node_type.value, node.title, parent_canonical)
+            existing_sig = by_sig.get(sig)
+
+            # Cross-project structural match (same type/title/parent, different ids).
+            if existing_sig is not None and existing_sig.project_id != project_id:
+                id_remap[(project_id, node.id)] = existing_sig.id
+                if existing_sig.description.strip() != node.description.strip():
                     conflicts.append(
-                        NodeConflict(
-                            node_id=node.id,
-                            field=field_name,
-                            projects={
-                                existing.project_id: str(getter(existing)),
-                                project_id: str(getter(node)),
-                            },
+                        _conflict(
+                            existing_sig,
+                            project_id,
+                            "description",
+                            existing_sig.description.strip(),
+                            node.description.strip(),
                         )
                     )
-                    break
+                continue
 
-    return list(merged.values()), conflicts
+            existing_id = by_id.get(node.id)
+            if existing_id is not None:
+                id_remap[(project_id, node.id)] = existing_id.id
+                for field_name, existing_val, incoming_val in (
+                    (
+                        "title",
+                        existing_id.title,
+                        node.title,
+                    ),
+                    (
+                        "description",
+                        existing_id.description.strip(),
+                        node.description.strip(),
+                    ),
+                    (
+                        "parent_id",
+                        existing_id.parent_id or "",
+                        parent_canonical or "",
+                    ),
+                    (
+                        "node_type",
+                        existing_id.node_type.value,
+                        node.node_type.value,
+                    ),
+                ):
+                    if field_name == "title":
+                        if normalize_node_title(str(existing_val)) != normalize_node_title(
+                            str(incoming_val)
+                        ):
+                            conflicts.append(
+                                _conflict(
+                                    existing_id,
+                                    project_id,
+                                    field_name,
+                                    str(existing_val),
+                                    str(incoming_val),
+                                )
+                            )
+                            break
+                    elif existing_val != incoming_val:
+                        conflicts.append(
+                            _conflict(
+                                existing_id,
+                                project_id,
+                                field_name,
+                                str(existing_val),
+                                str(incoming_val),
+                            )
+                        )
+                        break
+                continue
+
+            merged_node = node.model_copy(
+                update={"parent_id": parent_canonical},
+            )
+            by_id[merged_node.id] = merged_node
+            if sig not in by_sig:
+                by_sig[sig] = merged_node
+            id_remap[(project_id, node.id)] = merged_node.id
+
+    return list(by_id.values()), conflicts, id_remap
 
 
-def _merge_boards(member_projects: list[tuple[str, Project]]) -> list[KanbanBoard]:
+def _remap_card(card: ExperimentCard, project_id: str, id_remap: dict[tuple[str, str], str]) -> ExperimentCard:
+    linked = card.linked_node_id
+    if not linked:
+        return card
+    new_linked = id_remap.get((project_id, linked), linked)
+    if new_linked == linked:
+        return card
+    return card.model_copy(update={"linked_node_id": new_linked})
+
+
+def _merge_boards(
+    member_projects: list[tuple[str, Project]],
+    id_remap: dict[tuple[str, str], str],
+) -> tuple[list[KanbanBoard], dict[str, str]]:
     boards: list[KanbanBoard] = []
+    board_sources: dict[str, str] = {}
     seen: set[str] = set()
-    for _project_id, project in member_projects:
+    for project_id, project in member_projects:
         for board in project.boards:
             if board.id in seen:
                 continue
             seen.add(board.id)
+            owner = id_remap.get((project_id, board.owner_node_id), board.owner_node_id)
+            cards = [_remap_card(card, project_id, id_remap) for card in board.cards]
+            if owner != board.owner_node_id or cards != board.cards:
+                board = board.model_copy(update={"owner_node_id": owner, "cards": cards})
             boards.append(board)
-    return boards
+            board_sources[board.id] = project_id
+    return boards, board_sources
 
 
 def _composite_title(member_projects: list[tuple[str, Project]]) -> str:
@@ -132,7 +266,7 @@ def _composite_title(member_projects: list[tuple[str, Project]]) -> str:
             if node.node_type.value == "problem" and node.title.strip():
                 problem_titles.append(node.title.strip())
                 break
-    if problem_titles and len(set(problem_titles)) == 1:
+    if problem_titles and len({normalize_node_title(t) for t in problem_titles}) == 1:
         return problem_titles[0]
     titles = [p.title for _, p in member_projects]
     if len(set(titles)) == 1:
@@ -160,10 +294,9 @@ def build_composite(
     if len(member_projects) < 2:
         return None
 
-    nodes, conflicts = _merge_nodes(member_projects)
-    boards = _merge_boards(member_projects)
+    nodes, conflicts, id_remap = _merge_nodes(member_projects)
+    boards, board_sources = _merge_boards(member_projects, id_remap)
 
-    titles = [p.title for _, p in member_projects]
     title = _composite_title(member_projects)
     descriptions = [p.description.strip() for _, p in member_projects if p.description.strip()]
     description = descriptions[0] if descriptions else ""
@@ -186,6 +319,7 @@ def build_composite(
         members=members,
         project=merged,
         conflicts=conflicts,
+        board_sources=board_sources,
     )
 
 
@@ -201,6 +335,10 @@ def composite_to_client(composite: CompositeProject) -> dict[str, Any]:
     for node in payload["nodes"]:
         node["source_project_id"] = node.get("project_id")
     for board in payload["boards"].values():
+        source = composite.board_sources.get(board["id"])
+        if source:
+            board["source_project_id"] = source
+            continue
         owner_id = board.get("owner_node_id")
         owner = next((n for n in payload["nodes"] if n["id"] == owner_id), None)
         if owner:
