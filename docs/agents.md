@@ -20,6 +20,7 @@ ResearchOS рассчитан на выполнение исследовател
 - `koi-project-onboard` — подключить code-репо: диалог (problem → program → cause/hyp → method) + prose + дерево; если git — orphan push;
 - `koi-grill-experiment` — спроектировать карточку эксперимента до прогона;
 - `koi-execute-card` — выполнить карточку эксперимента;
+- `koi-card-autoresearch` — длинный прогон с ролями Руководитель / Исследователь / Дебаггер;
 - `koi-report-review` — подготовить и проверить отчёт;
 - `koi-done-research` — сформулировать вывод завершённого эксперимента;
 - `koi-agent-chat` — ответить на вопрос из UI;

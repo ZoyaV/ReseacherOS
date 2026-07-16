@@ -12,5 +12,6 @@
 - [koi-project-onboard](../../agents/skills/koi-project-onboard/) — подключить существующий code-репо (attach)
 - [koi-report-review](../../agents/skills/koi-report-review/) — шаблоны и правила отчётов
 - [koi-execute-card](../../agents/skills/koi-execute-card/) — выполнение и пред-регистрация гипотезы
+- [koi-card-autoresearch](../../agents/skills/koi-card-autoresearch/) — длинный прогон с ролями Manager / Researcher / Debugger
 
 Агентам: [AGENTS.md](../../AGENTS.md).

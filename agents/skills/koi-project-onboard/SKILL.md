@@ -661,6 +661,7 @@ orphan-ветки, что `init-sync-branch`/`push` прошли или кака
 |--------|--------|
 | Расписать карточку до прогона | **koi-grill-experiment** — перед новыми titles узлов перечитай `koi-structure/onboard-brief.md` |
 | Прогнать карточку | **koi-execute-card** |
+| Длинный прогон / remote с ролями | **koi-card-autoresearch** (+ project-скилл запуска, если есть) |
 | Дальнейший sync `koi-structure/` | **koi-project-sync** / `sync_cli push|pull` (после онбординга §6c уже сделан первый push) |
 | Полный Related Work для статьи | **literature-review-agent** / paper pipeline |
 

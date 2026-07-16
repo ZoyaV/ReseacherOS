@@ -172,14 +172,17 @@ Ingest сам переносит карточку в done — но **до ingest
 
 ## Длинные / remote-эксперименты
 
-Для многочасового обучения, remote job или оркестрации с несколькими ролями агента
-проверь, есть ли в workspace **project-specific skill** в `/.cursor/skills/` (корень
-репозитория, не `ReseachOS/.cursor/skills/`). Если есть — следуй ему для запуска,
-мониторинга и перезапуска job; канбан, §3 подзадачи и отчёт всё равно ведёт
-**koi-execute-card**.
+При фразе «проведи системное исследование» / «автоисследование» / ролях
+руководитель–исследователь–дебаггер — **koi-card-autoresearch** (протокол ролей
+и cadence). Канбан, §3 и отчёт по-прежнему ведёт **koi-execute-card**.
+
+Для запуска job / sysmon / remote-скриптов дополнительно проверь
+**project-specific skill** в `/.cursor/skills/` (корень репозитория, не
+`ReseachOS/.cursor/skills/`), например `verl-experiment-run` для verl/CrafText.
 
 ## Связанные скиллы
 
+- **koi-card-autoresearch** — длинный прогон: Manager / Researcher / Debugger
 - **koi-report-review** — качество отчёта и подзадач (критик 3)
 - **koi-done-research** — после done: question/narrative в research.json
 - **koi-prose-style** — человекочитаемые формулировки в отчёте
