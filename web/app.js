@@ -9597,7 +9597,7 @@ async function init() {
       setStatus(
         hubMode
           ? "Не удалось загрузить снимок проекта"
-          : "Нет обнаруженных проектов (ищем */koi-structure/)",
+          : "Нет обнаруженных проектов (ищем tree/*/koi-structure/)",
         true
       );
       return;
@@ -9612,7 +9612,7 @@ async function init() {
     syncLabProject(state.project);
     const list = await loadProjectList(preferred);
     if (!list.length) {
-      setStatus("Нет обнаруженных проектов (ищем */koi-structure/)", true);
+      setStatus("Нет обнаруженных проектов (ищем tree/*/koi-structure/)", true);
       return;
     }
     setActiveProjectInList(preferred);

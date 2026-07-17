@@ -26,7 +26,7 @@ def get_sync_status() -> dict:
 
 @router.get("/sync/project-discovery")
 def get_project_discovery(since: int = 0) -> dict:
-    """Poll for new or changed ``koi-structure/project.md`` mounts on disk."""
+    """Poll for new or changed ``tree/*/koi-structure/project.md`` mounts."""
     return discovery_status(since_revision=since)
 
 

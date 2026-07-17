@@ -12,10 +12,13 @@ from typing import Callable
 from koi.adapters.project_mount import (
     BOOTSTRAP_WORKTREE_DIR,
     DEFAULT_SYNC_BRANCH,
+    KOI_STRUCTURE_DIR,
     WORKTREE_DIR,
     ProjectMount,
     get_mount,
+    is_under_tree,
     list_mounts,
+    sync_worktree_path,
 )
 from koi.adapters.project_sync_queue import (
     list_pending_push,
@@ -46,7 +49,27 @@ def _is_git_repo(path: Path) -> bool:
 
 
 def _koi_rel(mount: ProjectMount) -> str:
-    return mount.koi_root.relative_to(mount.repo_root).as_posix()
+    """Path of koi-structure relative to the git cwd that owns it."""
+    try:
+        return mount.koi_root.relative_to(mount.repo_root).as_posix()
+    except ValueError:
+        # tree/<repo>/koi-structure — lives outside the code working tree
+        return KOI_STRUCTURE_DIR
+
+
+def _koi_git_cwd(mount: ProjectMount) -> Path:
+    """Directory where ``git status`` / checkout for koi-structure should run."""
+    if is_under_tree(mount.koi_root):
+        return sync_worktree_path(mount)
+    return mount.repo_root
+
+
+def _path_under(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+        return True
+    except ValueError:
+        return False
 
 
 def sync_mounts() -> list[ProjectMount]:
@@ -109,10 +132,12 @@ def _sync_branch_counts(repo: Path, branch: str) -> tuple[int, int]:
 
 
 def _dirty_koi_paths(mount: ProjectMount) -> list[str]:
-    repo = mount.repo_root
+    cwd = _koi_git_cwd(mount)
+    if not cwd.is_dir():
+        return []
     koi_rel = _koi_rel(mount)
     st = _run_git(
-        repo,
+        cwd,
         "status",
         "--porcelain",
         "--ignore-submodules=dirty",
@@ -122,7 +147,7 @@ def _dirty_koi_paths(mount: ProjectMount) -> list[str]:
     if st.returncode != 0:
         return []
     paths: list[str] = []
-    prefix = f"{repo.name}/"
+    prefix = f"{mount.repo_root.name}/"
     for line in st.stdout.splitlines():
         if len(line) < 4:
             continue
@@ -307,14 +332,29 @@ def _worktree_active(path: Path) -> bool:
 def _ensure_push_worktree(mount: ProjectMount) -> tuple[Path | None, str | None]:
     repo = mount.repo_root
     branch = mount.git_sync_branch or DEFAULT_SYNC_BRANCH
-    wt = repo / WORKTREE_DIR
+    wt = sync_worktree_path(mount)
 
     if _worktree_active(wt):
         return wt, None
 
+    # Prefer canonical tree/ worktree; fall back to legacy in-repo path only if
+    # tree/ parent cannot be created (should not happen for normal scan roots).
+    if not is_under_tree(wt):
+        legacy = repo / WORKTREE_DIR
+        if _worktree_active(legacy):
+            return legacy, None
+        wt = tree_preferred_worktree(mount)
+
     ensure = ensure_sync_branch(mount, push=True)
     if not ensure.get("ok") and ensure.get("action") != "exists":
         return None, ensure.get("error", "failed to ensure sync branch")
+
+    wt.parent.mkdir(parents=True, exist_ok=True)
+    if wt.exists() and not _worktree_active(wt):
+        # Empty or leftover dir — remove so git worktree add can succeed
+        if any(wt.iterdir()):
+            return None, f"refusing to overwrite non-empty path: {wt}"
+        wt.rmdir()
 
     if _local_worktree_ref(repo, branch):
         added = _run_git(repo, "worktree", "add", str(wt), branch)
@@ -327,9 +367,18 @@ def _ensure_push_worktree(mount: ProjectMount) -> tuple[Path | None, str | None]
     return wt, None
 
 
+def tree_preferred_worktree(mount: ProjectMount) -> Path:
+    from koi.adapters.project_mount import tree_worktree_for
+
+    return tree_worktree_for(mount.repo_root.parent, mount.repo_root.name)
+
+
 def _copy_koi_tree(mount: ProjectMount, target_root: Path) -> None:
     koi_rel = _koi_rel(mount)
     dst = target_root / koi_rel
+    if _path_under(mount.koi_root, target_root) and mount.koi_root.resolve() == dst.resolve():
+        # Working copy already is the sync worktree — nothing to copy.
+        return
     if dst.exists():
         shutil.rmtree(dst)
     shutil.copytree(mount.koi_root, dst)
@@ -403,27 +452,62 @@ def pull_mount(
         project_md.read_text(encoding="utf-8") if project_md.is_file() else None
     )
 
-    checkout = _run_git(repo, "checkout", f"origin/{branch}", "--", koi_rel)
-    if checkout.returncode != 0:
-        checkout = _run_git(repo, "checkout", branch, "--", koi_rel)
-    if checkout.returncode != 0:
-        err = _git_error(checkout)
-        return {
-            "ok": False,
-            "project_id": mount.project_id,
-            "action": "failed",
-            "needs_console": pull_needs_console(err),
-            "message": err,
-            "rq_discoveries": [],
-        }
+    if is_under_tree(mount.koi_root):
+        wt = sync_worktree_path(mount)
+        if not _worktree_active(wt):
+            wt, err = _ensure_push_worktree(mount)
+            if wt is None:
+                return {
+                    "ok": False,
+                    "project_id": mount.project_id,
+                    "action": "failed",
+                    "message": err or "tree worktree missing",
+                    "rq_discoveries": [],
+                }
+        fetched = _run_git(wt, "fetch", "--quiet", "origin", branch)
+        if fetched.returncode != 0:
+            err = _git_error(fetched)
+            return {
+                "ok": False,
+                "project_id": mount.project_id,
+                "action": "failed",
+                "needs_console": pull_needs_console(err),
+                "message": err,
+                "rq_discoveries": [],
+            }
+        merged = _run_git(wt, "merge", "--ff-only", f"origin/{branch}")
+        if merged.returncode != 0:
+            err = _git_error(merged)
+            return {
+                "ok": False,
+                "project_id": mount.project_id,
+                "action": "failed",
+                "needs_console": pull_needs_console(err),
+                "message": err,
+                "rq_discoveries": [],
+            }
+    else:
+        checkout = _run_git(repo, "checkout", f"origin/{branch}", "--", koi_rel)
+        if checkout.returncode != 0:
+            checkout = _run_git(repo, "checkout", branch, "--", koi_rel)
+        if checkout.returncode != 0:
+            err = _git_error(checkout)
+            return {
+                "ok": False,
+                "project_id": mount.project_id,
+                "action": "failed",
+                "needs_console": pull_needs_console(err),
+                "message": err,
+                "rq_discoveries": [],
+            }
 
     if pre_pull_project_md and project_md.is_file():
         from koi.adapters.repository import merge_org_frontmatter
 
         post_pull_project_md = project_md.read_text(encoding="utf-8")
-        merged = merge_org_frontmatter(pre_pull_project_md, post_pull_project_md)
-        if merged != post_pull_project_md:
-            project_md.write_text(merged, encoding="utf-8")
+        merged_md = merge_org_frontmatter(pre_pull_project_md, post_pull_project_md)
+        if merged_md != post_pull_project_md:
+            project_md.write_text(merged_md, encoding="utf-8")
 
     ref_after = _remote_sync_ref(repo, branch) or ref_before
     discoveries: list[dict] = []

@@ -27,21 +27,28 @@ tree. Research data should live alongside project code in separate repositories.
 
 ## Layout
 
+Canonical (preferred):
+
 ```
-research_os_dev/
-├── ReseachOS/           # engine
-├── koi-workspace/       # legacy (not scanned for projects)
-└── mmrl_problem/        # example project repo (local; git_repo defaults false)
-    ├── koi-structure/
+workspace/
+├── ReseachOS/                         # engine
+├── tree/
+│   └── mmrl_problem/koi-structure/    # sync branch koi/research (git worktree)
+└── mmrl_problem/                      # code, any branch
     └── projectcode/
 ```
+
+Legacy still discovered: `<repo>/koi-structure/` and
+`<repo>/.koi-sync-worktree/koi-structure/`. Install/migrate via
+`python -m koi.projects.install_cli`.
 
 Example with git: `bicycle_problem/` has `git_repo: true` and its own `.git`.
 
 ## Onboarding paths
 
-1. **Attach:** add `koi-structure/` to an existing sibling repo (agent or API).
-2. **Create:** UI/API creates `<slug>/koi-structure/` as a sibling of the engine.
+1. **Attach:** install into `tree/<repo>/koi-structure/` (agent, API, or
+   `install_cli`); code stays in `<repo>/`.
+2. **Create:** UI/API creates `tree/<slug>/koi-structure/` + `<slug>/projectcode/`.
 
 ## Consequences
 

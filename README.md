@@ -12,7 +12,7 @@ Problem → causes (nature hypotheses) → hypotheses (how to prove / fix)
   → report → verdict + insights → knowledge base
 ```
 
-All research data lives in Markdown files — no database required. The engine is this repository (`koi/`, `api/`, `web/`, `agents/`). Projects are sibling directories marked by `koi-structure/project.md`; experiment code lives in `projectcode/` (or a custom `code_root`).
+All research data lives in Markdown files — no database required. The engine is this repository (`koi/`, `api/`, `web/`, `agents/`). Research materials live under `tree/<repo>/koi-structure/` (usually git branch `koi/research`); experiment code stays in the sibling `<repo>/` folder (any branch).
 
 | Docs | |
 |------|---|
@@ -24,6 +24,7 @@ All research data lives in Markdown files — no database required. The engine i
 
 | Date | What shipped |
 |------|----------------|
+| 2026-07-17 | **`tree/` layout + install CLI** — research data under `tree/<repo>/koi-structure/` (branch `koi/research`); code in sibling `<repo>/`. One command: `python -m koi.projects.install_cli install <repo>`. |
 | 2026-07-16 | **Composite merge by title** — shared ancestors match on `(type, normalized title, parent)`, not only id; remaps child/board links. Fixes duplicate problem/cause branches in ResearchOS and Hub. ADR: [docs/adr-002-composite-view.md](docs/adr-002-composite-view.md). |
 | 2026-07-15 | **DAG layout JSON** — card positions in DAG view persist to `koi-structure/dag-layouts/<board_id>.json` (API `GET/PUT /projects/{id}/boards/{board_id}/dag-layout`); browser `localStorage` is migrated on first open. |
 | 2026-07-13 | **Method board DAG view** — optional `depends_on` prerequisite edges between experiment cards; Kanban/DAG tabs in the method modal; interactive editor (link, delete, auto-layout, tag filter, Q/A pills, fit-to-view); card status styling (backlog, running pulse, done checkmark); persisted as `deps:` in `project.md`; API `POST /projects/{id}/boards/{board_id}/dag/suggest`. |
@@ -99,80 +100,52 @@ Open http://127.0.0.1:8080 — `bicycle_problem` appears in the sidebar.
 
 ## Add a project
 
-ResearchOS scans the parent directory of the engine and discovers every folder with `koi-structure/project.md`. Extra roots: `KOI_SCAN_ROOTS=/path/a,/path/b`.
+ResearchOS scans the parent of the engine. Prefer the canonical layout:
 
 ```
-workspace/                    # any parent folder name
-├── ReseachOS/                # engine (this repo)
-├── my_experiment/            # your project
-│   ├── koi-structure/        # ← ResearchOS reads/writes here
-│   │   ├── project.md        # hypothesis tree + kanban
-│   │   ├── research.json     # experiment conclusions
-│   │   ├── reports/            # card reports
-│   │   └── knowledge/          # curated KB docs
-│   ├── projectcode/          # ← experiment code
-│   └── .git/                 # your project repo
-└── bicycle_problem/          # demo (optional worktree)
+workspace/
+├── ReseachOS/                         # engine
+├── tree/
+│   └── my_experiment/koi-structure/   # research data (branch koi/research)
+└── my_experiment/                     # code, any branch
+    └── … experiment code …
 ```
 
-### Attach an existing code repository
+Discovery: folder named `tree` → next level `*/koi-structure/project.md`.  
+Legacy `my_experiment/koi-structure/` still works. Extra roots: `KOI_SCAN_ROOTS`.
 
-Use this when you already have a git repo with experiment code and want ResearchOS to manage `koi-structure/` on a separate orphan branch.
-
-Layout: clone or place your repo as a sibling of `ReseachOS/`. Add `koi-structure/project.md` (minimal frontmatter below).
-
-Agent prompt — paste into Cursor / Claude Code; the agent should follow skill
-`koi-project-onboard` (Socratic tree + prose) and finish with orphan sync via
-`koi.projects.sync_cli` (same steps as skill §6c):
-
-```
-Подключи <path-to-my-repo> к ResearchOS (attach + orphan-branch sync).
-
-Context:
-- Engine: ../ReseachOS/ (or absolute path to this ResearchOS clone)
-- My project repo: <path> (sibling of ReseachOS/)
-- Research data: <repo>/koi-structure/
-- Sync branch default: koi/research
-
-Follow agents/skills/koi-project-onboard/SKILL.md end-to-end, including §6c:
-init-sync-branch + push koi-structure to the orphan branch; on the code branch
-gitignore koi-structure/ and related worktree dirs. Do not change git config.
-Do not commit secrets (.env).
-
-If init-sync-branch reports "exists", the remote branch is already there — see next section.
-```
-
-Manual CLI (same result):
+### One-command install / migrate
 
 ```bash
 cd ReseachOS
-python -m koi.projects.sync_cli init-sync-branch --project-id <your-project-id>
+python -m koi.projects.install_cli status
+python -m koi.projects.install_cli install my_experiment
+# new empty project:
+python -m koi.projects.install_cli install my_idea --create
 ```
 
-### Sync branch already exists
+| Case | What happens |
+|------|----------------|
+| Code repo, no ResearchOS yet | Create orphan `koi/research`, seed `koi-structure/`, attach as `tree/<repo>` worktree |
+| Branch `koi/research` already exists | Attach `tree/<repo>` worktree to that branch |
+| `--create` | New local `tree/<repo>/koi-structure` + `<repo>/projectcode` |
+| Old layout (koi inside code repo) | Migrate checkout into `tree/` |
 
-If someone on your team (or CI) already created the orphan branch — e.g. `koi/research`, `test_project`, or a custom name — you only need to point your code branch at it.
+Then restart: `./scripts/koi-serve.sh restart`.
 
-In `koi-structure/project.md` on your working branch:
+### Attach with the agent (onboarding interview)
 
-```yaml
----
-id: my-project
-title: My Research Problem
-format: koi/1
-git_repo: true
-git_sync_branch: koi/research    # ← must match the existing orphan branch
----
+Place the code repo next to `ReseachOS/`, then in Cursor / Claude Code:
+
+```
+Подключи ../my_experiment к ResearchOS.
+
+Следуй agents/skills/koi-project-onboard/SKILL.md.
+В конце: python -m koi.projects.install_cli install my_experiment
+(материалы → tree/my_experiment/koi-structure на ветке koi/research).
 ```
 
-Then pull research data into your working tree:
-
-```bash
-cd ReseachOS
-python -m koi.projects.sync_cli pull --project-id my-project
-```
-
-Ongoing sync: UI Sync button, skill `koi-project-sync`, or:
+Ongoing sync (push/pull research branch):
 
 ```bash
 python -m koi.projects.sync_cli push --project-id my-project
@@ -181,7 +154,14 @@ python -m koi.projects.sync_cli pull --project-id my-project
 
 ### Start from scratch (no repo yet)
 
-#### Option 1 — Agent interview
+#### Option 1 — Install CLI
+
+```bash
+python -m koi.projects.install_cli install my_idea --create --title "My research problem"
+./scripts/koi-serve.sh restart
+```
+
+#### Option 2 — Agent interview
 
 Paste into your IDE agent:
 
@@ -191,17 +171,14 @@ Create a new ResearchOS project from scratch.
 1. Interview me: research problem, domain, what we already know, what experiments are feasible.
 2. Propose a hypothesis tree: problem → causes → evidence/remediation hypotheses → methods.
 3. Ask for a folder tag (latin slug, e.g. protein_folding).
-4. Create sibling directory parent(ReseachOS)/<tag>/ with:
-   - koi-structure/project.md (frontmatter + tree nodes)
-   - koi-structure/research.json
-   - projectcode/README.md
-5. If I want git sync, init a git repo there, set git_repo: true, run init-sync-branch.
+4. Create tree/<tag>/koi-structure/ and <tag>/projectcode/ (or run install_cli --create).
+5. If I want git sync, init git in <tag>/, set git_repo: true, install_cli install <tag>.
 6. Restart ./scripts/koi-serve.sh and tell me to open the UI.
 
 Follow koi-prose-style for all user-facing text. Do not commit without my explicit ask.
 ```
 
-#### Option 2 — Build the tree in the UI
+#### Option 3 — Build the tree in the UI
 
 1. Open http://127.0.0.1:8080
 2. Expand the project sidebar (`<` / `>` chevron)
@@ -209,7 +186,7 @@ Follow koi-prose-style for all user-facing text. Do not commit without my explic
 4. Fill in: Title, Description, Tag (folder name), Program
 5. Click Create
 
-The UI creates `parent(ReseachOS)/<tag>/` with `koi-structure/` and `projectcode/` automatically. A Problem node appears on the map.
+The UI creates `tree/<tag>/koi-structure/` and `<tag>/projectcode/`. A Problem node appears on the map.
 
 | Next step | Where |
 |-----------|-------|

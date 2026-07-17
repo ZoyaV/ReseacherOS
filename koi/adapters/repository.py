@@ -210,7 +210,9 @@ def _apply_project_frontmatter_extras(
     meta, body = _split_frontmatter(path.read_text(encoding="utf-8"))
     if programs:
         meta["programs"] = programs
-    meta["code_root"] = "../projectcode"
+    # Discovery resolves code to <repo>/projectcode for tree/ layout; no relative
+    # code_root needed (legacy ../projectcode breaks under tree/<repo>/koi-structure).
+    meta.pop("code_root", None)
     path.write_text(
         "---\n"
         + yaml.dump(meta, allow_unicode=True, sort_keys=False).strip()
@@ -231,6 +233,8 @@ def create_project(
     description: str = "",
     programs: list[str] | None = None,
 ) -> Project:
+    from koi.adapters.project_mount import tree_koi_for
+
     desc = description.strip()
     if project_id:
         pid = _validate_project_tag(project_id)
@@ -248,8 +252,12 @@ def create_project(
             n += 1
         repo_root = _allocate_repo_root(pid)
 
-    koi = repo_root / "koi-structure"
+    # Canonical layout: tree/<repo>/koi-structure + <repo>/projectcode
+    scan_root = repo_root.parent
+    koi = tree_koi_for(scan_root, repo_root.name)
     code = repo_root / "projectcode"
+    if koi.exists():
+        raise ValueError(f"Project tree folder already exists: {koi}")
     koi.mkdir(parents=True)
     code.mkdir(parents=True)
     (code / "README.md").write_text(

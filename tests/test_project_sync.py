@@ -149,7 +149,9 @@ def test_pull_preserves_org_frontmatter(sync_layout: Path):
     assert pushed["ok"] is True
 
     # Remote sync branch drops composite_id; local still has it before pull.
-    wt = repo / ".koi-sync-worktree"
+    from koi.adapters.project_mount import sync_worktree_path
+
+    wt = sync_worktree_path(mount)
     remote_md = wt / "koi-structure" / "project.md"
     remote_md.write_text(
         remote_md.read_text(encoding="utf-8").replace("composite_id: test-composite\n", ""),

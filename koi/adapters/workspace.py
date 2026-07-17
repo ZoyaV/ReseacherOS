@@ -1,7 +1,8 @@
 """Engine layout and runtime paths.
 
 ENGINE_ROOT — product code (this repository).
-Project data is discovered via ``koi/adapters/project_mount.py`` (``*/koi-structure/``).
+Project data is discovered via ``koi/adapters/project_mount.py``
+(``tree/*/koi-structure/``, plus legacy ``*/koi-structure/``).
 """
 
 from __future__ import annotations

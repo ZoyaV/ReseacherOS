@@ -68,7 +68,9 @@ def test_create_project_with_program(tmp_path: Path, monkeypatch: pytest.MonkeyP
         programs=["embodied-ai"],
     )
     assert project.id == "with-program"
-    md = (tmp_path / "with_program" / "koi-structure" / "project.md").read_text(encoding="utf-8")
+    md = (
+        tmp_path / "tree" / "with_program" / "koi-structure" / "project.md"
+    ).read_text(encoding="utf-8")
     assert "embodied-ai" in md
     assert "programs:" in md
     reset_workspace_cache()
@@ -120,6 +122,69 @@ def test_create_project(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     assert project.id == "brand-new-problem"
     mount = pm.get_mount("brand-new-problem")
     assert mount is not None
-    assert (mount.repo_root / "koi-structure" / "project.md").is_file()
+    assert mount.koi_root == (tmp_path / "tree" / "brand_new_problem" / "koi-structure").resolve()
+    assert (mount.koi_root / "project.md").is_file()
     assert (mount.repo_root / "projectcode" / "README.md").is_file()
+    reset_workspace_cache()
+
+
+def test_discover_tree_layout(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    engine = tmp_path / "ReseachOS"
+    engine.mkdir()
+    code = tmp_path / "talking_heads"
+    code.mkdir()
+    (code / "src").mkdir()
+    koi = tmp_path / "tree" / "talking_heads" / "koi-structure"
+    koi.mkdir(parents=True)
+    (koi / "project.md").write_text(
+        "---\nid: talking-heads\ntitle: Talking Heads\ngit_repo: true\n"
+        "git_sync_branch: koi/research\n---\n\n# problem: p\n\nTalking Heads\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(pm, "ENGINE_ROOT", engine)
+    monkeypatch.setenv("KOI_SCAN_ROOTS", str(tmp_path))
+    reset_workspace_cache()
+    pm.rescan_projects()
+
+    mount = pm.get_mount("talking-heads")
+    assert mount is not None
+    assert mount.repo_root == code.resolve()
+    assert mount.koi_root == koi.resolve()
+    assert pm.is_under_tree(mount.koi_root)
+    assert pm.sync_worktree_path(mount) == (tmp_path / "tree" / "talking_heads").resolve()
+    reset_workspace_cache()
+
+
+def test_discover_enters_tree_folder_by_name(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Folder named ``tree`` → next level must be scanned for koi-structure."""
+    engine = tmp_path / "ReseachOS"
+    engine.mkdir()
+    # No code sibling — only tree/<name>/koi-structure
+    koi = tmp_path / "tree" / "solo_project" / "koi-structure"
+    koi.mkdir(parents=True)
+    (koi / "project.md").write_text(
+        "---\nid: solo-project\ntitle: Solo\n---\n\n# problem: p\n\nSolo\n",
+        encoding="utf-8",
+    )
+    # Leftover in-repo koi for another project must not shadow tree pickup
+    legacy = tmp_path / "legacy_repo" / "koi-structure"
+    legacy.mkdir(parents=True)
+    (legacy / "project.md").write_text(
+        "---\nid: legacy-repo\ntitle: Legacy\n---\n\n# problem: p\n\nLegacy\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(pm, "ENGINE_ROOT", engine)
+    monkeypatch.setenv("KOI_SCAN_ROOTS", str(tmp_path))
+    reset_workspace_cache()
+    pm.rescan_projects()
+
+    pairs = pm._iter_mount_candidates(tmp_path)
+    koi_paths = {k.resolve() for _, k in pairs}
+    assert koi.resolve() in koi_paths
+    assert legacy.resolve() in koi_paths
+
+    mounts = {m.project_id: m for m in pm.discover_projects()}
+    assert "solo-project" in mounts
+    assert mounts["solo-project"].koi_root == koi.resolve()
+    assert "legacy-repo" in mounts
     reset_workspace_cache()

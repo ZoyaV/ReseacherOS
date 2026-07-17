@@ -11,7 +11,7 @@
     })();
   </script>
   <title>Проект уже на ResearchOS — только запустить · ResearchOS</title>
-  <meta name="description" content="Как устроены движок и проекты: соседние папки, koi-structure и ветка koi/research." />
+  <meta name="description" content="Подтянуть koi/research в tree/<repo>/koi-structure и запустить интерфейс." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
@@ -40,149 +40,81 @@
     <a class="back-link" href="../index.html#start">← How to start</a>
     <h1 class="article__title">Проект уже на ResearchOS — только запустить</h1>
     <p class="article__lead">
-      Этот путь — когда дерево гипотез и материалы исследования уже есть у вас или у команды.
-      Нужно понять, <em>где</em> они живут, поставить движок и подтянуть данные рядом с кодом.
+      Дерево гипотез уже есть у команды (ветка <code>koi/research</code>).
+      Нужно поставить движок, повесить research-ветку в <code>tree/</code> и открыть UI.
     </p>
 
     <h2>Как это устроено</h2>
-    <p>
-      Репозиторий <strong>ResearchOS</strong> — это движок: интерфейс (client), сервер, API и набор
-      сценариев для AI-помощника. <strong>Данные ваших проектов внутри него не хранятся.</strong>
-    </p>
-    <p>
-      При запуске сервер смотрит на папки <strong>на том же уровне</strong>, что и
-      <code>ReseachOS/</code> (и на пути из <code>KOI_SCAN_ROOTS</code>, если заданы).
-      В каждой такой папке он ищет <code>koi-structure/</code> — там дерево гипотез, доска,
-      отчёты и выводы. По этим файлам интерфейс строит граф.
-    </p>
     <div class="example">
       <pre><code>workspace/
-├── ReseachOS/              ← движок (client + server + API + skills)
-├── TalkingHeads/           ← ваш код-репозиторий (пример)
-│   ├── … код …
-│   └── koi-structure/      ← материалы исследования (если подтянуты)
-├── verl-agent-craftext/    ← другой проект — та же схема
-└── OtherRepo/</code></pre>
-    </div>
-
-    <h2>Где лежит koi-structure в git</h2>
-    <p>
-      В репозитории с кодом (TalkingHeads, verl-agent-craftext, любой другой) папка
-      <code>koi-structure/</code> обычно живёт не в ветке с кодом, а в отдельной
-      <strong>«ветке-сироте»</strong> (orphan-ветке) <code>koi/research</code>.
-    </p>
-    <p>
-      У неё своя история: в коммитах только материалы исследования. Так люди могут работать
-      в разных ветках кода (<code>main</code>, feature-ветки) и всё равно синхронизировать
-      одну и ту же карту исследования. На ветке с кодом <code>koi-structure/</code> часто
-      в <code>.gitignore</code> — локально видна, в PR с кодом не попадает.
-    </p>
-
-    <h2>Что будет после обычного clone</h2>
-    <p>
-      По умолчанию в папке с кодом скачивается ветка <code>main</code> (или другая code-ветка).
-      Тогда структура выглядит так — <strong>без</strong> материалов исследования:
-    </p>
-    <div class="example">
-      <pre><code>ReseachOS/
-TalkingHeads/          ← ветка main
-  … talking_heads_code …</code></pre>
+├── ReseachOS/                         ← движок
+├── tree/
+│   ├── TalkingHeads/koi-structure/    ← ветка koi/research
+│   └── verl-agent-craftext/koi-structure/
+├── TalkingHeads/                      ← код, любая ветка
+└── verl-agent-craftext/</code></pre>
     </div>
     <p>
-      Чтобы сервер увидел проект, рядом с кодом должна появиться <code>koi-structure/</code>
-      из ветки <code>koi/research</code>:
-    </p>
-    <div class="example">
-      <pre><code>ReseachOS/
-TalkingHeads/          ← ветка main (код)
-  … talking_heads_code …
-  koi-structure/       ← содержимое ветки koi/research</code></pre>
-    </div>
-    <p>
-      Попросите AI-помощника <strong>установить / подтянуть ветку <code>koi/research</code></strong>
-      внутри папки с кодом того репозитория, который хотите видеть в интерфейсе.
-      Либо сделайте это командами ниже.
+      Сервер смотрит соседние папки: если встречается каталог <code>tree</code>,
+      на следующем уровне ищет <code>*/koi-structure/project.md</code>.
     </p>
 
     <h2>Пошагово</h2>
     <ol class="steps">
       <li>
-        <strong>Клон движка и зависимости</strong>
+        <strong>Клон движка</strong>
         <div class="example">
           <pre><code>git clone git@github.com:ZoyaV/ReseacherOS.git ReseachOS
 cd ReseachOS
-conda create -n researchos python=3.11 -y && conda activate researchos
-# или: python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt</code></pre>
+./scripts/koi-serve.sh start</code></pre>
         </div>
       </li>
       <li>
-        <strong>Репозиторий с кодом — sibling рядом с ReseachOS</strong>
-        <p>
-          Клонируйте (или положите) code-репо на том же уровне, что и движок.
-          Имена папок любые — важно соседство и наличие <code>koi-structure/</code> после шага 3.
-        </p>
+        <strong>Код-репо рядом с ReseachOS</strong>
         <div class="example">
-          <pre><code>cd ..   # родитель ReseachOS/
-git clone &lt;url-вашего-code-репо&gt; TalkingHeads
-# или: verl-agent-craftext, OtherRepo, …</code></pre>
+          <pre><code>cd ..
+git clone &lt;url-вашего-code-репо&gt; TalkingHeads</code></pre>
         </div>
       </li>
       <li>
-        <strong>Подтянуть материалы исследования (ветка koi/research)</strong>
-        <p>
-          Если ветка уже есть на remote, укажите её в шапке <code>project.md</code>
-          (когда файлы появятся локально) и выполните pull через CLI движка —
-          или попросите AI-помощника сделать то же самое.
-        </p>
+        <strong>Подтянуть koi/research в tree/</strong>
         <div class="example">
-          <pre><code># пример фразы AI-помощнику:
-# В репозитории TalkingHeads (рядом с ReseachOS) установи / подтяни
-# orphan-ветку koi/research так, чтобы рядом с кодом появилась koi-structure/,
-# а текущая code-ветка осталась main. Не меняй git config.
-
-# или вручную через CLI движка (когда project.md уже указывает sync-ветку):
-cd ReseachOS
-python -m koi.projects.sync_cli pull --project-id &lt;your-project-id&gt;
-
-# в koi-structure/project.md должно быть примерно:
-# git_repo: true
-# git_sync_branch: koi/research</code></pre>
+          <pre><code>cd ReseachOS
+python -m koi.projects.install_cli install TalkingHeads
+# статус всех соседей:
+python -m koi.projects.install_cli status</code></pre>
         </div>
         <p>
-          Если ветки ещё нет — это уже путь
-          <a href="with-code.html">«впервые подключаю свой код»</a> (онбординг + создание ветки).
+          Если ветка <code>koi/research</code> уже на remote — появится
+          <code>tree/TalkingHeads/</code> (git worktree). Если материалы лежали
+          по-старому внутри code-репо — CLI смигрирует их в <code>tree/</code>.
         </p>
       </li>
       <li>
         <strong>Запуск</strong>
         <div class="example">
-          <pre><code>cd ReseachOS
-./scripts/koi-serve.sh start
-./scripts/koi-serve.sh status
+          <pre><code>./scripts/koi-serve.sh restart
 # интерфейс  http://127.0.0.1:8080
 # API        http://127.0.0.1:8010/docs</code></pre>
         </div>
-        <p>
-          В сайдбаре должен появиться проект: сервер нашёл соседнюю папку с
-          <code>koi-structure/project.md</code> и построил граф.
-        </p>
       </li>
     </ol>
 
     <div class="callout">
       <p>
-        Дальше синхронизация — кнопка Sync в интерфейсе или сценарий
-        <a href="../skills/koi-project-sync.html">синхронизации</a>.
-        Секреты — в <code>.env</code> (см. <code>.env.example</code>), не в репозитории.
+        Дальше синхронизация исследования: кнопка Sync в UI или
+        <code>python -m koi.projects.sync_cli pull|push --project-id &lt;id&gt;</code>.
+        Если ветки ещё нет — путь
+        <a href="with-code.html">«впервые подключаю свой код»</a>.
       </p>
     </div>
 
     <div class="article__actions">
-      <a class="btn btn-primary" href="../skills/koi-project-sync.html">Сценарий sync</a>
-      <a class="btn btn-ghost" href="with-code.html">Если ветки ещё нет</a>
+      <a class="btn btn-primary" href="../skills/koi-project-sync.html">Синхронизация</a>
+      <a class="btn btn-ghost" href="../index.html#start">Другие пути</a>
     </div>
   </main>
+
 
   <footer class="site-footer">
     <div class="site-footer__inner">
@@ -190,6 +122,6 @@ python -m koi.projects.sync_cli pull --project-id &lt;your-project-id&gt;
       <a href="https://github.com/ZoyaV/ReseacherOS">ZoyaV/ReseacherOS</a>
     </div>
   </footer>
-  <script src="../js/site.js?v=12"></script>
+  <script src="../js/site.js?v=5"></script>
 </body>
 </html>

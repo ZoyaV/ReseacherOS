@@ -1,4 +1,4 @@
-"""Background scan for sibling ``koi-structure/project.md`` mounts."""
+"""Background scan for ``tree/*/koi-structure/project.md`` (and legacy) mounts."""
 
 from __future__ import annotations
 

@@ -11,7 +11,7 @@
     })();
   </script>
   <title>Впервые подключаю свой код · ResearchOS</title>
-  <meta name="description" content="Код эксперимента есть, материалов исследования ещё нет — подключаем к ResearchOS." />
+  <meta name="description" content="Код эксперимента есть — одной командой ставим tree/<repo>/koi-structure на ветке koi/research." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
@@ -40,91 +40,77 @@
     <a class="back-link" href="../index.html#start">← How to start</a>
     <h1 class="article__title">Впервые подключаю свой код</h1>
     <p class="article__lead">
-      Отличие от «уже на ResearchOS»: код эксперимента есть, а карты исследования ещё нет.
-      AI-помощник по сценарию
-      <a href="../skills/koi-project-onboard.html">подключения проекта</a>
-      соберёт дерево гипотез и запишет материалы рядом с кодом.
+      Код эксперимента уже есть. Материалы исследования живут отдельно:
+      <code>tree/&lt;репо&gt;/koi-structure/</code> на ветке <code>koi/research</code>,
+      а код остаётся в <code>&lt;репо&gt;/</code> на любой ветке.
     </p>
+
+    <h2>Целевая раскладка</h2>
+    <div class="example">
+      <pre><code>workspace/
+├── ReseachOS/                      ← движок
+├── tree/
+│   └── my_experiment/
+│       └── koi-structure/          ← ветка koi/research
+└── my_experiment/                  ← код, любая ветка
+    └── …</code></pre>
+    </div>
 
     <ol class="steps">
       <li>
         <strong>Поставьте ResearchOS рядом с проектом</strong>
         <div class="example">
           <pre><code>git clone git@github.com:ZoyaV/ReseacherOS.git ReseachOS
-# рядом:
-# workspace/ReseachOS/
-# workspace/my_experiment/</code></pre>
+# рядом уже лежит (или клонируете) my_experiment/</code></pre>
         </div>
       </li>
       <li>
-        <strong>Запустите ResearchOS</strong>
+        <strong>Установите проект одной командой</strong>
         <div class="example">
           <pre><code>cd ReseachOS
-./scripts/koi-serve.sh start
-# интерфейс: http://127.0.0.1:8080</code></pre>
+./scripts/koi-serve.sh start   # поднимет .venv при необходимости
+python -m koi.projects.install_cli install my_experiment
+# или: ./scripts/koi-project-install.sh install my_experiment</code></pre>
         </div>
-      </li>
-      <li>
-        <strong>Попросите AI-помощника подключить репозиторий</strong>
-        <div class="example">
-          <p>Вставьте в Cursor или Claude Code:</p>
-          <pre><code>Подключи ../my_experiment к ResearchOS.
-
-Следуй agents/skills/koi-project-onboard/SKILL.md до конца,
-включая отдельную ветку для материалов исследования (обычно koi/research).</code></pre>
-        </div>
-      </li>
-      <li>
-        <strong>Дальше в интерфейсе</strong>
         <p>
-          После записи <code>project.md</code> появятся дерево и доска прогонов.
-          Детали эксперимента — сценарий
-          <a href="../skills/koi-grill-experiment.html">проектирования эксперимента</a>.
+          CLI сам определит кейс: создать orphan <code>koi/research</code>,
+          повесить worktree в <code>tree/</code>, или смигрировать старый
+          <code>my_experiment/koi-structure</code>.
+        </p>
+      </li>
+      <li>
+        <strong>(Опционально) Дерево гипотез с AI-помощником</strong>
+        <div class="example">
+          <p>Если материалов ещё нет — после install попросите онбординг:</p>
+          <pre><code>Подключи ../my_experiment к ResearchOS.
+Следуй agents/skills/koi-project-onboard/SKILL.md.
+Пиши в tree/my_experiment/koi-structure/.</code></pre>
+        </div>
+      </li>
+      <li>
+        <strong>Откройте интерфейс</strong>
+        <p>
+          <code>./scripts/koi-serve.sh restart</code> →
+          <a href="http://127.0.0.1:8080">http://127.0.0.1:8080</a>.
+          Проект появится в сайдбаре.
         </p>
       </li>
     </ol>
 
-    <h2>Зачем отдельная ветка для исследования</h2>
+    <h2>Зачем tree/ и отдельная ветка</h2>
     <p>
-      В одном репозитории живут две разные вещи: <strong>код экспериментов</strong> и
-      <strong>материалы исследования</strong> (дерево гипотез, доска прогонов, отчёты, выводы).
-      Если коммитить всё в одну ветку с кодом, pull request’ы и ревью кода захламляются
-      правками карты и отчётов.
-    </p>
-    <p>
-      ResearchOS поэтому использует приём с <strong>отдельной «веткой-сиротой»</strong>
-      (orphan branch): у неё нет общей истории с веткой кода. В эту ветку (по умолчанию
-      <code>koi/research</code>) уезжает только папка <code>koi-structure/</code>.
-      На ветке с кодом эта папка добавляется в <code>.gitignore</code> — локально вы её видите
-      и правите, а в коммиты кода она не попадает.
-    </p>
-
-    <div class="example">
-      <p>Как это выглядит в одном репозитории проекта:</p>
-      <pre><code>ветка main (или develop)     →  код, скрипты, конфиги
-                                koi-structure/ в .gitignore
-
-ветка koi/research (orphan)  →  только koi-structure/
-                                дерево, отчёты, research.json</code></pre>
-    </div>
-
-    <p>
-      AI-помощник при подключении обычно сам создаёт ветку, делает первый push и прописывает
-      имя ветки в шапке <code>project.md</code> (<code>git_sync_branch</code>).
-      Дальше — кнопка Sync в интерфейсе или сценарий
-      <a href="../skills/koi-project-sync.html">синхронизации</a>:
-      «забрать» чужие правки исследования и «отправить» свои.
+      Код и карта исследования — разные ритмы работы. Ветка-сирота
+      <code>koi/research</code> хранит только <code>koi-structure/</code>;
+      worktree в <code>tree/&lt;репо&gt;/</code> держит её открытой рядом с движком,
+      не смешивая с feature-ветками кода.
     </p>
 
     <div class="callout">
       <p>
-        <strong>Если ветка уже есть на remote</strong> (коллега или CI уже создали
-        <code>koi/research</code>) — не создавайте вторую. Укажите то же имя в
-        <code>git_sync_branch</code> и выполните pull:
+        <strong>Посмотреть статус всех соседей:</strong>
       </p>
       <div class="example" style="margin-top:0.75rem">
-        <pre><code>cd ReseachOS
-python -m koi.projects.sync_cli pull --project-id &lt;id-проекта&gt;</code></pre>
+        <pre><code>python -m koi.projects.install_cli status</code></pre>
       </div>
     </div>
 

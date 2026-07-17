@@ -11,7 +11,7 @@
     })();
   </script>
   <title>Начинаю с нуля — кода ещё нет · ResearchOS</title>
-  <meta name="description" content="Создать пустой проект ResearchOS, когда кода эксперимента ещё нет." />
+  <meta name="description" content="Создать пустой проект ResearchOS: tree/<repo>/koi-structure и папка для кода." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
@@ -40,28 +40,45 @@
     <a class="back-link" href="../index.html#start">← How to start</a>
     <h1 class="article__title">Начинаю с нуля — кода ещё нет</h1>
     <p class="article__lead">
-      Это не «подключение готового кода». Сначала заводим пустой проект и карту гипотез —
-      код эксперимента появится позже в <code>projectcode/</code>.
+      Сначала заводим карту гипотез. Код эксперимента появится позже в
+      <code>&lt;репо&gt;/projectcode/</code>.
     </p>
 
-    <h2>В интерфейсе</h2>
+    <h2>Одной командой</h2>
     <ol class="steps">
       <li>
         Клонируйте и запустите ResearchOS
         <div class="example">
           <pre><code>git clone git@github.com:ZoyaV/ReseacherOS.git ReseachOS
 cd ReseachOS
-./scripts/koi-serve.sh start
-# http://127.0.0.1:8080</code></pre>
+./scripts/koi-serve.sh start</code></pre>
         </div>
       </li>
       <li>
-        В списке проектов нажмите <strong>+ Новый проект</strong>: название, описание,
-        короткий латинский ярлык папки и программу.
+        Создайте пустой проект
+        <div class="example">
+          <pre><code>python -m koi.projects.install_cli install my_idea \
+  --create --title "Моя исследовательская проблема"
+./scripts/koi-serve.sh restart
+# http://127.0.0.1:8080</code></pre>
+        </div>
+        <p>На диске появится:</p>
+        <div class="example">
+          <pre><code>tree/my_idea/koi-structure/   ← project.md, research.json
+my_idea/projectcode/          ← место под код</code></pre>
+        </div>
+      </li>
+    </ol>
+
+    <h2>В интерфейсе</h2>
+    <ol class="steps">
+      <li>
+        Откройте <a href="http://127.0.0.1:8080">http://127.0.0.1:8080</a>,
+        в списке проектов — <strong>+ Новый проект</strong>: название, описание,
+        короткий латинский ярлык и программу.
       </li>
       <li>
-        На карте появится проблема — добавляйте причины, гипотезы и методы через «+»,
-        а прогоны — на доске метода.
+        На карте появится проблема — добавляйте причины, гипотезы и методы через «+».
       </li>
     </ol>
 
@@ -72,8 +89,9 @@ cd ReseachOS
 
 1. Спроси меня о проблеме, области и том, какие эксперименты реалистичны.
 2. Предложи дерево: проблема → причины → гипотезы → методы.
-3. Спроси короткий латинский ярлык папки и создай её рядом с ReseachOS/
-   с материалами исследования и папкой projectcode/.
+3. Создай через
+   python -m koi.projects.install_cli install &lt;ярлык&gt; --create
+   (tree/&lt;ярлык&gt;/koi-structure + &lt;ярлык&gt;/projectcode).
 4. Пиши понятным языком. Не коммить без моей явной просьбы.</code></pre>
     </div>
 
@@ -81,7 +99,6 @@ cd ReseachOS
       <p>
         Пошаговый учебный проход —
         <a href="https://github.com/ZoyaV/ReseacherOS/blob/main/docs/human/getting-started.md">getting-started</a>.
-        Демо: ветка <code>test_project</code> → папка <code>bicycle_problem</code>.
       </p>
     </div>
 
