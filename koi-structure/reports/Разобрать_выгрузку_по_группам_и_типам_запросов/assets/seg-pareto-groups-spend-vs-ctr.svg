@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520">
+<rect width="100%" height="100%" fill="#fafafa"/>
+<text x="450.0" y="28" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="600">Расход vs CTR — 25 рекламных групп (май 2024)</text>
+<line x1="80" y1="450.0" x2="870" y2="450.0" stroke="#e0e0e0"/>
+<text x="72" y="454.0" text-anchor="end" font-family="sans-serif" font-size="11" fill="#666">0%</text>
+<line x1="80" y1="370.0" x2="870" y2="370.0" stroke="#e0e0e0"/>
+<text x="72" y="374.0" text-anchor="end" font-family="sans-serif" font-size="11" fill="#666">5%</text>
+<line x1="80" y1="290.0" x2="870" y2="290.0" stroke="#e0e0e0"/>
+<text x="72" y="294.0" text-anchor="end" font-family="sans-serif" font-size="11" fill="#666">10%</text>
+<line x1="80" y1="210.0" x2="870" y2="210.0" stroke="#e0e0e0"/>
+<text x="72" y="214.0" text-anchor="end" font-family="sans-serif" font-size="11" fill="#666">15%</text>
+<line x1="80" y1="130.0" x2="870" y2="130.0" stroke="#e0e0e0"/>
+<text x="72" y="134.0" text-anchor="end" font-family="sans-serif" font-size="11" fill="#666">20%</text>
+<line x1="80" y1="50.0" x2="870" y2="50.0" stroke="#e0e0e0"/>
+<text x="72" y="54.0" text-anchor="end" font-family="sans-serif" font-size="11" fill="#666">25%</text>
+<line x1="80.0" y1="50" x2="80.0" y2="450" stroke="#e0e0e0"/>
+<text x="80.0" y="470" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#666">0.0k</text>
+<line x1="238.0" y1="50" x2="238.0" y2="450" stroke="#e0e0e0"/>
+<text x="238.0" y="470" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#666">1.6k</text>
+<line x1="396.0" y1="50" x2="396.0" y2="450" stroke="#e0e0e0"/>
+<text x="396.0" y="470" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#666">3.2k</text>
+<line x1="554.0" y1="50" x2="554.0" y2="450" stroke="#e0e0e0"/>
+<text x="554.0" y="470" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#666">4.9k</text>
+<line x1="712.0" y1="50" x2="712.0" y2="450" stroke="#e0e0e0"/>
+<text x="712.0" y="470" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#666">6.5k</text>
+<line x1="870.0" y1="50" x2="870.0" y2="450" stroke="#e0e0e0"/>
+<text x="870.0" y="470" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#666">8.1k</text>
+<line x1="80" y1="279.4" x2="870" y2="279.4" stroke="#999" stroke-dasharray="6,4"/>
+<text x="866" y="273.4" text-anchor="end" font-family="sans-serif" font-size="10" fill="#999">средний CTR 10.9%</text>
+<circle cx="832.4" cy="280.6" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<circle cx="744.2" cy="306.7" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<circle cx="669.1" cy="301.1" r="7" fill="#e74c3c" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<text x="679.1" y="305.1" font-family="sans-serif" font-size="10" fill="#333">Stels</text>
+<circle cx="584.6" cy="273.6" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<circle cx="524.2" cy="318.2" r="7" fill="#e74c3c" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<text x="534.2" y="322.2" font-family="sans-serif" font-size="10" fill="#333">Каталог</text>
+<circle cx="423.7" cy="254.6" r="7" fill="#27ae60" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<text x="433.7" y="258.6" font-family="sans-serif" font-size="10" fill="#333">Подростковый</text>
+<circle cx="413.6" cy="218.2" r="7" fill="#27ae60" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<text x="423.6" y="222.2" font-family="sans-serif" font-size="10" fill="#333">Ангарск</text>
+<circle cx="350.4" cy="102.2" r="7" fill="#27ae60" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<text x="360.4" y="106.2" font-family="sans-serif" font-size="10" fill="#333">Детский</text>
+<circle cx="257.8" cy="310.8" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<circle cx="257.4" cy="175.7" r="7" fill="#27ae60" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<text x="267.4" y="179.7" font-family="sans-serif" font-size="10" fill="#333">Братск</text>
+<circle cx="206.2" cy="216.5" r="7" fill="#27ae60" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<text x="216.2" y="220.5" font-family="sans-serif" font-size="10" fill="#333">Stinger</text>
+<circle cx="190.6" cy="208.8" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<circle cx="161.7" cy="297.3" r="7" fill="#e74c3c" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<text x="171.7" y="301.3" font-family="sans-serif" font-size="10" fill="#333">Большой</text>
+<circle cx="131.9" cy="369.5" r="7" fill="#e74c3c" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<text x="141.9" y="373.5" font-family="sans-serif" font-size="10" fill="#333">Магазин</text>
+<circle cx="128.8" cy="325.1" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<circle cx="127.3" cy="332.9" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<circle cx="115.9" cy="250.6" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<circle cx="103.2" cy="307.1" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<circle cx="97.9" cy="337.7" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<circle cx="96.8" cy="285.4" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<circle cx="94.9" cy="228.7" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<circle cx="90.9" cy="253.6" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<circle cx="89.8" cy="249.4" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<circle cx="88.9" cy="360.2" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<circle cx="82.6" cy="411.7" r="7" fill="#3498db" fill-opacity="0.85" stroke="white" stroke-width="1.5"/>
+<text x="450.0" y="510" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#333">Расход, ₽</text>
+<text x="18" y="260.0" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#333" transform="rotate(-90 18 260.0)">CTR, %</text>
+<circle cx="96" cy="65" r="5" fill="#e74c3c"/>
+<text x="106" y="69" font-family="sans-serif" font-size="10">много бюджета, низкая отдача</text>
+<circle cx="96" cy="83" r="5" fill="#27ae60"/>
+<text x="106" y="87" font-family="sans-serif" font-size="10">умеренный бюджет, высокая отдача</text>
+<circle cx="96" cy="101" r="5" fill="#3498db"/>
+<text x="106" y="105" font-family="sans-serif" font-size="10">остальные группы</text>
+</svg>

@@ -1,0 +1,83 @@
+{
+  "question": "scene graph robot",
+  "project_id": "bicycle-ads-efficiency",
+  "created_at": "2026-06-22T14:39:54Z",
+  "count": 2,
+  "download_pdfs": false,
+  "index_markdown": "answers_index.md",
+  "cluster_report": "answer_clusters.md",
+  "cluster_backend": "abstract_heuristic",
+  "clusters": [
+    {
+      "key": "scene-using-graphs",
+      "label": "Scene · Using · Graphs",
+      "answer": "Papers in this group overlap on scene, using, graphs, 3d when answering: scene graph robot",
+      "rationale": "Grouped 2 paper(s) by lexical overlap of titles and abstract-based answers.",
+      "distinguishing_features": "Heuristic cluster from abstract overlap; refine manually if papers look miscategorized.",
+      "signature_terms": [
+        "scene",
+        "using",
+        "graphs",
+        "3d",
+        "models",
+        "language"
+      ],
+      "paper_titles": [
+        "SayPlan: Grounding Large Language Models using 3D Scene Graphs",
+        "Attention over Scene Graphs"
+      ]
+    }
+  ],
+  "papers": [
+    {
+      "rank": 1,
+      "title": "SayPlan: Grounding Large Language Models using 3D Scene Graphs",
+      "arxiv_url": "https://arxiv.org/abs/2307.06135",
+      "arxiv_id": "2307.06135",
+      "year": 2023,
+      "source_report": "selected_results",
+      "answer_path": "01_SayPlan_Grounding_Large_Language_Models_using_3D_Scene_Graphs.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Large language models for robot task planning using 3D scene graphs.",
+      "comprehensive_answer": "Large language models for robot task planning using 3D scene graphs.",
+      "evidence": [
+        "Large language models for robot task planning using 3D scene graphs."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "scene-using-graphs",
+      "cluster_label": "Scene · Using · Graphs",
+      "cluster_rationale": "Grouped 2 paper(s) by lexical overlap of titles and abstract-based answers."
+    },
+    {
+      "rank": 2,
+      "title": "Attention over Scene Graphs",
+      "arxiv_url": "https://arxiv.org/abs/2509.26457",
+      "arxiv_id": "2509.26457",
+      "year": 2025,
+      "source_report": "selected_results",
+      "answer_path": "02_Attention_over_Scene_Graphs.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Indoor scene classification using graph attention networks.",
+      "comprehensive_answer": "Indoor scene classification using graph attention networks.",
+      "evidence": [
+        "Indoor scene classification using graph attention networks."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "scene-using-graphs",
+      "cluster_label": "Scene · Using · Graphs",
+      "cluster_rationale": "Grouped 2 paper(s) by lexical overlap of titles and abstract-based answers."
+    }
+  ]
+}

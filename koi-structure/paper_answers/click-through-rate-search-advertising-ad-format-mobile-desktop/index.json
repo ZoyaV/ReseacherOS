@@ -1,0 +1,470 @@
+{
+  "question": "click-through rate search advertising ad format mobile desktop",
+  "project_id": "bicycle-ads-efficiency",
+  "created_at": "2026-06-22T14:49:18Z",
+  "count": 10,
+  "download_pdfs": false,
+  "index_markdown": "answers_index.md",
+  "cluster_report": "answer_clusters.md",
+  "cluster_backend": "abstract_heuristic",
+  "clusters": [
+    {
+      "key": "effect-funnel-advertising",
+      "label": "Effect · Funnel · Advertising",
+      "answer": "Papers in this group share themes around effect, funnel, advertising, understanding for: click-through rate search advertising ad format mobile desktop",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "effect",
+        "funnel",
+        "advertising",
+        "understanding",
+        "conversion",
+        "along"
+      ],
+      "paper_titles": [
+        "Understanding the Effect of Incentivized Advertising along the Conversion Funnel"
+      ]
+    },
+    {
+      "key": "field-budges-change",
+      "label": "Field · Budges · Change",
+      "answer": "Papers in this group share themes around field, budges, change, experiment for: click-through rate search advertising ad format mobile desktop",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "field",
+        "budges",
+        "change",
+        "experiment",
+        "networks",
+        "follow"
+      ],
+      "paper_titles": [
+        "Follow Nudges without Budges: A Field Experiment on Misinformation Followers Didn't Change Follow Networks"
+      ]
+    },
+    {
+      "key": "auction-modeling-insights",
+      "label": "Auction · Modeling · Insights",
+      "answer": "Papers in this group share themes around auction, modeling, insights, realism for: click-through rate search advertising ad format mobile desktop",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "auction",
+        "modeling",
+        "insights",
+        "realism",
+        "implications",
+        "advancing"
+      ],
+      "paper_titles": [
+        "Advancing Ad Auction Realism: Practical Insights & Modeling Implications"
+      ]
+    },
+    {
+      "key": "bayesian-click-through-auction",
+      "label": "Bayesian · Click Through · Auction",
+      "answer": "Papers in this group share themes around bayesian, click-through, auction, calibrated for: click-through rate search advertising ad format mobile desktop",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "bayesian",
+        "click-through",
+        "auction",
+        "calibrated"
+      ],
+      "paper_titles": [
+        "Bayesian Calibrated Click-Through Auction"
+      ]
+    },
+    {
+      "key": "scheme-information-auction",
+      "label": "Scheme · Information · Auction",
+      "answer": "Papers in this group share themes around scheme, information, auction, cursor for: click-through rate search advertising ad format mobile desktop",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "scheme",
+        "information",
+        "auction",
+        "cursor",
+        "price-per-attention",
+        "mouse"
+      ],
+      "paper_titles": [
+        "A Price-Per-Attention Auction Scheme Using Mouse Cursor Information"
+      ]
+    },
+    {
+      "key": "audio-centric-spotify-learning",
+      "label": "Audio Centric · Spotify · Learning",
+      "answer": "Papers in this group share themes around audio-centric, spotify, learning, multi-task for: click-through rate search advertising ad format mobile desktop",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "audio-centric",
+        "spotify",
+        "learning",
+        "multi-task",
+        "framework",
+        "targeting"
+      ],
+      "paper_titles": [
+        "An Audio-centric Multi-task Learning Framework for Streaming Ads Targeting on Spotify"
+      ]
+    },
+    {
+      "key": "approach-user-prediction",
+      "label": "Approach · User · Prediction",
+      "answer": "Papers in this group share themes around approach, user, prediction, model for: click-through rate search advertising ad format mobile desktop",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "approach",
+        "user",
+        "prediction",
+        "model",
+        "ctr",
+        "interest"
+      ],
+      "paper_titles": [
+        "A Non-sequential Approach to Deep User Interest Model for CTR Prediction"
+      ]
+    },
+    {
+      "key": "lead-autobidding-model",
+      "label": "Lead · Autobidding · Model",
+      "answer": "Papers in this group share themes around lead, autobidding, model, monotonicity for: click-through rate search advertising ad format mobile desktop",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "lead",
+        "autobidding",
+        "model",
+        "monotonicity",
+        "when",
+        "outcomes"
+      ],
+      "paper_titles": [
+        "Model Monotonicity in Autobidding Auctions: When Do Better Predictions Lead to Better Outcomes?"
+      ]
+    },
+    {
+      "key": "online-ads-agents",
+      "label": "Online · Ads · Agents",
+      "answer": "Papers in this group share themes around online, ads, agents, interacting for: click-through rate search advertising ad format mobile desktop",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "online",
+        "ads",
+        "agents",
+        "interacting"
+      ],
+      "paper_titles": [
+        "Are AI Agents interacting with Online Ads?"
+      ]
+    },
+    {
+      "key": "your-recommendations-product",
+      "label": "Your · Recommendations · Product",
+      "answer": "Papers in this group share themes around your, recommendations, product, e-commerce for: click-through rate search advertising ad format mobile desktop",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "your",
+        "recommendations",
+        "product",
+        "e-commerce",
+        "scale",
+        "inbox"
+      ],
+      "paper_titles": [
+        "E-commerce in Your Inbox: Product Recommendations at Scale"
+      ]
+    }
+  ],
+  "papers": [
+    {
+      "rank": 1,
+      "title": "Understanding the Effect of Incentivized Advertising along the Conversion Funnel",
+      "arxiv_url": "https://arxiv.org/abs/1709.00197",
+      "arxiv_id": "1709.00197",
+      "year": 2017,
+      "source_report": "selected_results",
+      "answer_path": "01_Understanding_the_Effect_of_Incentivized_Advertising_along_the_Conversion_Funnel.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "In an effort to combat ad annoyance in mobile apps, publishers have introduced a new ad format called \"Incentivized Advertising\" or \"Rewarded Advertising\", whereby users receive rewards in exchange for watching ads. There is much debate in the industry regarding its' effectiveness.",
+      "comprehensive_answer": "In an effort to combat ad annoyance in mobile apps, publishers have introduced a new ad format called \"Incentivized Advertising\" or \"Rewarded Advertising\", whereby users receive rewards in exchange for watching ads. There is much debate in the industry regarding its' effectiveness. On the one hand, incentivized advertising is less intrusive and annoying, but on the other hand, users might be more interested in the rewards rather than the ad content. Using a large dataset of 1 million impressions from a mobile advertising platform, and in three separate quasi-experimental approaches, we find that incentivized advertising leads to lower users' click-through rates, but a higher overall install rate of the advertised app. In the second part, we study the mechanism of how incentivized advertising affects users' behavior. We test the hypothesis that incentivized advertising causes a temptation effect, whereby users prefer to collect and enjoy their rewards immediately, instead of pursuing the ads. We find the temptation effect is stronger when (i) users have to wait longer before receiving the rewards and when (ii) the value of the reward is relatively larger. We further find support that incentivized advertising has a positive effect of reducing ad annoyance -- an effect that is stronger for small-screen mobile devices, where advertising is more annoying. Finally, we take the publisher's perspective and quantify the overall effect on ad revenue. Our difference-in-differences estimates suggest switching to incentivized advertising would increase the publisher's revenue by $3.10 per 1,000 impressions.",
+      "evidence": [
+        "In an effort to combat ad annoyance in mobile apps, publishers have introduced a new ad format called \"Incentivized Advertising\" or \"Rewarded Advertising\", whereby users receive rewards in exchange for watching ads.",
+        "There is much debate in the industry regarding its' effectiveness.",
+        "On the one hand, incentivized advertising is less intrusive and annoying, but on the other hand, users might be more interested in the rewards rather than the ad content.",
+        "Using a large dataset of 1 million impressions from a mobile advertising platform, and in three separate quasi-experimental approaches, we find that incentivized advertising leads to lower users' click-through rates, but a higher overall install rate of the advertised app."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "effect-funnel-advertising",
+      "cluster_label": "Effect · Funnel · Advertising",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 2,
+      "title": "Follow Nudges without Budges: A Field Experiment on Misinformation Followers Didn't Change Follow Networks",
+      "arxiv_url": "https://arxiv.org/abs/2512.13643",
+      "arxiv_id": "2512.13643",
+      "year": 2025,
+      "source_report": "selected_results",
+      "answer_path": "02_Follow_Nudges_without_Budges_A_Field_Experiment_on_Misinformation_Followers_Didn't_Change_Follow_Networks.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Can digital ads encourage users exposed to inaccurate information sources to follow accurate ones? We conduct a large-scale field experiment (N=28,582) on X, formerly Twitter, with users who follow accounts that spread health misinformation.",
+      "comprehensive_answer": "Can digital ads encourage users exposed to inaccurate information sources to follow accurate ones? We conduct a large-scale field experiment (N=28,582) on X, formerly Twitter, with users who follow accounts that spread health misinformation. Participants were exposed to four ad treatments varied on two dimensions: a neutral message versus a persuasive message appealing to values of independence, and a request to follow a health institution versus a request to follow a health influencer. We term this ad-based, social network intervention a follow nudge. The ad with a persuasive message to follow a well-known health institution generated significantly higher click-through rates than all other conditions (Bonferroni-corrected pairwise tests, all p<0.001). Given the overall low click-through rate across treatments and the high cost of digital advertising infrastructure on X, however, we conclude that our proposed intervention -- at least in its current ad-based format -- is not a cost-effective means to improve information environments online. We discuss challenges faced when conducting large-scale experiments on X following the platform's ownership change and subsequent restrictions on data access for research purposes.",
+      "evidence": [
+        "Can digital ads encourage users exposed to inaccurate information sources to follow accurate ones?",
+        "We conduct a large-scale field experiment (N=28,582) on X, formerly Twitter, with users who follow accounts that spread health misinformation.",
+        "Participants were exposed to four ad treatments varied on two dimensions: a neutral message versus a persuasive message appealing to values of independence, and a request to follow a health institution versus a request to follow a health influencer.",
+        "We term this ad-based, social network intervention a follow nudge."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "field-budges-change",
+      "cluster_label": "Field · Budges · Change",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 3,
+      "title": "Advancing Ad Auction Realism: Practical Insights & Modeling Implications",
+      "arxiv_url": "https://arxiv.org/abs/2307.11732",
+      "arxiv_id": "2307.11732",
+      "year": 2023,
+      "source_report": "selected_results",
+      "answer_path": "03_Advancing_Ad_Auction_Realism_Practical_Insights_&_Modeling_Implications.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Contemporary real-world online ad auctions differ from canonical models [Edelman et al., 2007; Varian, 2009] in at least four ways: (1) values and click-through rates can depend upon users' search queries, but advertisers can only partially \"tune\" their bids to specific queries; (2) advertisers do not know the number, identity, and precise value distribution of competing bidders; (3) advertisers only receive partial, aggregated feedback, and (4) payment rules are only partially known to bidders. These features make it virtually impossible to fully characterize equilibrium bidding behavior.",
+      "comprehensive_answer": "Contemporary real-world online ad auctions differ from canonical models [Edelman et al., 2007; Varian, 2009] in at least four ways: (1) values and click-through rates can depend upon users' search queries, but advertisers can only partially \"tune\" their bids to specific queries; (2) advertisers do not know the number, identity, and precise value distribution of competing bidders; (3) advertisers only receive partial, aggregated feedback, and (4) payment rules are only partially known to bidders. These features make it virtually impossible to fully characterize equilibrium bidding behavior. This paper shows that, nevertheless, one can still gain useful insight into modern ad auctions by modeling advertisers as agents governed by an adversarial bandit algorithm, independent of auction mechanism intricacies. To demonstrate our approach, we first simulate \"soft-floor\" auctions [Zeithammer, 2019], a complex, real-world pricing rule for which no complete equilibrium characterization is known. We find that (i) when values and click-through rates are query-dependent, soft floors can improve revenues relative to standard auction formats even if bidder types are drawn from the same distribution; and (ii) with distributional asymmetries that reflect relevant real-world scenario, we find that soft floors yield lower revenues than suitably chosen reserve prices, even restricting attention to a single query. We then demonstrate how to infer advertiser value distributions from observed bids for a variety of pricing rules, and illustrate our approach with aggregate data from an e-commerce website.",
+      "evidence": [
+        "Contemporary real-world online ad auctions differ from canonical models [Edelman et al., 2007; Varian, 2009] in at least four ways: (1) values and click-through rates can depend upon users' search queries, but advertisers can only partially \"tune\" their bids to specific queries; (2) advertisers do not know the number, identity, and precise value distribution of competing bidders; (3) advertisers only receive partial, aggregated feedback, and (4) payment rules are only partially known to bidders.",
+        "These features make it virtually impossible to fully characterize equilibrium bidding behavior.",
+        "This paper shows that, nevertheless, one can still gain useful insight into modern ad auctions by modeling advertisers as agents governed by an adversarial bandit algorithm, independent of auction mechanism intricacies.",
+        "To demonstrate our approach, we first simulate \"soft-floor\" auctions [Zeithammer, 2019], a complex, real-world pricing rule for which no complete equilibrium characterization is known."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "auction-modeling-insights",
+      "cluster_label": "Auction · Modeling · Insights",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 4,
+      "title": "Bayesian Calibrated Click-Through Auction",
+      "arxiv_url": "https://arxiv.org/abs/2306.06554",
+      "arxiv_id": "2306.06554",
+      "year": 2023,
+      "source_report": "selected_results",
+      "answer_path": "04_Bayesian_Calibrated_Click-Through_Auction.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "We study information design in click-through auctions, in which the bidders/advertisers bid for winning an opportunity to show their ads but only pay for realized clicks. The payment may or may not happen, and its probability is called the click-through rate (CTR).",
+      "comprehensive_answer": "We study information design in click-through auctions, in which the bidders/advertisers bid for winning an opportunity to show their ads but only pay for realized clicks. The payment may or may not happen, and its probability is called the click-through rate (CTR). This auction format is widely used in the industry of online advertising. Bidders have private values, whereas the seller has private information about each bidder's CTRs. We are interested in the seller's problem of partially revealing CTR information to maximize revenue. Information design in click-through auctions turns out to be intriguingly different from almost all previous studies in this space since any revealed information about CTRs will never affect bidders' bidding behaviors -- they will always bid their true value per click -- but only affect the auction's allocation and payment rule. In some sense, this makes information design effectively a constrained mechanism design problem. Our first result is an FPTAS to compute an approximately optimal mechanism under a constant number of bidders. The design of this algorithm leverages Bayesian bidder values which help to ``smooth'' the seller's revenue function and lead to better tractability. The design of this FPTAS is complex and primarily algorithmic. Our second main result pursues the design of ``simple'' mechanisms that are approximately optimal yet more practical. We primarily focus on the two-bidder situation, which is already notoriously challenging as demonstrated in recent works. When bidders' CTR distribution is symmetric, we develop a simple prior-free signaling scheme, whose construction relies on a parameter termed optimal signal ratio. The constructed scheme provably obtains a good approximation as long as the maximum and minimum of bidders' value density functions do not differ much.",
+      "evidence": [
+        "We study information design in click-through auctions, in which the bidders/advertisers bid for winning an opportunity to show their ads but only pay for realized clicks.",
+        "The payment may or may not happen, and its probability is called the click-through rate (CTR).",
+        "This auction format is widely used in the industry of online advertising.",
+        "Bidders have private values, whereas the seller has private information about each bidder's CTRs."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "bayesian-click-through-auction",
+      "cluster_label": "Bayesian · Click Through · Auction",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 5,
+      "title": "A Price-Per-Attention Auction Scheme Using Mouse Cursor Information",
+      "arxiv_url": "https://arxiv.org/abs/2001.07803",
+      "arxiv_id": "2001.07803",
+      "year": 2020,
+      "source_report": "selected_results",
+      "answer_path": "05_A_Price-Per-Attention_Auction_Scheme_Using_Mouse_Cursor_Information.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Payments in online ad auctions are typically derived from click-through rates, so that advertisers do not pay for ineffective ads. But advertisers often care about more than just clicks.",
+      "comprehensive_answer": "Payments in online ad auctions are typically derived from click-through rates, so that advertisers do not pay for ineffective ads. But advertisers often care about more than just clicks. That is, for example, if they aim to raise brand awareness or visibility. There is thus an opportunity to devise a more effective ad pricing paradigm, in which ads are paid only if they are actually noticed. This article contributes a novel auction format based on a pay-per-attention (PPA) scheme. We show that the PPA auction inherits the desirable properties (strategy-proofness and efficiency) as its pay-per-impression and pay-per-click counterparts, and that it also compares favourably in terms of revenues. To make the PPA format feasible, we also contribute a scalable diagnostic technology to predict user attention to ads in sponsored search using raw mouse cursor coordinates only, regardless of the page content and structure. We use the user attention predictions in numerical simulations to evaluate the PPA auction scheme. Our results show that, in relevant economic settings, the PPA revenues would be strictly higher than the existing auction payment schemes.",
+      "evidence": [
+        "Payments in online ad auctions are typically derived from click-through rates, so that advertisers do not pay for ineffective ads.",
+        "But advertisers often care about more than just clicks.",
+        "That is, for example, if they aim to raise brand awareness or visibility.",
+        "There is thus an opportunity to devise a more effective ad pricing paradigm, in which ads are paid only if they are actually noticed."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "scheme-information-auction",
+      "cluster_label": "Scheme · Information · Auction",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 6,
+      "title": "An Audio-centric Multi-task Learning Framework for Streaming Ads Targeting on Spotify",
+      "arxiv_url": "https://arxiv.org/abs/2506.18735",
+      "arxiv_id": "2506.18735",
+      "year": 2025,
+      "source_report": "selected_results",
+      "answer_path": "06_An_Audio-centric_Multi-task_Learning_Framework_for_Streaming_Ads_Targeting_on_Spotify.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Spotify, a large-scale multimedia platform, attracts over 675 million monthly active users who collectively consume millions of hours of music, podcasts, audiobooks, and video content. This diverse content consumption pattern introduces unique challenges for computational advertising, which must effectively integrate a variety of ad modalities, including audio, video, and display, within a single user experience.",
+      "comprehensive_answer": "Spotify, a large-scale multimedia platform, attracts over 675 million monthly active users who collectively consume millions of hours of music, podcasts, audiobooks, and video content. This diverse content consumption pattern introduces unique challenges for computational advertising, which must effectively integrate a variety of ad modalities, including audio, video, and display, within a single user experience. Traditional ad recommendation models, primarily designed for foregrounded experiences, often struggle to reconcile the platform's inherent audio-centrality with the demands of optimizing ad performance across multiple formats and modalities. To overcome these challenges, we introduce Cross-modal Adaptive Mixture-of-Experts (CAMoE), a novel framework for optimizing click-through rate (CTR) prediction in both audio-centric and multi-modal settings. CAMoE enhances traditional mixture-of-experts models by incorporating modality-aware task grouping, adaptive loss masking, and deep-cross networks (DCN) to capture complex feature interactions within a multi-modal ad ecosystem. Through extensive ablation studies, we demonstrate that this approach achieves near Pareto-optimal performance across audio, video, and display ad formats, significantly improving AUC-PR compared to conventional single-task and content-based multi-task learning baselines. When deployed at scale on Spotify's ad serving platform, CAMoE delivered substantial gains, yielding a 14.5% increase in CTR for audio ads, a 1.3% increase for video ads, and a 4.8% reduction in expected cost-per-click (eCPC) for audio slots.",
+      "evidence": [
+        "Spotify, a large-scale multimedia platform, attracts over 675 million monthly active users who collectively consume millions of hours of music, podcasts, audiobooks, and video content.",
+        "This diverse content consumption pattern introduces unique challenges for computational advertising, which must effectively integrate a variety of ad modalities, including audio, video, and display, within a single user experience.",
+        "Traditional ad recommendation models, primarily designed for foregrounded experiences, often struggle to reconcile the platform's inherent audio-centrality with the demands of optimizing ad performance across multiple formats and modalities.",
+        "To overcome these challenges, we introduce Cross-modal Adaptive Mixture-of-Experts (CAMoE), a novel framework for optimizing click-through rate (CTR) prediction in both audio-centric and multi-modal settings."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "audio-centric-spotify-learning",
+      "cluster_label": "Audio Centric · Spotify · Learning",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 7,
+      "title": "A Non-sequential Approach to Deep User Interest Model for CTR Prediction",
+      "arxiv_url": "https://arxiv.org/abs/2104.06312",
+      "arxiv_id": "2104.06312",
+      "year": 2021,
+      "source_report": "selected_results",
+      "answer_path": "07_A_Non-sequential_Approach_to_Deep_User_Interest_Model_for_CTR_Prediction.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Click-Through Rate (CTR) prediction plays an important role in many industrial applications, and recently a lot of attention is paid to the deep interest models which use attention mechanism to capture user interests from historical behaviors. However, most current models are based on sequential models which truncate the behavior sequences by a fixed length, thus have difficulties in handling very long behavior sequences.",
+      "comprehensive_answer": "Click-Through Rate (CTR) prediction plays an important role in many industrial applications, and recently a lot of attention is paid to the deep interest models which use attention mechanism to capture user interests from historical behaviors. However, most current models are based on sequential models which truncate the behavior sequences by a fixed length, thus have difficulties in handling very long behavior sequences. Another big problem is that sequences with the same length can be quite different in terms of time, carrying completely different meanings. In this paper, we propose a non-sequential approach to tackle the above problems. Specifically, we first represent the behavior data in a sparse key-vector format, where the vector contains rich behavior info such as time, count and category. Next, we enhance the Deep Interest Network to take such rich information into account by a novel attention network. The sparse representation makes it practical to handle large scale long behavior sequences. Finally, we introduce a multidimensional partition framework to mine behavior interactions. The framework can partition data into custom designed time buckets to capture the interactions among information aggregated in different time buckets. Similarly, it can also partition the data into different categories and capture the interactions among them. Experiments are conducted on two public datasets: one is an advertising dataset and the other is a production recommender dataset. Our models outperform other state-of-the-art models on both datasets.",
+      "evidence": [
+        "Click-Through Rate (CTR) prediction plays an important role in many industrial applications, and recently a lot of attention is paid to the deep interest models which use attention mechanism to capture user interests from historical behaviors.",
+        "However, most current models are based on sequential models which truncate the behavior sequences by a fixed length, thus have difficulties in handling very long behavior sequences.",
+        "Another big problem is that sequences with the same length can be quite different in terms of time, carrying completely different meanings.",
+        "In this paper, we propose a non-sequential approach to tackle the above problems."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "approach-user-prediction",
+      "cluster_label": "Approach · User · Prediction",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 8,
+      "title": "Model Monotonicity in Autobidding Auctions: When Do Better Predictions Lead to Better Outcomes?",
+      "arxiv_url": "https://arxiv.org/abs/2605.31036",
+      "arxiv_id": "2605.31036",
+      "year": 2026,
+      "source_report": "selected_results",
+      "answer_path": "08_Model_Monotonicity_in_Autobidding_Auctions_When_Do_Better_Predictions_Lead_to_Better_Outcomes.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Online advertising platforms rely on machine learning models to predict click-through rates (pCTR) and conversion rates (pCVR) for auction mechanisms. We introduce a novel framework to study the interaction between recommender system model quality, auction format, and autobidder behavior.",
+      "comprehensive_answer": "Online advertising platforms rely on machine learning models to predict click-through rates (pCTR) and conversion rates (pCVR) for auction mechanisms. We introduce a novel framework to study the interaction between recommender system model quality, auction format, and autobidder behavior. We formalize when model improvements -- defined via a refinement relation inspired by filtrations in probability theory -- lead to improvements in platform-level Evaluation Criteria Metrics (ECM) such as revenue, welfare, or liquid welfare. Our main contributions are: (1) a formal definition of model improvement based on cluster refinement, and (2) a systematic characterization of ECM monotonicity across different combinations of bidder types (tCPA, max-CPA), auction formats (first-price, second-price, VCG), and budget constraints. We show that first-price auctions with uniform bidding guarantee revenue monotonicity for tCPA bidders without budgets (via Jensen's inequality), while second-price auctions and budget constraints can break this property. We provide full numerical constructions for the non-monotonicity results. Our findings have practical implications for advertising platforms seeking to align model improvements with business outcomes.",
+      "evidence": [
+        "Online advertising platforms rely on machine learning models to predict click-through rates (pCTR) and conversion rates (pCVR) for auction mechanisms.",
+        "We introduce a novel framework to study the interaction between recommender system model quality, auction format, and autobidder behavior.",
+        "We formalize when model improvements -- defined via a refinement relation inspired by filtrations in probability theory -- lead to improvements in platform-level Evaluation Criteria Metrics (ECM) such as revenue, welfare, or liquid welfare.",
+        "Our main contributions are: (1) a formal definition of model improvement based on cluster refinement, and (2) a systematic characterization of ECM monotonicity across different combinations of bidder types (tCPA, max-CPA), auction formats (first-price, second-price, VCG), and budget constraints."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "lead-autobidding-model",
+      "cluster_label": "Lead · Autobidding · Model",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 9,
+      "title": "Are AI Agents interacting with Online Ads?",
+      "arxiv_url": "https://arxiv.org/abs/2504.07112",
+      "arxiv_id": "2504.07112",
+      "year": 2025,
+      "source_report": "selected_results",
+      "answer_path": "09_Are_AI_Agents_interacting_with_Online_Ads.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "As AI-driven agents become increasingly integrated into the digital ecosystem, they reshape how online advertising is perceived and processed. Particularly in the travel and hotel booking sector, these autonomous systems influence the effectiveness of traditional advertising formats.",
+      "comprehensive_answer": "As AI-driven agents become increasingly integrated into the digital ecosystem, they reshape how online advertising is perceived and processed. Particularly in the travel and hotel booking sector, these autonomous systems influence the effectiveness of traditional advertising formats. While visual cues and emotional appeals sway human users, AI agents prioritize structured data such as price, availability, and specifications. This study examines how different AI agents interact with online advertising, whether they incorporate ads into their decision-making processes, and which ad formats prove most effective. We analyze interaction patterns, click behavior, and decision-making strategies through experiments with multimodal language models such as OpenAI GPT-4o, Anthropic Claude 3.7 Sonnet, and Google Gemini 2.0 Flash. Our findings reveal that AI agents neither ignore nor systematically avoid advertisements but instead favor certain features-particularly keywords and structured data. These insights have significant implications for the future design of advertising strategies in AI-dominated digital environments.",
+      "evidence": [
+        "As AI-driven agents become increasingly integrated into the digital ecosystem, they reshape how online advertising is perceived and processed.",
+        "Particularly in the travel and hotel booking sector, these autonomous systems influence the effectiveness of traditional advertising formats.",
+        "While visual cues and emotional appeals sway human users, AI agents prioritize structured data such as price, availability, and specifications.",
+        "This study examines how different AI agents interact with online advertising, whether they incorporate ads into their decision-making processes, and which ad formats prove most effective."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "online-ads-agents",
+      "cluster_label": "Online · Ads · Agents",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 10,
+      "title": "E-commerce in Your Inbox: Product Recommendations at Scale",
+      "arxiv_url": "https://arxiv.org/abs/1606.07154",
+      "arxiv_id": "1606.07154",
+      "year": 2016,
+      "source_report": "selected_results",
+      "answer_path": "10_E-commerce_in_Your_Inbox_Product_Recommendations_at_Scale.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "In recent years online advertising has become increasingly ubiquitous and effective. Advertisements shown to visitors fund sites and apps that publish digital content, manage social networks, and operate e-mail services.",
+      "comprehensive_answer": "In recent years online advertising has become increasingly ubiquitous and effective. Advertisements shown to visitors fund sites and apps that publish digital content, manage social networks, and operate e-mail services. Given such large variety of internet resources, determining an appropriate type of advertising for a given platform has become critical to financial success. Native advertisements, namely ads that are similar in look and feel to content, have had great success in news and social feeds. However, to date there has not been a winning formula for ads in e-mail clients. In this paper we describe a system that leverages user purchase history determined from e-mail receipts to deliver highly personalized product ads to Yahoo Mail users. We propose to use a novel neural language-based algorithm specifically tailored for delivering effective product recommendations, which was evaluated against baselines that included showing popular products and products predicted based on co-occurrence. We conducted rigorous offline testing using a large-scale product purchase data set, covering purchases of more than 29 million users from 172 e-commerce websites. Ads in the form of product recommendations were successfully tested on online traffic, where we observed a steady 9% lift in click-through rates over other ad formats in mail, as well as comparable lift in conversion rates. Following successful tests, the system was launched into production during the holiday season of 2014.",
+      "evidence": [
+        "In recent years online advertising has become increasingly ubiquitous and effective.",
+        "Advertisements shown to visitors fund sites and apps that publish digital content, manage social networks, and operate e-mail services.",
+        "Given such large variety of internet resources, determining an appropriate type of advertising for a given platform has become critical to financial success.",
+        "Native advertisements, namely ads that are similar in look and feel to content, have had great success in news and social feeds."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "your-recommendations-product",
+      "cluster_label": "Your · Recommendations · Product",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    }
+  ]
+}

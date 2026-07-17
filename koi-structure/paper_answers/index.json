@@ -1,0 +1,173 @@
+[
+  {
+    "folder": "scene-graph-robot",
+    "question": "scene graph robot",
+    "created_at": "2026-06-22T14:39:54Z",
+    "count": 2,
+    "path": "paper_answers/scene-graph-robot",
+    "index_markdown": "paper_answers/scene-graph-robot/answers_index.md",
+    "cluster_report": "paper_answers/scene-graph-robot/answer_clusters.md"
+  },
+  {
+    "folder": "mobile-search-ads-ctr-prediction",
+    "question": "mobile search ads CTR prediction",
+    "created_at": "2026-06-22T14:43:13Z",
+    "count": 10,
+    "path": "paper_answers/mobile-search-ads-ctr-prediction",
+    "index_markdown": "paper_answers/mobile-search-ads-ctr-prediction/answers_index.md",
+    "cluster_report": "paper_answers/mobile-search-ads-ctr-prediction/answer_clusters.md"
+  },
+  {
+    "folder": "how-does-the-ad-format-affect-ctr-on-mobile-and-desktop-in-searc",
+    "question": "How does the ad format affect CTR on mobile and desktop in search ads?",
+    "created_at": "2026-06-22T14:47:02Z",
+    "count": 4,
+    "path": "paper_answers/how-does-the-ad-format-affect-ctr-on-mobile-and-desktop-in-searc",
+    "index_markdown": "paper_answers/how-does-the-ad-format-affect-ctr-on-mobile-and-desktop-in-searc/answers_index.md",
+    "cluster_report": "paper_answers/how-does-the-ad-format-affect-ctr-on-mobile-and-desktop-in-searc/answer_clusters.md"
+  },
+  {
+    "folder": "scene-graph-robot-planning",
+    "question": "scene graph robot planning",
+    "created_at": "2026-06-22T14:47:04Z",
+    "count": 8,
+    "path": "paper_answers/scene-graph-robot-planning",
+    "index_markdown": "paper_answers/scene-graph-robot-planning/answers_index.md",
+    "cluster_report": "paper_answers/scene-graph-robot-planning/answer_clusters.md"
+  },
+  {
+    "folder": "large-language-models-embodied-agents",
+    "question": "large language models embodied agents",
+    "created_at": "2026-06-22T14:47:04Z",
+    "count": 8,
+    "path": "paper_answers/large-language-models-embodied-agents",
+    "index_markdown": "paper_answers/large-language-models-embodied-agents/answers_index.md",
+    "cluster_report": "paper_answers/large-language-models-embodied-agents/answer_clusters.md"
+  },
+  {
+    "folder": "budget-allocation-search-advertising-segments",
+    "question": "budget allocation search advertising segments",
+    "created_at": "2026-06-22T14:47:05Z",
+    "count": 8,
+    "path": "paper_answers/budget-allocation-search-advertising-segments",
+    "index_markdown": "paper_answers/budget-allocation-search-advertising-segments/answers_index.md",
+    "cluster_report": "paper_answers/budget-allocation-search-advertising-segments/answer_clusters.md"
+  },
+  {
+    "folder": "mobile-search-advertising-ctr",
+    "question": "mobile search advertising CTR",
+    "created_at": "2026-06-22T14:48:19Z",
+    "count": 2,
+    "path": "paper_answers/mobile-search-advertising-ctr",
+    "index_markdown": "paper_answers/mobile-search-advertising-ctr/answers_index.md",
+    "cluster_report": "paper_answers/mobile-search-advertising-ctr/answer_clusters.md"
+  },
+  {
+    "folder": "click-through-rate-search-advertising-ad-format-mobile-desktop",
+    "question": "click-through rate search advertising ad format mobile desktop",
+    "created_at": "2026-06-22T14:49:18Z",
+    "count": 10,
+    "path": "paper_answers/click-through-rate-search-advertising-ad-format-mobile-desktop",
+    "index_markdown": "paper_answers/click-through-rate-search-advertising-ad-format-mobile-desktop/answers_index.md",
+    "cluster_report": "paper_answers/click-through-rate-search-advertising-ad-format-mobile-desktop/answer_clusters.md"
+  },
+  {
+    "folder": "how-does-ad-format-text-vs-image-affect-ctr-on-mobile-and-deskto",
+    "question": "How does ad format (text vs image) affect CTR on mobile and desktop in search advertising?",
+    "created_at": "2026-06-22T16:25:09Z",
+    "count": 10,
+    "path": "paper_answers/how-does-ad-format-text-vs-image-affect-ctr-on-mobile-and-deskto",
+    "index_markdown": "paper_answers/how-does-ad-format-text-vs-image-affect-ctr-on-mobile-and-deskto/answers_index.md",
+    "cluster_report": "paper_answers/how-does-ad-format-text-vs-image-affect-ctr-on-mobile-and-deskto/answer_clusters.md"
+  },
+  {
+    "folder": "is-there-evidence-in-the-literature-that-graphical-ads-underperf",
+    "question": "Is there evidence in the literature that graphical ads underperform text ads on mobile?",
+    "created_at": "2026-06-22T16:27:55Z",
+    "count": 10,
+    "path": "paper_answers/is-there-evidence-in-the-literature-that-graphical-ads-underperf",
+    "index_markdown": "paper_answers/is-there-evidence-in-the-literature-that-graphical-ads-underperf/answers_index.md",
+    "cluster_report": "paper_answers/is-there-evidence-in-the-literature-that-graphical-ads-underperf/answer_clusters.md"
+  },
+  {
+    "folder": "how-do-approaches-differ-for-cold-start-ctr-on-new-ads",
+    "question": "How do approaches differ for cold-start CTR on new ads?",
+    "created_at": "2026-06-22T16:29:04Z",
+    "count": 10,
+    "path": "paper_answers/how-do-approaches-differ-for-cold-start-ctr-on-new-ads",
+    "index_markdown": "paper_answers/how-do-approaches-differ-for-cold-start-ctr-on-new-ads/answers_index.md",
+    "cluster_report": "paper_answers/how-do-approaches-differ-for-cold-start-ctr-on-new-ads/answer_clusters.md"
+  },
+  {
+    "folder": "e",
+    "question": "e",
+    "created_at": "2026-06-22T20:02:38Z",
+    "count": 10,
+    "path": "paper_answers/e",
+    "index_markdown": "paper_answers/e/answers_index.md",
+    "cluster_report": "paper_answers/e/answer_clusters.md"
+  },
+  {
+    "folder": "what-ctr-prediction-models-are-used-for-search-advertising",
+    "question": "What CTR prediction models are used for search advertising?",
+    "created_at": "2026-06-22T20:10:14Z",
+    "count": 10,
+    "path": "paper_answers/what-ctr-prediction-models-are-used-for-search-advertising",
+    "index_markdown": "paper_answers/what-ctr-prediction-models-are-used-for-search-advertising/answers_index.md",
+    "cluster_report": "paper_answers/what-ctr-prediction-models-are-used-for-search-advertising/answer_clusters.md"
+  },
+  {
+    "folder": "what-budget-allocation-methods-are-used-in-sponsored-search",
+    "question": "What budget allocation methods are used in sponsored search?",
+    "created_at": "2026-06-22T20:53:33Z",
+    "count": 10,
+    "path": "paper_answers/what-budget-allocation-methods-are-used-in-sponsored-search",
+    "index_markdown": "paper_answers/what-budget-allocation-methods-are-used-in-sponsored-search/answers_index.md",
+    "cluster_report": "paper_answers/what-budget-allocation-methods-are-used-in-sponsored-search/answer_clusters.md"
+  },
+  {
+    "folder": "can-budget-be-reallocated-from-weak-segments-to-strong-ones-with",
+    "question": "Can budget be reallocated from weak segments to strong ones without losing reach?",
+    "created_at": "2026-06-22T20:55:22Z",
+    "count": 10,
+    "path": "paper_answers/can-budget-be-reallocated-from-weak-segments-to-strong-ones-with",
+    "index_markdown": "paper_answers/can-budget-be-reallocated-from-weak-segments-to-strong-ones-with/answers_index.md",
+    "cluster_report": "paper_answers/can-budget-be-reallocated-from-weak-segments-to-strong-ones-with/answer_clusters.md"
+  },
+  {
+    "folder": "how-do-models-incorporate-device-type-and-ad-format-when-predict",
+    "question": "How do models incorporate device type and ad format when predicting click-through rate?",
+    "created_at": "2026-06-22T20:56:19Z",
+    "count": 10,
+    "path": "paper_answers/how-do-models-incorporate-device-type-and-ad-format-when-predict",
+    "index_markdown": "paper_answers/how-do-models-incorporate-device-type-and-ad-format-when-predict/answers_index.md",
+    "cluster_report": "paper_answers/how-do-models-incorporate-device-type-and-ad-format-when-predict/answer_clusters.md"
+  },
+  {
+    "folder": "how-does-targeting-quality-affect-efficiency-in-search-ad-auctio",
+    "question": "How does targeting quality affect efficiency in search ad auctions?",
+    "created_at": "2026-06-23T10:47:02Z",
+    "count": 10,
+    "path": "paper_answers/how-does-targeting-quality-affect-efficiency-in-search-ad-auctio",
+    "index_markdown": "paper_answers/how-does-targeting-quality-affect-efficiency-in-search-ad-auctio/answers_index.md",
+    "cluster_report": "paper_answers/how-does-targeting-quality-affect-efficiency-in-search-ad-auctio/answer_clusters.md"
+  },
+  {
+    "folder": "how-should-advertising-budget-be-allocated-across-segments-with-",
+    "question": "How should advertising budget be allocated across segments with different CTR?",
+    "created_at": "2026-06-26T08:37:53Z",
+    "count": 10,
+    "path": "paper_answers/how-should-advertising-budget-be-allocated-across-segments-with-",
+    "index_markdown": "paper_answers/how-should-advertising-budget-be-allocated-across-segments-with-/answers_index.md",
+    "cluster_report": "paper_answers/how-should-advertising-budget-be-allocated-across-segments-with-/answer_clusters.md"
+  },
+  {
+    "folder": "mkmkr",
+    "question": "mkmkr",
+    "created_at": "2026-06-29T07:37:21Z",
+    "count": 10,
+    "path": "paper_answers/mkmkr",
+    "index_markdown": "paper_answers/mkmkr/answers_index.md",
+    "cluster_report": "paper_answers/mkmkr/answer_clusters.md"
+  }
+]

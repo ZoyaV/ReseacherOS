@@ -1,0 +1,439 @@
+{
+  "question": "How do approaches differ for cold-start CTR on new ads?",
+  "project_id": "bicycle-ads-efficiency",
+  "created_at": "2026-06-22T16:29:04Z",
+  "count": 10,
+  "download_pdfs": false,
+  "index_markdown": "answers_index.md",
+  "cluster_report": "answer_clusters.md",
+  "cluster_backend": "abstract_heuristic",
+  "clusters": [
+    {
+      "key": "advertising-ctr-prediction",
+      "label": "Advertising · Ctr · Prediction",
+      "answer": "Papers in this group share themes around advertising, ctr, prediction, display for: How do approaches differ for cold-start CTR on new ads?",
+      "rationale": "Grouped 2 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "advertising",
+        "ctr",
+        "prediction",
+        "display",
+        "deep",
+        "aie"
+      ],
+      "paper_titles": [
+        "Deep CTR Prediction in Display Advertising",
+        "AIE: Auction Information Enhanced Framework for CTR Prediction in Online Advertising"
+      ]
+    },
+    {
+      "key": "based-advertising-click",
+      "label": "Based · Advertising · Click",
+      "answer": "Papers in this group share themes around based, advertising, click, improving for: How do approaches differ for cold-start CTR on new ads?",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "based",
+        "advertising",
+        "click",
+        "improving",
+        "xdeepfm",
+        "accuracy"
+      ],
+      "paper_titles": [
+        "An accuracy improving method for advertising click through rate prediction based on enhanced xDeepFM model"
+      ]
+    },
+    {
+      "key": "advertising-click-through-prediction",
+      "label": "Advertising · Click Through · Prediction",
+      "answer": "Papers in this group share themes around advertising, click-through, prediction, rate for: How do approaches differ for cold-start CTR on new ads?",
+      "rationale": "Grouped 2 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "advertising",
+        "click-through",
+        "prediction",
+        "rate",
+        "search",
+        "applications"
+      ],
+      "paper_titles": [
+        "Generative Click-through Rate Prediction with Applications to Search Advertising",
+        "Click-Through Rate Prediction in Online Advertising: A Literature Review"
+      ]
+    },
+    {
+      "key": "modeling-boost-ctr",
+      "label": "Modeling · Boost · Ctr",
+      "answer": "Papers in this group share themes around modeling, boost, ctr, content for: How do approaches differ for cold-start CTR on new ads?",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "modeling",
+        "boost",
+        "ctr",
+        "content",
+        "visual",
+        "prediction"
+      ],
+      "paper_titles": [
+        "Boost CTR Prediction for New Advertisements via Modeling Visual Content"
+      ]
+    },
+    {
+      "key": "ctr-driven-generation-advertising",
+      "label": "Ctr Driven · Generation · Advertising",
+      "answer": "Papers in this group share themes around ctr-driven, generation, advertising, pre-training for: How do approaches differ for cold-start CTR on new ads?",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "ctr-driven",
+        "generation",
+        "advertising",
+        "pre-training",
+        "fine-tuning",
+        "controlled"
+      ],
+      "paper_titles": [
+        "CREATER: CTR-driven Advertising Text Generation with Controlled Pre-Training and Contrastive Fine-Tuning"
+      ]
+    },
+    {
+      "key": "click-linear-regression",
+      "label": "Click · Linear · Regression",
+      "answer": "Papers in this group share themes around click, linear, regression, contextual for: How do approaches differ for cold-start CTR on new ads?",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "click",
+        "linear",
+        "regression",
+        "contextual",
+        "prediction",
+        "rate"
+      ],
+      "paper_titles": [
+        "Click Through Rate Prediction for Contextual Advertisment Using Linear Regression"
+      ]
+    },
+    {
+      "key": "ctr-driven-generation-models",
+      "label": "Ctr Driven · Generation · Models",
+      "answer": "Papers in this group share themes around ctr-driven, generation, models, advertising for: How do approaches differ for cold-start CTR on new ads?",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "ctr-driven",
+        "generation",
+        "models",
+        "advertising",
+        "multimodal",
+        "image"
+      ],
+      "paper_titles": [
+        "CTR-Driven Advertising Image Generation with Multimodal Large Language Models"
+      ]
+    },
+    {
+      "key": "predict-advertising-e-commerce",
+      "label": "Predict · Advertising · E Commerce",
+      "answer": "Papers in this group share themes around predict, advertising, e-commerce, click-through for: How do approaches differ for cold-start CTR on new ads?",
+      "rationale": "Grouped 1 paper(s) by title and topic token overlap.",
+      "distinguishing_features": "Heuristic cluster from abstract/title overlap without LLM.",
+      "signature_terms": [
+        "predict",
+        "advertising",
+        "e-commerce",
+        "click-through",
+        "deep",
+        "rates"
+      ],
+      "paper_titles": [
+        "Predict Click-Through Rates with Deep Interest Network Model in E-commerce Advertising"
+      ]
+    }
+  ],
+  "papers": [
+    {
+      "rank": 1,
+      "title": "Deep CTR Prediction in Display Advertising",
+      "arxiv_url": "https://arxiv.org/abs/1609.06018",
+      "arxiv_id": "1609.06018",
+      "year": 2016,
+      "source_report": "selected_results",
+      "answer_path": "01_Deep_CTR_Prediction_in_Display_Advertising.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Click through rate (CTR) prediction of image ads is the core task of online display advertising systems, and logistic regression (LR) has been frequently applied as the prediction model. However, LR model lacks the ability of extracting complex and intrinsic nonlinear features from handcrafted high-dimensional image features, which limits its effectiveness.",
+      "comprehensive_answer": "Click through rate (CTR) prediction of image ads is the core task of online display advertising systems, and logistic regression (LR) has been frequently applied as the prediction model. However, LR model lacks the ability of extracting complex and intrinsic nonlinear features from handcrafted high-dimensional image features, which limits its effectiveness. To solve this issue, in this paper, we introduce a novel deep neural network (DNN) based model that directly predicts the CTR of an image ad based on raw image pixels and other basic features in one step. The DNN model employs convolution layers to automatically extract representative visual features from images, and nonlinear CTR features are then learned from visual features and other contextual features by using fully-connected layers. Empirical evaluations on a real world dataset with over 50 million records demonstrate the effectiveness and efficiency of this method.",
+      "evidence": [
+        "Click through rate (CTR) prediction of image ads is the core task of online display advertising systems, and logistic regression (LR) has been frequently applied as the prediction model.",
+        "However, LR model lacks the ability of extracting complex and intrinsic nonlinear features from handcrafted high-dimensional image features, which limits its effectiveness.",
+        "To solve this issue, in this paper, we introduce a novel deep neural network (DNN) based model that directly predicts the CTR of an image ad based on raw image pixels and other basic features in one step.",
+        "The DNN model employs convolution layers to automatically extract representative visual features from images, and nonlinear CTR features are then learned from visual features and other contextual features by using fully-connected layers."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "advertising-ctr-prediction",
+      "cluster_label": "Advertising · Ctr · Prediction",
+      "cluster_rationale": "Grouped 2 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 2,
+      "title": "AIE: Auction Information Enhanced Framework for CTR Prediction in Online Advertising",
+      "arxiv_url": "https://arxiv.org/abs/2408.07907",
+      "arxiv_id": "2408.07907",
+      "year": 2024,
+      "source_report": "selected_results",
+      "answer_path": "02_AIE_Auction_Information_Enhanced_Framework_for_CTR_Prediction_in_Online_Advertising.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Click-Through Rate (CTR) prediction is a fundamental technique for online advertising recommendation and the complex online competitive auction process also brings many difficulties to CTR optimization. Recent studies have shown that introducing posterior auction information contributes to the performance of CTR prediction.",
+      "comprehensive_answer": "Click-Through Rate (CTR) prediction is a fundamental technique for online advertising recommendation and the complex online competitive auction process also brings many difficulties to CTR optimization. Recent studies have shown that introducing posterior auction information contributes to the performance of CTR prediction. However, existing work doesn't fully capitalize on the benefits of auction information and overlooks the data bias brought by the auction, leading to biased and suboptimal results. To address these limitations, we propose Auction Information Enhanced Framework (AIE) for CTR prediction in online advertising, which delves into the problem of insufficient utilization of auction signals and first reveals the auction bias. Specifically, AIE introduces two pluggable modules, namely Adaptive Market-price Auxiliary Module (AM2) and Bid Calibration Module (BCM), which work collaboratively to excavate the posterior auction signals better and enhance the performance of CTR prediction. Furthermore, the two proposed modules are lightweight, model-agnostic, and friendly to inference latency. Extensive experiments are conducted on a public dataset and an industrial dataset to demonstrate the effectiveness and compatibility of AIE. Besides, a one-month online A/B test in a large-scale advertising platform shows that AIE improves the base model by 5.76% and 2.44% in terms of eCPM and CTR, respectively.",
+      "evidence": [
+        "Click-Through Rate (CTR) prediction is a fundamental technique for online advertising recommendation and the complex online competitive auction process also brings many difficulties to CTR optimization.",
+        "Recent studies have shown that introducing posterior auction information contributes to the performance of CTR prediction.",
+        "However, existing work doesn't fully capitalize on the benefits of auction information and overlooks the data bias brought by the auction, leading to biased and suboptimal results.",
+        "To address these limitations, we propose Auction Information Enhanced Framework (AIE) for CTR prediction in online advertising, which delves into the problem of insufficient utilization of auction signals and first reveals the auction bias."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "advertising-ctr-prediction",
+      "cluster_label": "Advertising · Ctr · Prediction",
+      "cluster_rationale": "Grouped 2 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 3,
+      "title": "An accuracy improving method for advertising click through rate prediction based on enhanced xDeepFM model",
+      "arxiv_url": "https://arxiv.org/abs/2411.15223",
+      "arxiv_id": "2411.15223",
+      "year": 2024,
+      "source_report": "selected_results",
+      "answer_path": "03_An_accuracy_improving_method_for_advertising_click_through_rate_prediction_based_on_enhanced_xDeepFM_model.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Advertising click-through rate (CTR) prediction aims to forecast the probability that a user will click on an advertisement in a given context, thus providing enterprises with decision support for product ranking and ad placement. However, CTR prediction faces challenges such as data sparsity and class imbalance, which adversely affect model training effectiveness.",
+      "comprehensive_answer": "Advertising click-through rate (CTR) prediction aims to forecast the probability that a user will click on an advertisement in a given context, thus providing enterprises with decision support for product ranking and ad placement. However, CTR prediction faces challenges such as data sparsity and class imbalance, which adversely affect model training effectiveness. Moreover, most current CTR prediction models fail to fully explore the associations among user history, interests, and target advertisements from multiple perspectives, neglecting important information at different levels. To address these issues, this paper proposes an improved CTR prediction model based on the xDeepFM architecture. By integrating a multi-head attention mechanism, the model can simultaneously focus on different aspects of feature interactions, enhancing its ability to learn intricate patterns without significantly increasing computational complexity. Furthermore, replacing the linear model with a Factorization Machine (FM) model improves the handling of high-dimensional sparse data by flexibly capturing both first-order and second-order feature interactions. Experimental results on the Criteo dataset demonstrate that the proposed model outperforms other state-of-the-art methods, showing significant improvements in both AUC and Logloss metrics. This enhancement facilitates better mining of implicit relationships between features and improves the accuracy of advertising CTR prediction.",
+      "evidence": [
+        "Advertising click-through rate (CTR) prediction aims to forecast the probability that a user will click on an advertisement in a given context, thus providing enterprises with decision support for product ranking and ad placement.",
+        "However, CTR prediction faces challenges such as data sparsity and class imbalance, which adversely affect model training effectiveness.",
+        "Moreover, most current CTR prediction models fail to fully explore the associations among user history, interests, and target advertisements from multiple perspectives, neglecting important information at different levels.",
+        "To address these issues, this paper proposes an improved CTR prediction model based on the xDeepFM architecture."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "based-advertising-click",
+      "cluster_label": "Based · Advertising · Click",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 4,
+      "title": "Generative Click-through Rate Prediction with Applications to Search Advertising",
+      "arxiv_url": "https://arxiv.org/abs/2507.11246",
+      "arxiv_id": "2507.11246",
+      "year": 2025,
+      "source_report": "selected_results",
+      "answer_path": "04_Generative_Click-through_Rate_Prediction_with_Applications_to_Search_Advertising.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Click-Through Rate (CTR) prediction models are integral to a myriad of industrial settings, such as personalized search advertising. Current methods typically involve feature extraction from users' historical behavior sequences combined with product information, feeding into a discriminative model that is trained on user feedback to estimate CTR.",
+      "comprehensive_answer": "Click-Through Rate (CTR) prediction models are integral to a myriad of industrial settings, such as personalized search advertising. Current methods typically involve feature extraction from users' historical behavior sequences combined with product information, feeding into a discriminative model that is trained on user feedback to estimate CTR. With the success of models such as GPT, the potential for generative models to enrich expressive power beyond discriminative models has become apparent. In light of this, we introduce a novel model that leverages generative models to enhance the precision of CTR predictions in discriminative models. To reconcile the disparate data aggregation needs of both model types, we design a two-stage training process: 1) Generative pre-training for next-item prediction with the given item category in user behavior sequences; 2) Fine-tuning the well-trained generative model within a discriminative CTR prediction framework. Our method's efficacy is substantiated through extensive experiments on a new dataset, and its significant utility is further corroborated by online A/B testing results. Currently, the model is deployed on one of the world's largest e-commerce platforms, and we intend to release the associated code and dataset in the future.",
+      "evidence": [
+        "Click-Through Rate (CTR) prediction models are integral to a myriad of industrial settings, such as personalized search advertising.",
+        "Current methods typically involve feature extraction from users' historical behavior sequences combined with product information, feeding into a discriminative model that is trained on user feedback to estimate CTR.",
+        "With the success of models such as GPT, the potential for generative models to enrich expressive power beyond discriminative models has become apparent.",
+        "In light of this, we introduce a novel model that leverages generative models to enhance the precision of CTR predictions in discriminative models."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "advertising-click-through-prediction",
+      "cluster_label": "Advertising · Click Through · Prediction",
+      "cluster_rationale": "Grouped 2 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 5,
+      "title": "Click-Through Rate Prediction in Online Advertising: A Literature Review",
+      "arxiv_url": "https://arxiv.org/abs/2202.10462",
+      "arxiv_id": "2202.10462",
+      "year": 2022,
+      "source_report": "selected_results",
+      "answer_path": "05_Click-Through_Rate_Prediction_in_Online_Advertising_A_Literature_Review.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Predicting the probability that a user will click on a specific advertisement has been a prevalent issue in online advertising, attracting much research attention in the past decades. As a hot research frontier driven by industrial needs, recent years have witnessed more and more novel learning models employed to improve advertising CTR prediction.",
+      "comprehensive_answer": "Predicting the probability that a user will click on a specific advertisement has been a prevalent issue in online advertising, attracting much research attention in the past decades. As a hot research frontier driven by industrial needs, recent years have witnessed more and more novel learning models employed to improve advertising CTR prediction. Although extant research provides necessary details on algorithmic design for addressing a variety of specific problems in advertising CTR prediction, the methodological evolution and connections between modeling frameworks are precluded. However, to the best of our knowledge, there are few comprehensive surveys on this topic. We make a systematic literature review on state-of-the-art and latest CTR prediction research, with a special focus on modeling frameworks. Specifically, we give a classification of state-of-the-art CTR prediction models in the extant literature, within which basic modeling frameworks and their extensions, advantages and disadvantages, and performance assessment for CTR prediction are presented. Moreover, we summarize CTR prediction models with respect to the complexity and the order of feature interactions, and performance comparisons on various datasets. Furthermore, we identify current research trends, main challenges and potential future directions worthy of further explorations. This review is expected to provide fundamental knowledge and efficient entry points for IS and marketing scholars who want to engage in this area.",
+      "evidence": [
+        "Predicting the probability that a user will click on a specific advertisement has been a prevalent issue in online advertising, attracting much research attention in the past decades.",
+        "As a hot research frontier driven by industrial needs, recent years have witnessed more and more novel learning models employed to improve advertising CTR prediction.",
+        "Although extant research provides necessary details on algorithmic design for addressing a variety of specific problems in advertising CTR prediction, the methodological evolution and connections between modeling frameworks are precluded.",
+        "However, to the best of our knowledge, there are few comprehensive surveys on this topic."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "advertising-click-through-prediction",
+      "cluster_label": "Advertising · Click Through · Prediction",
+      "cluster_rationale": "Grouped 2 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 6,
+      "title": "Boost CTR Prediction for New Advertisements via Modeling Visual Content",
+      "arxiv_url": "https://arxiv.org/abs/2209.11727",
+      "arxiv_id": "2209.11727",
+      "year": 2022,
+      "source_report": "selected_results",
+      "answer_path": "06_Boost_CTR_Prediction_for_New_Advertisements_via_Modeling_Visual_Content.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "Existing advertisements click-through rate (CTR) prediction models are mainly dependent on behavior ID features, which are learned based on the historical user-ad interactions. Nevertheless, behavior ID features relying on historical user behaviors are not feasible to describe new ads without previous interactions with users.",
+      "comprehensive_answer": "Existing advertisements click-through rate (CTR) prediction models are mainly dependent on behavior ID features, which are learned based on the historical user-ad interactions. Nevertheless, behavior ID features relying on historical user behaviors are not feasible to describe new ads without previous interactions with users. To overcome the limitations of behavior ID features in modeling new ads, we exploit the visual content in ads to boost the performance of CTR prediction models. Specifically, we map each ad into a set of visual IDs based on its visual content. These visual IDs are further used for generating the visual embedding for enhancing CTR prediction models. We formulate the learning of visual IDs into a supervised quantization problem. Due to a lack of class labels for commercial images in advertisements, we exploit image textual descriptions as the supervision to optimize the image extractor for generating effective visual IDs. Meanwhile, since the hard quantization is non-differentiable, we soften the quantization operation to make it support the end-to-end network training. After mapping each image into visual IDs, we learn the embedding for each visual ID based on the historical user-ad interactions accumulated in the past. Since the visual ID embedding depends only on the visual content, it generalizes well to new ads. Meanwhile, the visual ID embedding complements the ad behavior ID embedding. Thus, it can considerably boost the performance of the CTR prediction models previously relying on behavior ID features for both new ads and ads that have accumulated rich user behaviors. After incorporating the visual ID embedding in the CTR prediction model of Baidu online advertising, the average CTR of ads improves by 1.46%, and the total charge increases by 1.10%.",
+      "evidence": [
+        "Existing advertisements click-through rate (CTR) prediction models are mainly dependent on behavior ID features, which are learned based on the historical user-ad interactions.",
+        "Nevertheless, behavior ID features relying on historical user behaviors are not feasible to describe new ads without previous interactions with users.",
+        "To overcome the limitations of behavior ID features in modeling new ads, we exploit the visual content in ads to boost the performance of CTR prediction models.",
+        "Specifically, we map each ad into a set of visual IDs based on its visual content."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "modeling-boost-ctr",
+      "cluster_label": "Modeling · Boost · Ctr",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 7,
+      "title": "CREATER: CTR-driven Advertising Text Generation with Controlled Pre-Training and Contrastive Fine-Tuning",
+      "arxiv_url": "https://arxiv.org/abs/2205.08943",
+      "arxiv_id": "2205.08943",
+      "year": 2022,
+      "source_report": "selected_results",
+      "answer_path": "07_CREATER_CTR-driven_Advertising_Text_Generation_with_Controlled_Pre-Training_and_Contrastive_Fine-Tuning.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "This paper focuses on automatically generating the text of an ad, and the goal is that the generated text can capture user interest for achieving higher click-through rate (CTR). We propose CREATER, a CTR-driven advertising text generation approach, to generate ad texts based on high-quality user reviews.",
+      "comprehensive_answer": "This paper focuses on automatically generating the text of an ad, and the goal is that the generated text can capture user interest for achieving higher click-through rate (CTR). We propose CREATER, a CTR-driven advertising text generation approach, to generate ad texts based on high-quality user reviews. To incorporate CTR objective, our model learns from online A/B test data with contrastive learning, which encourages the model to generate ad texts that obtain higher CTR. To alleviate the low-resource issue, we design a customized self-supervised objective reducing the gap between pre-training and fine-tuning. Experiments on industrial datasets show that CREATER significantly outperforms current approaches. It has been deployed online in a leading advertising platform and brings uplift on core online metrics.",
+      "evidence": [
+        "This paper focuses on automatically generating the text of an ad, and the goal is that the generated text can capture user interest for achieving higher click-through rate (CTR).",
+        "We propose CREATER, a CTR-driven advertising text generation approach, to generate ad texts based on high-quality user reviews.",
+        "To incorporate CTR objective, our model learns from online A/B test data with contrastive learning, which encourages the model to generate ad texts that obtain higher CTR.",
+        "To alleviate the low-resource issue, we design a customized self-supervised objective reducing the gap between pre-training and fine-tuning."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "ctr-driven-generation-advertising",
+      "cluster_label": "Ctr Driven · Generation · Advertising",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 8,
+      "title": "Click Through Rate Prediction for Contextual Advertisment Using Linear Regression",
+      "arxiv_url": "https://arxiv.org/abs/1701.08744",
+      "arxiv_id": "1701.08744",
+      "year": 2017,
+      "source_report": "selected_results",
+      "answer_path": "08_Click_Through_Rate_Prediction_for_Contextual_Advertisment_Using_Linear_Regression.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "This research presents an innovative and unique way of solving the advertisement prediction problem which is considered as a learning problem over the past several years. Online advertising is a multi-billion-dollar industry and is growing every year with a rapid pace.",
+      "comprehensive_answer": "This research presents an innovative and unique way of solving the advertisement prediction problem which is considered as a learning problem over the past several years. Online advertising is a multi-billion-dollar industry and is growing every year with a rapid pace. The goal of this research is to enhance click through rate of the contextual advertisements using Linear Regression. In order to address this problem, a new technique propose in this paper to predict the CTR which will increase the overall revenue of the system by serving the advertisements more suitable to the viewers with the help of feature extraction and displaying the advertisements based on context of the publishers. The important steps include the data collection, feature extraction, CTR prediction and advertisement serving. The statistical results obtained from the dynamically used technique show an efficient outcome by fitting the data close to perfection for the LR technique using optimized feature selection.",
+      "evidence": [
+        "This research presents an innovative and unique way of solving the advertisement prediction problem which is considered as a learning problem over the past several years.",
+        "Online advertising is a multi-billion-dollar industry and is growing every year with a rapid pace.",
+        "The goal of this research is to enhance click through rate of the contextual advertisements using Linear Regression.",
+        "In order to address this problem, a new technique propose in this paper to predict the CTR which will increase the overall revenue of the system by serving the advertisements more suitable to the viewers with the help of feature extraction and displaying the advertisements based on context of the publishers."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "click-linear-regression",
+      "cluster_label": "Click · Linear · Regression",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 9,
+      "title": "CTR-Driven Advertising Image Generation with Multimodal Large Language Models",
+      "arxiv_url": "https://arxiv.org/abs/2502.06823",
+      "arxiv_id": "2502.06823",
+      "year": 2025,
+      "source_report": "selected_results",
+      "answer_path": "09_CTR-Driven_Advertising_Image_Generation_with_Multimodal_Large_Language_Models.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "In web data, advertising images are crucial for capturing user attention and improving advertising effectiveness. Most existing methods generate background for products primarily focus on the aesthetic quality, which may fail to achieve satisfactory online performance.",
+      "comprehensive_answer": "In web data, advertising images are crucial for capturing user attention and improving advertising effectiveness. Most existing methods generate background for products primarily focus on the aesthetic quality, which may fail to achieve satisfactory online performance. To address this limitation, we explore the use of Multimodal Large Language Models (MLLMs) for generating advertising images by optimizing for Click-Through Rate (CTR) as the primary objective. Firstly, we build targeted pre-training tasks, and leverage a large-scale e-commerce multimodal dataset to equip MLLMs with initial capabilities for advertising image generation tasks. To further improve the CTR of generated images, we propose a novel reward model to fine-tune pre-trained MLLMs through Reinforcement Learning (RL), which can jointly utilize multimodal features and accurately reflect user click preferences. Meanwhile, a product-centric preference optimization strategy is developed to ensure that the generated background content aligns with the product characteristics after fine-tuning, enhancing the overall relevance and effectiveness of the advertising images. Extensive experiments have demonstrated that our method achieves state-of-the-art performance in both online and offline metrics. Our code and pre-trained models are publicly available at: https://github.com/Chenguoz/CAIG.",
+      "evidence": [
+        "In web data, advertising images are crucial for capturing user attention and improving advertising effectiveness.",
+        "Most existing methods generate background for products primarily focus on the aesthetic quality, which may fail to achieve satisfactory online performance.",
+        "To address this limitation, we explore the use of Multimodal Large Language Models (MLLMs) for generating advertising images by optimizing for Click-Through Rate (CTR) as the primary objective.",
+        "Firstly, we build targeted pre-training tasks, and leverage a large-scale e-commerce multimodal dataset to equip MLLMs with initial capabilities for advertising image generation tasks."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "ctr-driven-generation-models",
+      "cluster_label": "Ctr Driven · Generation · Models",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    },
+    {
+      "rank": 10,
+      "title": "Predict Click-Through Rates with Deep Interest Network Model in E-commerce Advertising",
+      "arxiv_url": "https://arxiv.org/abs/2406.10239",
+      "arxiv_id": "2406.10239",
+      "year": 2024,
+      "source_report": "selected_results",
+      "answer_path": "10_Predict_Click-Through_Rates_with_Deep_Interest_Network_Model_in_E-commerce_Advertising.md",
+      "html_path": null,
+      "pdf_path": null,
+      "text_path": null,
+      "extracted_text_chars": 0,
+      "used_full_text": false,
+      "answer_backend": "abstract_heuristic",
+      "answer_source": "abstract_heuristic",
+      "short_answer": "This paper proposes new methods to enhance click-through rate (CTR) prediction models using the Deep Interest Network (DIN) model, specifically applied to the advertising system of Alibaba's Taobao platform. Unlike traditional deep learning approaches, this research focuses on localized user behavior activation for tailored ad targeting by leveraging extensive user behavior data.",
+      "comprehensive_answer": "This paper proposes new methods to enhance click-through rate (CTR) prediction models using the Deep Interest Network (DIN) model, specifically applied to the advertising system of Alibaba's Taobao platform. Unlike traditional deep learning approaches, this research focuses on localized user behavior activation for tailored ad targeting by leveraging extensive user behavior data. Compared to traditional models, this method demonstrates superior ability to handle diverse and dynamic user data, thereby improving the efficiency of ad systems and increasing revenue.",
+      "evidence": [
+        "This paper proposes new methods to enhance click-through rate (CTR) prediction models using the Deep Interest Network (DIN) model, specifically applied to the advertising system of Alibaba's Taobao platform.",
+        "Unlike traditional deep learning approaches, this research focuses on localized user behavior activation for tailored ad targeting by leveraging extensive user behavior data.",
+        "Compared to traditional models, this method demonstrates superior ability to handle diverse and dynamic user data, thereby improving the efficiency of ad systems and increasing revenue."
+      ],
+      "limitations": "Эвристический ответ по абстракту без LLM-агента.",
+      "cluster_key": "predict-advertising-e-commerce",
+      "cluster_label": "Predict · Advertising · E Commerce",
+      "cluster_rationale": "Grouped 1 paper(s) by title and topic token overlap."
+    }
+  ]
+}
