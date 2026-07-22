@@ -17,7 +17,7 @@ Workflow [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) пуб�
 
 В настройках репозитория: **Settings → Pages → Source: GitHub Actions**.
 
-URL проекта: `https://zoyav.github.io/ReseacherOS/` (имя репо `ReseacherOS`).
+URL проекта: `https://zoyav.github.io/ResearcherOS/` (имя репо `ResearcherOS`).
 
 ## Обновить скилл
 

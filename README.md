@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="docs/assets/researcher_os_logo.png" alt="ResearchOS" width="480">
+  <img src="docs/assets/researcher_os_logo.png" alt="ResearcherOS" width="480">
 </p>
 
 ## About
 
-ResearchOS is a research organization platform built around knowledge extraction: from a problem and hypothesis tree, through kanban experiments and structured reports, to verdicts and insights that accumulate in a curated knowledge base.
+ResearcherOS is a research organization platform built around knowledge extraction: from a problem and hypothesis tree, through kanban experiments and structured reports, to verdicts and insights that accumulate in a curated knowledge base.
 
 ```
 Problem → causes (nature hypotheses) → hypotheses (how to prove / fix)
@@ -26,9 +26,9 @@ All research data lives in Markdown files — no database required. The engine i
 |------|----------------|
 | 2026-07-22 | **Literature review** — on the Literature page, pick papers from a local library, arXiv, or Zotero, ask a research question, and get groups of similar papers from several AI assistants plus a final report with a map of those groups and a draft Related Work (prior-work) section. |
 | 2026-07-22 | **Hub Skills catalog** — public projects can publish agent skill packages into a shared Hub pool; after sync, open packages appear on the Skills tab for others to browse and download. |
-| 2026-07-22 | **Telegram channel for product news** — public channel [@researcher_os](https://t.me/researcher_os) for ResearchOS development updates (new features, the web interface, and Hub — a catalog of shared tools); not experiment metrics. |
+| 2026-07-22 | **Telegram channel for product news** — public channel [@researcher_os](https://t.me/researcher_os) for ResearcherOS development updates (new features, the web interface, and Hub — a catalog of shared tools); not experiment metrics. |
 | 2026-07-17 | **`tree/` layout + install CLI** — research data under `tree/<repo>/koi-structure/` (branch `koi/research`); code in sibling `<repo>/`. One command: `python -m koi.projects.install_cli install <repo>`. |
-| 2026-07-16 | **Composite merge by title** — shared ancestors match on `(type, normalized title, parent)`, not only id; remaps child/board links. Fixes duplicate problem/cause branches in ResearchOS and Hub. ADR: [docs/adr-002-composite-view.md](docs/adr-002-composite-view.md). |
+| 2026-07-16 | **Composite merge by title** — shared ancestors match on `(type, normalized title, parent)`, not only id; remaps child/board links. Fixes duplicate problem/cause branches in ResearcherOS and Hub. ADR: [docs/adr-002-composite-view.md](docs/adr-002-composite-view.md). |
 | 2026-07-15 | **DAG layout JSON** — card positions in DAG view persist to `koi-structure/dag-layouts/<board_id>.json` (API `GET/PUT /projects/{id}/boards/{board_id}/dag-layout`); browser `localStorage` is migrated on first open. |
 | 2026-07-13 | **Method board DAG view** — optional `depends_on` prerequisite edges between experiment cards; Kanban/DAG tabs in the method modal; interactive editor (link, delete, auto-layout, tag filter, Q/A pills, fit-to-view); card status styling (backlog, running pulse, done checkmark); persisted as `deps:` in `project.md`; API `POST /projects/{id}/boards/{board_id}/dag/suggest`. |
 | 2026-07-03 | **Composite view** — projects with the same `composite_id` merge into one hypothesis tree at read time; virtual program entry in the sidebar; writes route to the owning repo via `node.project_id`. API: `GET /composites`, `GET /composites/{id}`. ADR: [docs/adr-002-composite-view.md](docs/adr-002-composite-view.md). |
@@ -47,7 +47,7 @@ Requirements: Python 3.10+, `git`, `curl`. Optional: [tectonic](https://tectonic
 ### Clone
 
 ```bash
-git clone git@github.com:ZoyaV/ReseacherOS.git ReseachOS
+git clone git@github.com:ZoyaV/ResearcherOS.git ReseachOS
 cd ReseachOS
 ```
 
@@ -103,7 +103,7 @@ Open http://127.0.0.1:8080 — `bicycle_problem` appears in the sidebar.
 
 ## Add a project
 
-ResearchOS scans the parent of the engine. Prefer the canonical layout:
+ResearcherOS scans the parent of the engine. Prefer the canonical layout:
 
 ```
 workspace/
@@ -129,7 +129,7 @@ python -m koi.projects.install_cli install my_idea --create
 
 | Case | What happens |
 |------|----------------|
-| Code repo, no ResearchOS yet | Create orphan `koi/research`, seed `koi-structure/`, attach as `tree/<repo>` worktree |
+| Code repo, no ResearcherOS yet | Create orphan `koi/research`, seed `koi-structure/`, attach as `tree/<repo>` worktree |
 | Branch `koi/research` already exists | Attach `tree/<repo>` worktree to that branch |
 | `--create` | New local `tree/<repo>/koi-structure` + `<repo>/projectcode` |
 | Old layout (koi inside code repo) | Migrate checkout into `tree/` |
@@ -141,7 +141,7 @@ Then restart: `./scripts/koi-serve.sh restart`.
 Place the code repo next to `ReseachOS/`, then in Cursor / Claude Code:
 
 ```
-Подключи ../my_experiment к ResearchOS.
+Подключи ../my_experiment к ResearcherOS.
 
 Следуй agents/skills/koi-project-onboard/SKILL.md.
 В конце: python -m koi.projects.install_cli install my_experiment
@@ -169,7 +169,7 @@ python -m koi.projects.install_cli install my_idea --create --title "My research
 Paste into your IDE agent:
 
 ```
-Create a new ResearchOS project from scratch.
+Create a new ResearcherOS project from scratch.
 
 1. Interview me: research problem, domain, what we already know, what experiments are feasible.
 2. Propose a hypothesis tree: problem → causes → evidence/remediation hypotheses → methods.
@@ -218,6 +218,6 @@ Where research lives: tree + kanban in UI or `koi-structure/project.md`; reports
 
 | | |
 |---|---|
-| Public site (GitHub Pages) | [docs-site/](docs-site/) → after deploy: `https://zoyav.github.io/ReseacherOS/` |
+| Public site (GitHub Pages) | [docs-site/](docs-site/) → after deploy: `https://zoyav.github.io/ResearcherOS/` |
 | Documentation | [docs/](docs/) |
-| Issues | [github.com/ZoyaV/ReseacherOS/issues](https://github.com/ZoyaV/ReseacherOS/issues) |
+| Issues | [github.com/ZoyaV/ResearcherOS/issues](https://github.com/ZoyaV/ResearcherOS/issues) |
