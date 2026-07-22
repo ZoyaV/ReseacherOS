@@ -1,4 +1,6 @@
 id: koi-project-onboard
-title: Онбординг проекта (attach)
-summary: 'Онбординг code-репо: интервью → project.md → install_cli / koi/research.'
+title: Подключение проекта к ResearchOS
+summary: >-
+  Пошаговый разговор с агентом: из вашего кода получается дерево гипотез
+  и рабочая ветка исследования.
 visibility: public
