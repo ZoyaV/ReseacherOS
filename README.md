@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/reseacheros_logo.png?v=2" alt="ResearchOS" width="480">
+  <img src="https://raw.githubusercontent.com/ZoyaV/ReseacherOS/main/docs/assets/reseacheros_logo.png" alt="ResearchOS" width="480">
 </p>
 
 ## About
