@@ -1,0 +1,4 @@
+id: koi-project-sync
+title: Git-синхронизация проектов
+summary: Авто-commit/push значимых изменений KOI и периодический pull.
+visibility: public
