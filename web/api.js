@@ -61,7 +61,12 @@ async function api(path, options = {}) {
         "Review Agent API route was not found. Restart KOI so the backend picks up the new endpoint."
       );
     }
-    throw new Error(detail);
+    if (res.status === 405 && String(path).includes("/literature/")) {
+      throw new Error(
+        "Cancel API is missing. Restart KOI (./scripts/koi-serve.sh restart) and hard-refresh the page."
+      );
+    }
+    throw new Error(typeof detail === "string" ? detail : res.statusText);
   }
   if (res.status === 204) return null;
   return res.json();
@@ -75,6 +80,28 @@ export const KoiApi = {
       body: JSON.stringify({ text }),
     }),
   libraryStatus: () => api("/library/status"),
+  listLibraryPapers: (limit) =>
+    api(limit ? `/library/papers?limit=${encodeURIComponent(limit)}` : "/library/papers"),
+  connectZotero: ({ api_key, user_id = "" } = {}) =>
+    api("/library/zotero/connect", {
+      method: "POST",
+      body: JSON.stringify({ api_key, user_id: user_id || null }),
+    }),
+  listZoteroCollections: ({ api_key, user_id = "" } = {}) =>
+    api("/library/zotero/collections", {
+      method: "POST",
+      body: JSON.stringify({ api_key, user_id: user_id || null }),
+    }),
+  importZotero: ({ api_key, user_id = "", limit = 50, collection_key = "" } = {}) =>
+    api("/library/zotero/import", {
+      method: "POST",
+      body: JSON.stringify({
+        api_key,
+        user_id: user_id || null,
+        limit,
+        collection_key: collection_key || null,
+      }),
+    }),
   searchLibrary: (query, limit = 10) =>
     api("/library/search", {
       method: "POST",
@@ -128,6 +155,30 @@ export const KoiApi = {
     api(`/projects/${projectId}/paper-question-agent`, {
       method: "POST",
       body: JSON.stringify({ question, limit, refresh, download_pdfs, papers }),
+    }),
+  runLiteratureCluster: (
+    projectId,
+    { question = "", refresh = false, download_pdfs = true, papers = [] } = {}
+  ) =>
+    api(`/projects/${projectId}/literature/cluster`, {
+      method: "POST",
+      body: JSON.stringify({ question, refresh, download_pdfs, papers }),
+    }),
+  stageLiteratureCluster: (
+    projectId,
+    { question = "", papers = [] } = {}
+  ) =>
+    api(`/projects/${projectId}/literature/cluster/stage`, {
+      method: "POST",
+      body: JSON.stringify({ question, papers }),
+    }),
+  listLiteratureRuns: (projectId) =>
+    api(`/projects/${encodeURIComponent(projectId)}/literature`),
+  getLiteratureRun: (projectId, runId) =>
+    api(`/projects/${encodeURIComponent(projectId)}/literature/${encodeURIComponent(runId)}`),
+  deleteLiteratureRun: (projectId, runId) =>
+    api(`/projects/${encodeURIComponent(projectId)}/literature/${encodeURIComponent(runId)}`, {
+      method: "DELETE",
     }),
   generateRelatedWorks: (projectId, { problem = "", cluster_keys = [] } = {}) =>
     api(`/projects/${projectId}/paper-question-agent/related-works`, {

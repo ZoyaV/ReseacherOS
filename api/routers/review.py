@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 
 from api.deps import get_project, parse_project
 from api.schemas import (
+    LiteratureClusterBody,
     PaperQuestionAgentBody,
     ProjectPaperReviewBody,
     RelatedWorksAnswerBody,
@@ -12,6 +13,13 @@ from api.schemas import (
     ReviewAgentBody,
 )
 from koi.literature import create_project_paper_review, search_library
+from koi.literature.cluster_orch import (
+    delete_literature_run,
+    list_literature_runs,
+    load_literature_run,
+    run_literature_cluster,
+    stage_literature_cluster,
+)
 from koi.related_work import (
     answer_related_work_item,
     claim_related_work_item,
@@ -80,11 +88,83 @@ def post_project_paper_question_agent(
         raise HTTPException(500, str(e)) from e
 
 
+@router.post("/projects/{project_id}/literature/cluster")
+def post_project_literature_cluster(
+    project_id: str,
+    body: LiteratureClusterBody,
+) -> dict[str, object]:
+    parse_project(project_id)
+    try:
+        return run_literature_cluster(
+            project_id,
+            question=body.question.strip(),
+            selected_results=body.papers,
+            force_refresh=body.refresh,
+            download_pdfs=body.download_pdfs,
+        )
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    except RuntimeError as e:
+        raise HTTPException(500, str(e)) from e
+
+
+@router.post("/projects/{project_id}/literature/cluster/stage")
+def post_project_literature_cluster_stage(
+    project_id: str,
+    body: LiteratureClusterBody,
+) -> dict[str, object]:
+    """Stage selected papers + question; return a Cursor chat prompt (no LLM API)."""
+    parse_project(project_id)
+    try:
+        return stage_literature_cluster(
+            project_id,
+            question=body.question.strip(),
+            selected_results=body.papers,
+        )
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+
+
+@router.get("/projects/{project_id}/literature")
+def get_project_literature_history(project_id: str) -> dict[str, object]:
+    parse_project(project_id)
+    runs = list_literature_runs(project_id)
+    return {"count": len(runs), "runs": runs}
+
+
+@router.get("/projects/{project_id}/literature/{run_id}")
+def get_project_literature_run(project_id: str, run_id: str) -> dict[str, object]:
+    parse_project(project_id)
+    payload = load_literature_run(project_id, run_id)
+    if payload is None:
+        raise HTTPException(404, f"Literature run '{run_id}' was not found.")
+    return payload
+
+
+@router.delete("/projects/{project_id}/literature/{run_id}")
+def delete_project_literature_run(project_id: str, run_id: str) -> dict[str, object]:
+    """Cancel a staged literature cluster run (no report.md yet)."""
+    parse_project(project_id)
+    try:
+        return delete_literature_run(project_id, run_id)
+    except LookupError as e:
+        raise HTTPException(404, str(e)) from e
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+
+
 @router.get("/projects/{project_id}/paper-question-agent/latest")
 def get_latest_project_paper_question_agent(project_id: str) -> dict[str, object]:
     parse_project(project_id)
     payload = load_latest_paper_answer_run(project_id)
     if payload is None:
+        # Prefer newest multi-agent literature run when legacy paper_answers are empty.
+        runs = list_literature_runs(project_id)
+        if runs:
+            newest_id = str(runs[0].get("run_id") or runs[0].get("query_hash") or "")
+            newest = load_literature_run(project_id, newest_id)
+            if newest is not None:
+                return newest
         raise HTTPException(404, "No saved paper answer run was found for this project.")
     return payload
 

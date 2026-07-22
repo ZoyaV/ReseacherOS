@@ -54,6 +54,10 @@ def paper_reviews_dir(project_id: str) -> Path:
     return koi_root(project_id) / PAPER_REVIEWS_DIRNAME
 
 
+def literature_dir(project_id: str) -> Path:
+    return koi_root(project_id) / "literature"
+
+
 def paper_answers_dir(project_id: str) -> Path:
     return koi_root(project_id) / "paper_answers"
 

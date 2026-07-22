@@ -6,7 +6,15 @@ import io
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from api.deps import workspace_relative
-from api.schemas import LibraryDiscoverBody, LiteratureSearchBody, ReviewSetBody, TranslateToEnglishBody
+from api.schemas import (
+    LibraryDiscoverBody,
+    LiteratureSearchBody,
+    ReviewSetBody,
+    TranslateToEnglishBody,
+    ZoteroCollectionsBody,
+    ZoteroConnectBody,
+    ZoteroImportBody,
+)
 from koi.literature import review_sets
 from koi.projects.views import project_to_client
 from koi.literature import (
@@ -15,11 +23,19 @@ from koi.literature import (
     bootstrap_library_from_arxiv,
     discover_library_with_agent,
     library_csv_exists,
+    list_library_papers,
     reset_library_cache,
     resolve_library_csv,
     search_arxiv_internet,
     search_library,
     translate_to_english,
+)
+from koi.literature.zotero import (
+    ZoteroApiError,
+    ZoteroAuthError,
+    fetch_zotero_papers,
+    list_zotero_collections,
+    verify_zotero_credentials,
 )
 
 router = APIRouter(tags=["library"])
@@ -38,6 +54,25 @@ def get_library_status() -> dict[str, object]:
         "exists": exists,
         "csv_path": csv_path,
         "upload_path": workspace_relative(LIBRARY_UPLOAD_PATH),
+    }
+
+
+@router.get("/library/papers")
+def get_library_papers(limit: int | None = None) -> dict[str, object]:
+    papers = list_library_papers(limit=limit)
+    csv_path = None
+    if library_csv_exists():
+        try:
+            csv_path = workspace_relative(resolve_library_csv())
+        except FileNotFoundError:
+            csv_path = None
+    return {
+        "count": len(papers),
+        "papers": papers,
+        "source": {
+            "csv_path": csv_path,
+            "fields": ["no", "arxiv_url", "title", "authors", "abstract"],
+        },
     }
 
 
@@ -172,6 +207,41 @@ async def post_library_upload(file: UploadFile = File(...)) -> dict[str, object]
         "required_fields": list(LIBRARY_REQUIRED_FIELDS),
         "filename": file.filename or LIBRARY_UPLOAD_PATH.name,
     }
+
+
+@router.post("/library/zotero/connect")
+def post_library_zotero_connect(body: ZoteroConnectBody) -> dict[str, object]:
+    try:
+        return verify_zotero_credentials(api_key=body.api_key, user_id=body.user_id)
+    except ZoteroAuthError as error:
+        raise HTTPException(401, str(error)) from error
+    except ZoteroApiError as error:
+        raise HTTPException(502, str(error)) from error
+
+
+@router.post("/library/zotero/collections")
+def post_library_zotero_collections(body: ZoteroCollectionsBody) -> dict[str, object]:
+    try:
+        return list_zotero_collections(api_key=body.api_key, user_id=body.user_id)
+    except ZoteroAuthError as error:
+        raise HTTPException(401, str(error)) from error
+    except ZoteroApiError as error:
+        raise HTTPException(502, str(error)) from error
+
+
+@router.post("/library/zotero/import")
+def post_library_zotero_import(body: ZoteroImportBody) -> dict[str, object]:
+    try:
+        return fetch_zotero_papers(
+            api_key=body.api_key,
+            user_id=body.user_id,
+            limit=body.limit,
+            collection_key=body.collection_key,
+        )
+    except ZoteroAuthError as error:
+        raise HTTPException(401, str(error)) from error
+    except ZoteroApiError as error:
+        raise HTTPException(502, str(error)) from error
 
 
 @router.post("/library/review-set")

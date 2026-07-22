@@ -28,6 +28,7 @@ from koi.literature.library import (
     _snippet,
     _tokenize,
     _write_library_csv,
+    infer_year_from_arxiv_url,
     reset_library_cache,
 )
 
@@ -128,6 +129,7 @@ def _parse_arxiv_atom_feed(xml_bytes: bytes, query: str, limit: int) -> list[dic
                     "title": title,
                     "arxiv_url": arxiv_url,
                     "authors": ", ".join(authors),
+                    "year": infer_year_from_arxiv_url(arxiv_url),
                     "abstract": summary,
                     "abstract_preview": _snippet(summary, query_token_set)
                     if query_token_set

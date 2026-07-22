@@ -124,6 +124,13 @@ class PaperQuestionAgentBody(BaseModel):
     papers: list[dict] = Field(default_factory=list)
 
 
+class LiteratureClusterBody(BaseModel):
+    question: str = Field(min_length=1)
+    refresh: bool = False
+    download_pdfs: bool = True
+    papers: list[dict] = Field(default_factory=list)
+
+
 class RelatedWorksAnswerBody(BaseModel):
     markdown: str = Field(min_length=1)
 
@@ -135,6 +142,23 @@ class RelatedWorksBody(BaseModel):
 
 class TranslateToEnglishBody(BaseModel):
     text: str = Field(min_length=1)
+
+
+class ZoteroConnectBody(BaseModel):
+    api_key: str = Field(min_length=1)
+    user_id: Optional[str] = None
+
+
+class ZoteroCollectionsBody(BaseModel):
+    api_key: str = Field(min_length=1)
+    user_id: Optional[str] = None
+
+
+class ZoteroImportBody(BaseModel):
+    api_key: str = Field(min_length=1)
+    user_id: Optional[str] = None
+    limit: int = Field(default=50, ge=1, le=100)
+    collection_key: Optional[str] = None
 
 
 class AgentChatBody(BaseModel):

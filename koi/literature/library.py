@@ -32,6 +32,10 @@ LIBRARY_FIELDNAMES = ("no", "arxiv_url", "title", "authors", "abstract")
 TOKEN_RE = re.compile(r"[a-z0-9\u0400-\u04ff]+")
 ARXIV_TOKEN_RE = re.compile(r"[a-z0-9\u0400-\u04ff]+(?:-[a-z0-9]+)?")
 CYRILLIC_RE = re.compile(r"[\u0400-\u04ff]")
+ARXIV_YEAR_RE = re.compile(
+    r"(?:arxiv\.org/(?:abs|pdf|html)/)?(\d{2})(\d{2})\.\d{4,5}",
+    re.IGNORECASE,
+)
 ARXIV_API_URL = "http://export.arxiv.org/api/query"
 ARXIV_ATOM_NS = {"atom": "http://www.w3.org/2005/Atom"}
 ARXIV_MAX_QUERY_TERMS = 3
@@ -203,6 +207,54 @@ def reset_library_cache() -> None:
 
 def library_csv_exists() -> bool:
     return any(path.exists() for path in LIBRARY_CSV_CANDIDATES)
+
+
+def infer_year_from_arxiv_url(arxiv_url: str) -> int | None:
+    match = ARXIV_YEAR_RE.search(arxiv_url or "")
+    if not match:
+        return None
+    yy = int(match.group(1))
+    mm = int(match.group(2))
+    if mm < 1 or mm > 12:
+        return None
+    return 2000 + yy
+
+
+def list_library_papers(*, limit: int | None = None) -> list[dict[str, object]]:
+    """Return papers from the local CSV library for the literature sidebar."""
+    if not library_csv_exists():
+        return []
+    try:
+        library_csv = resolve_library_csv()
+    except FileNotFoundError:
+        return []
+
+    papers: list[dict[str, object]] = []
+    with library_csv.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            title = _normalize_spaces(row.get("title", ""))
+            arxiv_url = _normalize_spaces(row.get("arxiv_url", ""))
+            if not title or not arxiv_url:
+                continue
+            authors = _normalize_spaces(row.get("authors", ""))
+            abstract = _normalize_spaces(row.get("abstract", ""))
+            preview = abstract
+            if len(preview) > 280:
+                preview = preview[:279].rstrip() + "…"
+            papers.append(
+                {
+                    "title": title,
+                    "arxiv_url": arxiv_url,
+                    "authors": authors,
+                    "year": infer_year_from_arxiv_url(arxiv_url),
+                    "abstract": abstract,
+                    "abstract_preview": preview,
+                }
+            )
+            if limit is not None and len(papers) >= max(1, limit):
+                break
+    return papers
 
 
 def _snippet(text: str, query_tokens: set[str], max_chars: int = 280) -> str:
