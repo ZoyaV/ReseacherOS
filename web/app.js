@@ -6,6 +6,11 @@ import {
   runningCardContextsFromProjects,
   setRunningSeedProvider,
 } from "./card-live.js";
+import {
+  computeCostBadgeHtml,
+  computeCostChipHtml,
+  mergeComputeCost,
+} from "./compute-cost.js";
 import { KoiApi } from "./api.js?v=20260721a";
 import { destroyKanbanDagView, fitKanbanDagView, refreshKanbanDagView } from "./kanban-dag.js?v=20260715a";
 import {
@@ -3042,11 +3047,23 @@ async function openLinkedReportMarkdown(knowledgePath) {
 function updateReportPreview() {
   const preview = document.getElementById("card-report-preview");
   if (!preview) return;
-  preview.innerHTML = renderMarkdown(
-    document.getElementById("card-report-editor")?.value ?? "",
-    { assetUrlFn: reportAssetUrlFn }
-  );
+  const content = document.getElementById("card-report-editor")?.value ?? "";
+  preview.innerHTML = renderMarkdown(content, { assetUrlFn: reportAssetUrlFn });
   hookReportLinks(preview);
+  syncReportComputeCostBadge(content);
+}
+
+function syncReportComputeCostBadge(content = "") {
+  const slot = document.getElementById("card-report-compute-cost");
+  if (!slot) return;
+  const cost = mergeComputeCost(content, "");
+  if (!cost) {
+    slot.hidden = true;
+    slot.innerHTML = "";
+    return;
+  }
+  slot.hidden = false;
+  slot.innerHTML = computeCostBadgeHtml(cost, { escapeHtml });
 }
 
 function insertReportMarkdown(editor, start, end, snippet) {
@@ -3170,6 +3187,7 @@ async function openCardReport(card, board) {
   document.getElementById("card-report-card-title").textContent = card.title;
   renderCardReportTags(card);
   document.getElementById("card-report-filename").textContent = "…";
+  syncReportComputeCostBadge("");
   showModal("card-report-modal");
   setStatus("Загрузка отчёта…");
   try {
@@ -3344,6 +3362,7 @@ function cardDescPlaceholder(columnId) {
 function cardDescriptionProse(description) {
   return String(description || "")
     .replace(/\\n/g, "\n")
+    .replace(/^(live_log|metrics_dir|live_note|live_sysmon|compute_cost):\s*.+$/gim, "")
     .replace(/-\s*\[([ xX])\]\s*([^\n]*?)(?=\s*-\s*\[|$)/g, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
@@ -5350,6 +5369,36 @@ function applyKanbanCardTodoProgress(cardEl, card, reportContent = "") {
   footer?.insertAdjacentHTML("beforebegin", html);
 }
 
+function applyKanbanCardComputeCost(cardEl, card, reportContent = "") {
+  if (!cardEl || !card) return;
+  const existing = cardEl.querySelector(".compute-cost-chip");
+  const cached = reportContent || cardEl.dataset.reportCostSource || "";
+  const cost = mergeComputeCost(card.description, cached);
+  const html = cost ? computeCostChipHtml(cost, { escapeHtml }) : "";
+  if (!html) {
+    existing?.remove();
+    return;
+  }
+  if (existing) {
+    existing.outerHTML = html;
+  } else {
+    const footer = cardEl.querySelector(".kanban-card-footer");
+    const tags = footer?.querySelector(".card-tags");
+    if (tags) {
+      tags.insertAdjacentHTML("beforebegin", html);
+    } else {
+      footer?.insertAdjacentHTML("afterbegin", html);
+    }
+  }
+  // Keep chip before tags after re-render of tags-only updates
+  const chip = cardEl.querySelector(".compute-cost-chip");
+  const tagsRow = cardEl.querySelector(".kanban-card-footer .card-tags");
+  if (chip && tagsRow && chip.nextElementSibling !== tagsRow) {
+    tagsRow.before(chip);
+  }
+  cardEl.classList.toggle("has-compute-cost", Boolean(html));
+}
+
 function syncKanbanCardTodoProgress(cardEl, card, reportContent = "") {
   const cached = cardEl?.dataset?.reportTodoSource || "";
   applyKanbanCardTodoProgress(cardEl, card, reportContent || cached);
@@ -5358,32 +5407,46 @@ function syncKanbanCardTodoProgress(cardEl, card, reportContent = "") {
 async function hydrateKanbanCardTodoFromReports(boardEl, board, project, liveCtx = null) {
   if (!boardEl || !board) return;
   const projectId = boardWriteProjectId(board);
-  const running = (board.cards || []).filter((c) => c.column_id === "running");
+  const cards = board.cards || [];
   let addedLiveBtn = false;
   await Promise.all(
-    running.map(async (card) => {
+    cards.map(async (card) => {
       const cardEl = boardEl.querySelector(`.kanban-card[data-card-id="${card.id}"]`);
       if (!cardEl) return;
-      let reportContent = cardEl.dataset.reportTodoSource || "";
-      const needsTodoFromReport = !cardHasSubtasks(card.description);
+      let reportContent =
+        cardEl.dataset.reportTodoSource ||
+        cardEl.dataset.reportLiveSource ||
+        cardEl.dataset.reportCostSource ||
+        "";
+      const needsTodoFromReport =
+        card.column_id === "running" && !cardHasSubtasks(card.description);
       const needsLiveFromReport =
-        !cardHasLiveHints(card.description) && !cardEl.querySelector(".card-live-inspect");
-      if (needsTodoFromReport || needsLiveFromReport) {
+        card.column_id === "running" &&
+        !cardHasLiveHints(card.description) &&
+        !cardEl.querySelector(".card-live-inspect");
+      const needsCostFromReport =
+        ["running", "done", "successful"].includes(card.column_id) &&
+        !mergeComputeCost(card.description, reportContent);
+      if (needsTodoFromReport || needsLiveFromReport || needsCostFromReport) {
         try {
           const data = await KoiApi.getCardReport(projectId, board.id, card.id);
           reportContent = data.content || "";
           if (reportContent) {
             cardEl.dataset.reportTodoSource = reportContent;
             cardEl.dataset.reportLiveSource = reportContent;
+            cardEl.dataset.reportCostSource = reportContent;
           }
         } catch {
           /* no report yet */
         }
       }
-      applyKanbanCardTodoProgress(cardEl, card, reportContent);
-      const descEl = cardEl.querySelector(".card-desc-display");
-      if (descEl) syncCardDescTodoOnlyState(descEl, card.description, reportContent);
-      if (syncKanbanCardLiveInspect(cardEl, card, reportContent)) addedLiveBtn = true;
+      if (card.column_id === "running") {
+        applyKanbanCardTodoProgress(cardEl, card, reportContent);
+        const descEl = cardEl.querySelector(".card-desc-display");
+        if (descEl) syncCardDescTodoOnlyState(descEl, card.description, reportContent);
+        if (syncKanbanCardLiveInspect(cardEl, card, reportContent)) addedLiveBtn = true;
+      }
+      applyKanbanCardComputeCost(cardEl, card, reportContent);
     })
   );
   if (addedLiveBtn && liveCtx) {
@@ -5450,6 +5513,8 @@ function kanbanCardHtml(c, col, variant = "modal") {
       : "";
   const accentStyle = c.tags?.[0] ? cardTagHueStyle(c.tags[0]) : "";
   const hasTags = (c.tags || []).length > 0;
+  const costFromDesc = mergeComputeCost(c.description, "");
+  const costChip = costFromDesc ? computeCostChipHtml(costFromDesc, { escapeHtml }) : "";
   const todoProgress =
     col.id === "running" && cardHasSubtasks(c.description)
       ? cardTodoProgressHtml(c.description)
@@ -5464,7 +5529,7 @@ function kanbanCardHtml(c, col, variant = "modal") {
     : `<p class="card-title-display inline-edit-text" title="Двойной клик — редактировать">${escapeHtml(c.title)}</p>
               <input type="text" class="card-title-input inline-edit-field hidden" />`;
   return `
-        <div class="kanban-card${hasTags ? " has-tag-accent" : ""}${liveBtn ? " has-live" : ""}" data-card-id="${c.id}"${accentStyle ? ` style="${accentStyle}"` : ""}>
+        <div class="kanban-card${hasTags ? " has-tag-accent" : ""}${liveBtn ? " has-live" : ""}${costChip ? " has-compute-cost" : ""}" data-card-id="${c.id}"${accentStyle ? ` style="${accentStyle}"` : ""}>
           <div class="kanban-card-head">
             <span class="card-drag-handle" draggable="true" title="Перетащить в другую колонку" aria-label="Перетащить">${gripIcon}</span>
             <div class="card-text-block">
@@ -5476,6 +5541,7 @@ function kanbanCardHtml(c, col, variant = "modal") {
           </div>
           ${todoProgress}
           <div class="kanban-card-footer">
+            ${costChip}
             ${cardTagsRowHtml(c.tags, { dag: isHubMode(), kanban: !isHubMode() })}
             <div class="kanban-card-actions">
               ${copyBtn}

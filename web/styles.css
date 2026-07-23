@@ -7422,10 +7422,194 @@ textarea.inline-edit-field {
 .kanban-card-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  flex-wrap: wrap;
   gap: 0.35rem;
   margin-top: 0.42rem;
   min-height: 1.35rem;
+}
+
+.kanban-card-footer .kanban-card-actions {
+  margin-left: auto;
+}
+
+/* Compute cost chip — instrument readout (optional; omit line = no chip) */
+.compute-cost-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  max-width: 100%;
+  padding: 0.16rem 0.42rem 0.16rem 0.32rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--cyan) 42%, var(--border));
+  background: color-mix(in srgb, var(--cyan) 12%, transparent);
+  color: color-mix(in srgb, var(--cyan) 75%, var(--text));
+  font-size: 0.66rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: default;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+
+.compute-cost-chip:hover {
+  background: color-mix(in srgb, var(--cyan) 18%, transparent);
+  border-color: color-mix(in srgb, var(--cyan) 58%, var(--border));
+}
+
+.compute-cost-chip--estimated,
+.compute-cost-chip--recovered {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--orange) 45%, var(--border));
+  background: color-mix(in srgb, var(--orange) 10%, transparent);
+  color: color-mix(in srgb, var(--orange) 70%, var(--text));
+}
+
+.compute-cost-chip--estimated:hover,
+.compute-cost-chip--recovered:hover {
+  background: color-mix(in srgb, var(--orange) 16%, transparent);
+}
+
+.compute-cost-approx {
+  opacity: 0.85;
+  font-weight: 700;
+}
+
+.compute-cost-icon {
+  width: 0.78rem;
+  height: 0.78rem;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.compute-cost-chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compute-cost-badge-slot {
+  position: absolute;
+  top: 0.85rem;
+  right: 3.35rem;
+  z-index: 2;
+  max-width: min(220px, calc(100% - 5.5rem));
+}
+
+.compute-cost-badge-slot[hidden] {
+  display: none !important;
+}
+
+.compute-cost-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--cyan) 40%, var(--border));
+  background: color-mix(in srgb, var(--cyan) 10%, var(--surface-modal));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--shadow-heavy) 55%, transparent);
+  color: var(--text);
+  pointer-events: none;
+  animation: compute-cost-in 180ms ease-out;
+}
+
+.compute-cost-badge--estimated,
+.compute-cost-badge--recovered {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--orange) 42%, var(--border));
+  background: color-mix(in srgb, var(--orange) 9%, var(--surface-modal));
+}
+
+.compute-cost-badge-head {
+  display: flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: color-mix(in srgb, var(--cyan) 70%, var(--muted));
+}
+
+.compute-cost-badge--estimated .compute-cost-badge-head,
+.compute-cost-badge--recovered .compute-cost-badge-head {
+  color: color-mix(in srgb, var(--orange) 65%, var(--muted));
+}
+
+.compute-cost-badge-kicker {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.compute-cost-badge-source {
+  margin-left: auto;
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.compute-cost-badge-value {
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+}
+
+.compute-cost-badge-until {
+  font-size: 0.62rem;
+  color: var(--muted);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes compute-cost-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compute-cost-badge {
+    animation: none;
+  }
+  .compute-cost-chip {
+    transition: none;
+  }
+}
+
+[data-theme="light"] .compute-cost-chip {
+  background: color-mix(in srgb, #0d9488 10%, #fff);
+  border-color: color-mix(in srgb, #0d9488 35%, var(--border));
+  color: #0f766e;
+}
+
+[data-theme="light"] .compute-cost-chip--estimated,
+[data-theme="light"] .compute-cost-chip--recovered {
+  background: color-mix(in srgb, #ea580c 8%, #fff);
+  border-color: color-mix(in srgb, #ea580c 35%, var(--border));
+  color: #c2410c;
+}
+
+[data-theme="light"] .compute-cost-badge {
+  background: color-mix(in srgb, #0d9488 8%, #fff);
+  border-color: color-mix(in srgb, #0d9488 32%, var(--border));
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .compute-cost-badge--estimated,
+[data-theme="light"] .compute-cost-badge--recovered {
+  background: color-mix(in srgb, #ea580c 7%, #fff);
+  border-color: color-mix(in srgb, #ea580c 30%, var(--border));
 }
 
 .kanban-card-todo {

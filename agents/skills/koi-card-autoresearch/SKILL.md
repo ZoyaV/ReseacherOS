@@ -95,9 +95,11 @@ live_log: projectcode/runs/live/train.log
 metrics_dir: projectcode/runs/plots
 live_note: старт, ждём первые шаги
 live_sysmon: projectcode/runs/live/sysmon.log
+compute_cost: wall_h=…; gpu_h=…; n_gpus=…; until=…; source=measured
 ```
 
-Пока карточка в `running`, UI читает эти пути (🔍 на карте метода).
+Пока карточка в `running`, UI читает эти пути (🔍 на карте метода).  
+`compute_cost:` — опционально; на финише job заполнить wall/GPU-h (см. **koi-execute-card**).
 
 ## State-файл
 

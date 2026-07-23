@@ -1,6 +1,6 @@
 # <Название карточки как в канбане>
 
-> HOW-TODO (шапка): Статус синхронизировать с колонкой канбана (backlog → running → done). Одна строка «что блокирует закрытие» — если карточка не done. Без жирного — см. [report-rules.md](report-rules.md).
+> HOW-TODO (шапка): Статус синхронизировать с колонкой канбана (backlog → running → done). Одна строка «что блокирует закрытие» — если карточка не done. Без жирного — см. [report-rules.md](report-rules.md). После GPU/train-прогона опционально: `compute_cost: wall_h=2.4; gpu_h=4.8; n_gpus=2; until=SMA SR≥0.8` (чип на канбане; analysis/literature — не писать).
 
 Статус: запланирован  
 Канбан: `kb-…`  

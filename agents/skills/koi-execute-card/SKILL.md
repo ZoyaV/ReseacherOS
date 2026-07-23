@@ -109,18 +109,37 @@ curl -s -X PATCH "http://127.0.0.1:8010/projects/<project_id>/boards/<board_id>/
 live_log: projectcode/runs/train.log
 metrics_dir: projectcode/runs/plots
 live_note: эпоха 3, loss 0.38
+compute_cost: wall_h=2.4; gpu_h=4.8; n_gpus=2; until=SMA SR≥0.8; source=measured
 ```
 
 Пути — от корня репозитория проекта (`code_root` в `project.md`) или соседнего каталога с кодом эксперимента.
 
 | Когда | Что писать агенту |
 |-------|-------------------|
-| Старт remote job | `live_log:` на tail-лог; `live_note:` одной строкой |
+| Старт remote job | `live_log:` на tail-лог; `live_note:` одной строкой; в лог job — ISO `started_at` + `n_gpus` |
 | Веха (epoch, ошибка) | обновить `live_note:` и/или `[x]` подзадачу |
 | Появились графики | `metrics_dir:` или скопировать png в `reports/.../assets/` |
-| Финиш | `running` → `done`; live-строки можно убрать |
+| Финиш GPU/train job | посчитать wall/GPU-h и **опционально** дописать `compute_cost:` в шапку отчёта (см. ниже) |
+| Финиш карточки | `running` → `done`; live-строки можно убрать; `compute_cost:` оставить |
 
 Не дублировать весь stderr — только осмысленные обновления.
+
+### `compute_cost:` (опционально)
+
+Строка **не обязательна**: analysis / literature / карточки без train — просто не пиши её. UI показывает чип на канбане и бейдж в углу отчёта только если строка есть.
+
+Формат (ключи через `;`, все опциональны, нужен хотя бы `wall_h` или `gpu_h`):
+
+```text
+compute_cost: wall_h=<часы>; gpu_h=<часы>; n_gpus=<N>; until=<веха>; source=measured|estimated|recovered
+```
+
+- `wall_h` — календарные часы измеренного отрезка (весь job или до порога метрики).
+- `gpu_h` — обычно `wall_h × n_gpus` при эксклюзивных GPU; иначе по факту.
+- `until` — веха («SMA SR≥0.8», «budget 300 updates»); пробелы ок при `;`.
+- `source=recovered` — восстановлено из старых логов; `estimated` — грубая оценка.
+
+При старте job пиши в лог/state: `started_at` (ISO UTC) и `n_gpus`. На финише: `finished_at` или timestamp достижения порога → заполни `compute_cost:`.
 
 ## Workflow (одна карточка)
 

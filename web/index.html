@@ -514,6 +514,7 @@
     <div class="modal-backdrop" data-close="card-report-modal"></div>
     <div class="modal-panel modal-panel--report">
       <button type="button" class="modal-close" data-close="card-report-modal" aria-label="Закрыть">×</button>
+      <div id="card-report-compute-cost" class="compute-cost-badge-slot" hidden></div>
       <p class="modal-type">Отчёт</p>
       <h2 id="card-report-card-title" class="inline-edit-title"></h2>
       <div id="card-report-tags" class="card-tags"></div>
@@ -539,7 +540,7 @@
       <div class="card-report-actions">
         <button type="button" id="card-report-save" class="btn btn-primary">Сохранить</button>
       </div>
-      <p class="card-report-hint">Файл в <code>reports/</code> · Ctrl+V — картинка в <code>assets/</code> · Write / View · в превью секции <code>##</code> сворачиваются · при закрытии сохраняется</p>
+      <p class="card-report-hint">Файл в <code>reports/</code> · опционально <code>compute_cost:</code> в шапке · Ctrl+V — картинка в <code>assets/</code> · Write / View · секции <code>##</code> сворачиваются · при закрытии сохраняется</p>
     </div>
   </div>
 
@@ -729,7 +730,7 @@
           <div id="card-live-pane-host" class="card-live-pane-host"></div>
         </div>
       </div>
-      <p class="card-report-hint">Агент пишет <code>live_log:</code>, <code>metrics_dir:</code>, <code>live_note:</code> в description карточки или отчёт · UI читает файлы с диска</p>
+      <p class="card-report-hint">Агент пишет <code>live_log:</code>, <code>metrics_dir:</code>, <code>live_note:</code>, опционально <code>compute_cost:</code> в description карточки или отчёт · UI читает файлы с диска</p>
     </div>
   </div>
 
